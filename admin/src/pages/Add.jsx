@@ -1,0 +1,318 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { backendUrl } from "../App";
+import { toast } from "react-toastify";
+import { assets } from "../assets/assets";
+
+const AddProduct = ({ token }) => {
+  // State for images
+  const [image1, setImage1] = useState(null);
+  const [image2, setImage2] = useState(null);
+  const [image3, setImage3] = useState(null);
+  const [image4, setImage4] = useState(null);
+
+  // State for product details
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("Men");
+  const [subCategory, setSubCategory] = useState("Topwear");
+  const [bestseller, setBestseller] = useState(false);
+  const [sizes, setSizes] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      [image1, image2, image3, image4].forEach((img) => {
+        if (img) URL.revokeObjectURL(img.preview);
+      });
+    };
+  }, [image1, image2, image3, image4]);
+
+  // Image validation function
+  const validateImage = (file) => {
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (!validTypes.includes(file.type)) {
+      toast.error("Please upload a valid image file (JPEG, PNG, GIF, WEBP)");
+      return false;
+    }
+
+    if (file.size > maxSize) {
+      toast.error("Image size should be less than 5MB");
+      return false;
+    }
+
+    return true;
+  };
+
+  // Handle image change
+  const handleImageChange = (e, setImage) => {
+    const file = e.target.files[0];
+    if (file && validateImage(file)) {
+      setImage({ file, preview: URL.createObjectURL(file) });
+    } else {
+      e.target.value = null;
+    }
+  };
+
+  // Reset form function
+  const resetForm = () => {
+    setName("");
+    setDescription("");
+    setImage1(null);
+    setImage2(null);
+    setImage3(null);
+    setImage4(null);
+    setPrice("");
+    setSizes([]);
+    setBestseller(false);
+    setCategory("Men");
+    setSubCategory("Topwear");
+  };
+
+  // Handle form submission
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+
+    // Form validation
+    if (!name.trim()) {
+      toast.error("Please enter product name");
+      return;
+    }
+
+    if (!description.trim()) {
+      toast.error("Please enter product description");
+      return;
+    }
+
+    if (!price || price <= 0) {
+      toast.error("Please enter a valid price");
+      return;
+    }
+
+    if (!sizes.length) {
+      toast.error("Please select at least one size");
+      return;
+    }
+
+    if (!image1) {
+      toast.error("Please upload at least one image");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+
+      // Append product details
+      formData.append("name", name.trim());
+      formData.append("price", parseFloat(price));
+      formData.append("description", description.trim());
+      formData.append("category", category);
+      formData.append("subCategory", subCategory);
+      formData.append("bestseller", bestseller);
+      formData.append("sizes", JSON.stringify(sizes));
+
+      // Append images
+      if (image1) formData.append("image1", image1.file);
+      if (image2) formData.append("image2", image2.file);
+      if (image3) formData.append("image3", image3.file);
+      if (image4) formData.append("image4", image4.file);
+
+      const response = await axios.post(
+        `${backendUrl}/api/product/add`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            token: token,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success(response.data.message || "Product added successfully!");
+        resetForm();
+      } else {
+        toast.error(response.data.message || "Failed to add product");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("An error occurred while submitting the form");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle size toggle
+  const handleSizeToggle = (size) => {
+    setSizes((prev) =>
+      prev.includes(size)
+        ? prev.filter((item) => item !== size)
+        : [...prev, size]
+    );
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-4">
+      <h2 className="text-2xl font-bold text-center mb-6">Add New Product</h2>
+
+      <form
+        onSubmit={onSubmitHandler}
+        className="flex flex-col w-full items-center gap-3"
+      >
+        {/* Image Upload Section */}
+        <div className="w-full max-w-2xl">
+          <p className="mb-2 text-center font-medium">Upload Images</p>
+          <div className="flex gap-4 justify-center flex-wrap">
+            {[image1, image2, image3, image4].map((image, index) => (
+              <label
+                key={index}
+                htmlFor={`image${index + 1}`}
+                className="cursor-pointer transition-transform hover:scale-105"
+              >
+                <img
+                  className="w-24 h-24 object-cover border-2 border-gray-200 rounded-lg"
+                  src={image ? image.preview : assets.upload_area}
+                  alt=""
+                />
+                <input
+                  onChange={(e) =>
+                    handleImageChange(
+                      e,
+                      [setImage1, setImage2, setImage3, setImage4][index]
+                    )
+                  }
+                  type="file"
+                  id={`image${index + 1}`}
+                  hidden
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Product Details Section */}
+        <div className="w-full max-w-2xl space-y-4">
+          {/* Name Input */}
+          <div>
+            <label className="block mb-2 font-medium">Product Name</label>
+            <input
+              onChange={(e) => setName(e.target.value)}
+              value={name}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              type="text"
+              placeholder="Enter product name"
+              required
+            />
+          </div>
+
+          {/* Description Input */}
+          <div>
+            <label className="block mb-2 font-medium">
+              Product Description
+            </label>
+            <textarea
+              onChange={(e) => setDescription(e.target.value)}
+              value={description}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 min-h-[100px]"
+              placeholder="Enter product description"
+              required
+            />
+          </div>
+
+          {/* Categories and Price */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block mb-2 font-medium">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              >
+                <option value="Men">Men</option>
+                <option value="Women">Women</option>
+                <option value="Kids">Kids</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block mb-2 font-medium">Sub Category</label>
+              <select
+                value={subCategory}
+                onChange={(e) => setSubCategory(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              >
+                <option value="Topwear">Topwear</option>
+                <option value="Bottomwear">Bottomwear</option>
+                <option value="Winterwear">Winterwear</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block mb-2 font-medium">Price</label>
+              <input
+                onChange={(e) => setPrice(e.target.value)}
+                value={price}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Enter price"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Sizes */}
+          <div>
+            <label className="block mb-2 font-medium">Available Sizes</label>
+            <div className="flex gap-4 flex-wrap">
+              {["S", "M", "L", "XL", "XXL"].map((size) => (
+                <button
+                  key={size}
+                  onClick={() => handleSizeToggle(size)}
+                  type="button"
+                  className={`px-4 py-2 border border-gray-300 rounded-lg ${
+                    sizes.includes(size) ? "bg-blue-500 text-white" : "bg-white"
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Bestseller Checkbox */}
+          <div>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={bestseller}
+                onChange={(e) => setBestseller(e.target.checked)}
+                className="mr-2"
+              />
+              Mark as Bestseller
+            </label>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          className="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors mt-4"
+          disabled={loading}
+        >
+          {loading ? "Adding Product..." : "Add Product"}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default AddProduct;
