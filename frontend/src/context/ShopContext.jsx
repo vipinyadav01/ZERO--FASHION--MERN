@@ -28,7 +28,7 @@ const ShopContextProvider = (props) => {
       return;
     }
 
-    let cartData = cloneCartItems(cartItems);
+    let cartData = structuredClone(cartItems);
 
     if (cartData[itemId]) {
       if (cartData[itemId][size]) {
@@ -37,7 +37,8 @@ const ShopContextProvider = (props) => {
         cartData[itemId][size] = 1;
       }
     } else {
-      cartData[itemId] = { [size]: 1 };
+      cartData[itemId] = {};
+      cartData[itemId][size] = 1;
     }
 
     setCartItems(cartData);
@@ -76,7 +77,7 @@ const ShopContextProvider = (props) => {
   };
 
   const updateQuantity = async (itemId, size, quantity) => {
-    let cartData = cloneCartItems(cartItems);
+    let cartData = structuredClone(cartItems);
     cartData[itemId][size] = quantity;
     setCartItems(cartData);
 
@@ -93,6 +94,7 @@ const ShopContextProvider = (props) => {
       }
     }
   };
+  
 
   const getCartAmount = () => {
     let totalAmount = 0;
