@@ -2,35 +2,40 @@ import React, { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
 import CartTotal from "../components/CartTotal";
+
 function Cart() {
-  const { products, currency, cartItems, navigate, updateCartItem } =
-    useContext(ShopContext);
+  const { products, currency, cartItems, navigate, updateQuantity } = useContext(ShopContext);
   const [cartData, setCartData] = useState([]);
 
   useEffect(() => {
     if (products.length > 0) {
       const tempData = [];
 
-      for (const itemSizes in cartItems)
-        for (const item in cartItems[itemSizes]) {
-          if (cartItems[itemSizes][item] > 0) {
+      // Convert cartItems object to array format
+      Object.entries(cartItems).forEach(([itemId, sizes]) => {
+        Object.entries(sizes).forEach(([size, quantity]) => {
+          if (quantity > 0) {
             tempData.push({
-              _id: itemSizes,
-              size: item,
-              quantity: cartItems[itemSizes][item],
+              _id: itemId,
+              size: size,
+              quantity: quantity
             });
           }
-        }
+        });
+      });
 
       setCartData(tempData);
     }
   }, [cartItems, products]);
 
-  const updateQuantity = (itemId, size, newQuantity) => {
-    console.log(
-      `Updating item ${itemId}, size ${size} to quantity ${newQuantity}`
-    );
-    updateCartItem(itemId, size, newQuantity);
+  const handleQuantityChange = (itemId, size, newQuantity) => {
+    // Ensure newQuantity is a positive number
+    const validQuantity = Math.max(0, parseInt(newQuantity) || 0);
+    updateQuantity(itemId, size, validQuantity);
+  };
+
+  const handleDeleteItem = (itemId, size) => {
+    updateQuantity(itemId, size, 0);
   };
 
   return (
@@ -46,7 +51,7 @@ function Cart() {
 
           return (
             <div
-              key={index}
+              key={`${item._id}-${item.size}-${index}`}
               className="py-4 border-t border-b text-gray-700 grid grid-cols-[4fr_0.5fr_0.5fr] sm:grid-cols-[4fr_2fr_0.5fr] items-center gap-4"
             >
               <div className="flex items-start gap-6">
@@ -73,17 +78,12 @@ function Cart() {
               <input
                 className="border max-w-10 sm:max-w-20 px-1 sm:px-2 py-1"
                 type="number"
-                min={1}
-                defaultValue={item.quantity}
-                onChange={(e) => {
-                  const newQuantity = Number(e.target.value);
-                  if (!isNaN(newQuantity) && newQuantity > 0) {
-                    updateQuantity(item._id, item.size, newQuantity);
-                  }
-                }}
+                min="1"
+                value={item.quantity}
+                onChange={(e) => handleQuantityChange(item._id, item.size, e.target.value)}
               />
               <img
-                onClick={() => updateQuantity(item._id, item.size, 0)}
+                onClick={() => handleDeleteItem(item._id, item.size)}
                 className="w-4 mr-4 sm:w-5 cursor-pointer"
                 src={assets?.bin_icon || ""}
                 alt="Delete Item"

@@ -10,7 +10,11 @@ const ShopContextProvider = (props) => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-  const [cartItems, setCartItems] = useState({});
+  const [cartItems, setCartItems] = useState(() => {
+    // Initialize cart from localStorage if available
+    const savedCart = localStorage.getItem("cartItems");
+    return savedCart ? JSON.parse(savedCart) : {};
+  });
   const [products, setProducts] = useState([]);
   const [token, setToken] = useState("");
   const navigate = useNavigate();
@@ -22,9 +26,16 @@ const ShopContextProvider = (props) => {
       : JSON.parse(JSON.stringify(items));
   };
 
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  }, [cartItems]);
+
   const addToCart = async (itemId, size) => {
     if (!size) {
-      toast.error("Please select a size");
+      toast.error("Please select a size", {
+        position: "bottom-right"
+      });
       return;
     }
 
@@ -42,7 +53,9 @@ const ShopContextProvider = (props) => {
 
     setCartItems(cartData);
 
-    toast.success("Item added to cart");
+    toast.success("Item added to cart", {
+      position: "bottom-right"
+    });
     if (token) {
       try {
         await axios.post(
@@ -52,7 +65,9 @@ const ShopContextProvider = (props) => {
         );
       } catch (error) {
         console.error("Error adding item to cart:", error);
-        toast.error("Error adding item to cart");
+        toast.error("Error adding item to cart", {
+          position: "bottom-right"
+        });
       }
     }
   };
@@ -77,7 +92,24 @@ const ShopContextProvider = (props) => {
 
   const updateQuantity = async (itemId, size, quantity) => {
     let cartData = cloneCartItems(cartItems);
-    cartData[itemId][size] = quantity;
+
+    if (quantity === 0) {
+      // Remove the size if quantity is 0
+      if (cartData[itemId]) {
+        delete cartData[itemId][size];
+        // Remove the entire item if no sizes left
+        if (Object.keys(cartData[itemId]).length === 0) {
+          delete cartData[itemId];
+        }
+      }
+    } else {
+      // Update or add the quantity
+      if (!cartData[itemId]) {
+        cartData[itemId] = {};
+      }
+      cartData[itemId][size] = quantity;
+    }
+
     setCartItems(cartData);
 
     if (token) {
@@ -89,7 +121,9 @@ const ShopContextProvider = (props) => {
         );
       } catch (error) {
         console.error("Error updating item quantity:", error);
-        toast.error("Error updating item quantity");
+        toast.error("Error updating item quantity",{
+          position: "bottom-right"
+        } );
       }
     }
   };
@@ -142,6 +176,8 @@ const ShopContextProvider = (props) => {
       );
       if (response.data.success) {
         setCartItems(response.data.cartData);
+        // Also update localStorage when getting cart from server
+        localStorage.setItem("cartItems", JSON.stringify(response.data.cartData));
       }
     } catch (error) {
       console.error("Error fetching user cart:", error);
