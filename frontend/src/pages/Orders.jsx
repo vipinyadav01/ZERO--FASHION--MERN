@@ -10,6 +10,7 @@ const Orders = () => {
   const handleTrackOrder = (orderId) => {
     window.location.href = `${backendUrl}/orders/${orderId}`;
     console.log(`Tracking order with ID: ${orderId}`);
+    window.location.reload();
   };
 
   const loadOrders = async () => {
