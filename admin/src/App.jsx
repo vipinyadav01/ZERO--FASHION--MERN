@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -18,9 +18,25 @@ export const backendUrl = import.meta.env.VITE_BACKEND_URL;
 export const currency = "₹";
 
 // Protected Route Component
-const ProtectedRoute = ({ children, token }) => {
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  const location = useLocation();
+
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  }
+  return children;
+};
+
+// Public Route Component (for login)
+const PublicRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  const location = useLocation();
+
+  if (token) {
+
+    const from = location.state?.from || "/list";
+    return <Navigate to={from} replace />;
   }
   return children;
 };
@@ -31,19 +47,36 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      localStorage.setItem("token", token);
-    } else {
-      localStorage.removeItem("token");
-    }
-    setIsLoading(false);
-  }, [token]);
+    // Check token validity
+    const checkAuth = async () => {
+      try {
+        if (token) {
+          localStorage.setItem("token", token);
+        } else {
+          localStorage.removeItem("token");
+          navigate("/login");
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        handleLogout();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [token, navigate]);
 
   const handleLogout = () => {
     setToken("");
     localStorage.removeItem("token");
     toast.success("Logged out successfully");
-    navigate("/login"); // Redirect to login after logout
+    navigate("/login");
+  };
+
+  const handleLogin = (newToken) => {
+    setToken(newToken);
+    localStorage.setItem("token", newToken);
   };
 
   if (isLoading) {
@@ -69,63 +102,107 @@ const App = () => {
         theme="light"
       />
 
-      {!token ? (
-        <Login setToken={setToken} />
-      ) : (
-        <div className="flex flex-col min-h-screen">
-          <Navbar setToken={handleLogout} />
-          <hr className="border-gray-200" />
-          <div className="flex flex-1 w-full">
-            <Sidebar />
-            <main className="flex-1 p-4 overflow-auto">
-              <Routes>
-                {/* Redirect to /list if logged in */}
-                <Route path="/" element={<Navigate to="/list" replace />} /> 
+      <Routes>
+        {/* Public Routes */}
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login setToken={handleLogin} />
+            </PublicRoute>
+          }
+        />
 
-                <Route
-                  path="/add"
-                  element={
-                    <ProtectedRoute token={token}>
-                      <Add token={token} />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/list"
-                  element={
-                    <ProtectedRoute token={token}>
-                      <List token={token} />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/orders"
-                  element={
-                    <ProtectedRoute token={token}>
-                      <Order token={token} />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="*"
-                  element={
-                    <div className="flex flex-col items-center justify-center h-[60vh]">
-                      <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
-                      <p className="text-gray-600 mb-4">Page not found</p>
-                      <button
-                        onClick={() => navigate("/list")}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                      >
-                        Go to Home
-                      </button>
-                    </div>
-                  }
-                />
-              </Routes>
-            </main>
-          </div>
-        </div>
-      )}
+        {/* Protected Routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <div className="flex flex-col min-h-screen">
+                <Navbar setToken={handleLogout} />
+                <hr className="border-gray-200" />
+                <div className="flex flex-1 w-full">
+                  <Sidebar />
+                  <main className="flex-1 p-4 overflow-auto">
+                    <Navigate to="/list" replace />
+                  </main>
+                </div>
+              </div>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/add"
+          element={
+            <ProtectedRoute>
+              <div className="flex flex-col min-h-screen">
+                <Navbar setToken={handleLogout} />
+                <hr className="border-gray-200" />
+                <div className="flex flex-1 w-full">
+                  <Sidebar />
+                  <main className="flex-1 p-4 overflow-auto">
+                    <Add token={token} />
+                  </main>
+                </div>
+              </div>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/list"
+          element={
+            <ProtectedRoute>
+              <div className="flex flex-col min-h-screen">
+                <Navbar setToken={handleLogout} />
+                <hr className="border-gray-200" />
+                <div className="flex flex-1 w-full">
+                  <Sidebar />
+                  <main className="flex-1 p-4 overflow-auto">
+                    <List token={token} />
+                  </main>
+                </div>
+              </div>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <div className="flex flex-col min-h-screen">
+                <Navbar setToken={handleLogout} />
+                <hr className="border-gray-200" />
+                <div className="flex flex-1 w-full">
+                  <Sidebar />
+                  <main className="flex-1 p-4 overflow-auto">
+                    <Order token={token} />
+                  </main>
+                </div>
+              </div>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 404 Route */}
+        <Route
+          path="*"
+          element={
+            <div className="flex flex-col items-center justify-center h-[60vh]">
+              <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
+              <p className="text-gray-600 mb-4">Page not found</p>
+              <button
+                onClick={() => navigate("/list")}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Go to Home
+              </button>
+            </div>
+          }
+        />
+      </Routes>
     </div>
   );
 };
