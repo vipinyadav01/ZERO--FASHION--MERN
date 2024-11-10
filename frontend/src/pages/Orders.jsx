@@ -28,7 +28,7 @@ const Orders = () => {
       const data = await response.json();
       if (data.success) {
         // Fixed the data transformation logic
-        const allOrders  = data.orders.flatMap(order =>
+        const allOrders = data.orders.flatMap(order =>
           order.items.map(item => ({
             ...item,
             status: order.status,
@@ -100,7 +100,7 @@ const Orders = () => {
                 </div>
                 <button
                   className="border px-4 py-2 text-sm font-medium rounded-sm"
-                  onClick={() => handleTrackOrder(item.id)}
+                  onClick={() => handleTrackOrder(item.orderId)}
                 >
                   Track Order
                 </button>
