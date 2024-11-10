@@ -4,14 +4,12 @@ import Title from "../components/Title";
 
 const Orders = () => {
   const { backendUrl, token, currency } = useContext(ShopContext);
-
   const [orderData, setOrderData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const handleTrackOrder = (orderId) => {
     window.location.href = `${backendUrl}/orders/${orderId}`;
     console.log(`Tracking order with ID: ${orderId}`);
-
   };
 
   const loadOrders = async () => {
@@ -29,17 +27,17 @@ const Orders = () => {
       });
       const data = await response.json();
       if (data.success) {
-        let allOrders = [];
-        data.orders.map((order) => {
-          console.log(order);
-          order.items.map((item) => {
-            item["status"] = order.status;
-            item["date"] = order.date;
-            item["payment"] = order.payment;
-            item["paymentMethod"] = order.paymentMethod;
-            allOrders.push(item);
-          });
-        });
+        // Fixed the data transformation logic
+        const allOrders  = data.orders.flatMap(order =>
+          order.items.map(item => ({
+            ...item,
+            status: order.status,
+            date: order.date,
+            payment: order.payment,
+            paymentMethod: order.paymentMethod,
+            orderId: order.id  // Added orderId for tracking
+          }))
+        );
         setOrderData(allOrders);
       }
     } catch (error) {
@@ -68,7 +66,11 @@ const Orders = () => {
               className="py-5 border-t border-b text-gray-700 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
             >
               <div className="flex items-start gap-6 text-sm">
-                <img className="w-16 sm:w-20" src={item.image[0]} alt="" />
+                <img
+                  className="w-16 sm:w-20"
+                  src={item.image?.[0]}
+                  alt=""
+                />
                 <div>
                   <p className="sm:text-base font-medium">{item.name}</p>
                   <div className="flex items-center gap-3 mt-1 text-base text-gray-600">
@@ -76,19 +78,18 @@ const Orders = () => {
                       {currency}
                       {item.price}
                     </p>
-                    <p>Quality: {item.quantity}</p>
-                    <p>Size : {item.size}</p>
+                    <p>Quantity: {item.quantity}</p>
+                    <p>Size: {item.size}</p>
                   </div>
-                  <p className="mt-1 ">
+                  <p className="mt-1">
                     Date:{" "}
                     <span className="text-gray-400">
-                      {" "}
                       {new Date(item.date).toDateString()}
                     </span>
                   </p>
-                  <p className="mt-1 ">
+                  <p className="mt-1">
                     Payment:{" "}
-                    <span className="text-gray-400"> {item.paymentMethod}</span>
+                    <span className="text-gray-400">{item.paymentMethod}</span>
                   </p>
                 </div>
               </div>
