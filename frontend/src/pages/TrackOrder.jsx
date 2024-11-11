@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { ShopContext } from '../context/ShopContext';
 
 const TrackOrder = () => {
-    const { backendUrl, token } = useContext(ShopContext);  // Getting backend URL and token from context
+    const { backendUrl, token } = useContext(ShopContext);  
     const [orderId, setOrderId] = useState('');
     const [orderDetails, setOrderDetails] = useState(null);
     const [loading, setLoading] = useState(false);
