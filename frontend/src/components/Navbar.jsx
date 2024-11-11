@@ -1,20 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { assets } from "./../assets/assets";
-import { Link, NavLink } from "react-router-dom";
-import { useContext, useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useContext } from "react";
 import { ShopContext } from "../context/ShopContext";
 
 const Navbar = () => {
   const [visible, setVisible] = useState(false);
+  const [user, setUser] = useState(null);
 
   const {
     setShowSearch,
     getCartCount,
-    navigate,
     token,
     setToken,
     setCartItems,
+    backendUrl
   } = useContext(ShopContext);
+
+  const navigate = useNavigate();
 
   const logout = () => {
     navigate("/login");
@@ -22,6 +25,27 @@ const Navbar = () => {
     setToken("");
     setCartItems([]);
   };
+
+  const getUserDetails = async (authToken) => {
+    if (!authToken) return;
+    try {
+      const res = await fetch(`${backendUrl}/api/user/user`, {
+        headers: {
+          token: authToken
+        }
+      });
+      const result = await res.json();
+      setUser(result.user);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      getUserDetails(token);
+    }
+  }, [token]);
 
   return (
     <div className="fixed top-0 left-0 right-0 bg-white z-500">
@@ -31,19 +55,31 @@ const Navbar = () => {
         </Link>
 
         <ul className="hidden sm:flex gap-5 text-sm text-gray-700">
-          <NavLink to="/" className="flex flex-col items-center gap-1">
+          <NavLink
+            to="/"
+            className="flex flex-col items-center gap-1 hover:text-black"
+          >
             <p>HOME</p>
             <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
           </NavLink>
-          <NavLink to="/collection" className="flex flex-col items-center gap-1">
+          <NavLink
+            to="/collection"
+            className="flex flex-col items-center gap-1 hover:text-black"
+          >
             <p>COLLECTION</p>
             <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
           </NavLink>
-          <NavLink to="/about" className="flex flex-col items-center gap-1">
+          <NavLink
+            to="/about"
+            className="flex flex-col items-center gap-1 hover:text-black"
+          >
             <p>ABOUT</p>
             <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
           </NavLink>
-          <NavLink to="/contact" className="flex flex-col items-center gap-1">
+          <NavLink
+            to="/contact"
+            className="flex flex-col items-center gap-1 hover:text-black"
+          >
             <p>CONTACT</p>
             <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
           </NavLink>
@@ -53,7 +89,7 @@ const Navbar = () => {
           <img
             onClick={() => setShowSearch(true)}
             src={assets.search_icon}
-            className="w-5 cursor-pointer"
+            className="w-5 cursor-pointer hover:opacity-80"
             alt="searchIcon"
           />
 
@@ -61,14 +97,19 @@ const Navbar = () => {
             <img
               onClick={() => (token ? null : navigate("/login"))}
               src={assets.profile_icon}
-              className="w-5 cursor-pointer"
+              className="w-5 cursor-pointer hover:opacity-80"
               alt="profileIcon"
             />
             {/* DropDown Menu */}
             {token && (
               <div className="group-hover:block hidden absolute dropdown-menu right-0 pt-4">
-                <div className="flex flex-col gap-2 w-36 py-3 px-5 bg-slate-100 text-gray-500 rounded">
-                  <p className="cursor-pointer hover:text-black">My Profile</p>
+                <div className="flex flex-col gap-2 w-max py-3 px-5 bg-slate-100 text-gray-500 rounded">
+                  <p
+                    onClick={() => navigate("/profile")}
+                    className="cursor-pointer hover:text-black"
+                  >
+                    My Profile
+                  </p>
                   <p
                     onClick={() => navigate("/order")}
                     className="cursor-pointer hover:text-black"
@@ -85,7 +126,11 @@ const Navbar = () => {
 
           {/* cart icon start */}
           <Link to="/cart" className="relative">
-            <img src={assets.cart_icon} className="w-5 min-w-5" alt="cartIcon" />
+            <img
+              src={assets.cart_icon}
+              className="w-5 min-w-5 hover:opacity-80"
+              alt="cartIcon"
+            />
             <p className="absolute right-[-5px] bottom-[-5px] w-4 text-center leading-4 bg-black text-white aspect-square rounded-full text-[8px]">
               {getCartCount()}
             </p>
@@ -97,7 +142,7 @@ const Navbar = () => {
             onClick={() => setVisible(true)}
             src={assets.menu_icon}
             alt="menu_icon"
-            className="w-5 cursor-pointer sm:hidden"
+            className="w-5 cursor-pointer sm:hidden hover:opacity-80"
           />
         </div>
 
@@ -121,28 +166,28 @@ const Navbar = () => {
 
             <NavLink
               onClick={() => setVisible(false)}
-              className="py-2 pl-6 border"
+              className="py-2 pl-6 border hover:bg-gray-100"
               to="/"
             >
               Home
             </NavLink>
             <NavLink
               onClick={() => setVisible(false)}
-              className="py-2 pl-6 border"
+              className="py-2 pl-6 border hover:bg-gray-100"
               to="/collection"
             >
               Collection
             </NavLink>
             <NavLink
               onClick={() => setVisible(false)}
-              className="py-2 pl-6 border"
+              className="py-2 pl-6 border hover:bg-gray-100"
               to="/about"
             >
               About
             </NavLink>
             <NavLink
               onClick={() => setVisible(false)}
-              className="py-2 pl-6 border"
+              className="py-2 pl-6 border hover:bg-gray-100"
               to="/contact"
             >
               Contact

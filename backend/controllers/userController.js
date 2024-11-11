@@ -29,7 +29,7 @@ const loginUser = async (req, res) => {
     const token = createToken(user._id);
     res.status(200).json({ success: true, token });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
@@ -75,7 +75,27 @@ const registerUser = async (req, res) => {
 
     res.status(201).json({ success: true, token });
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
+  }
+};
+
+const userDetails = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(403).json({ success: false });
+    }
+
+    const user = await UserModel.findById(userId);
+    if (user) {
+      return res.status(200).json({ success: true, user });
+    }
+
+    res.status(403).json({ success: false });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
@@ -95,9 +115,9 @@ const adminLogin = async (req, res) => {
       res.status(401).json({ success: false, message: "Invalid credentials" });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
 
-export { loginUser, registerUser, adminLogin };
+export { loginUser, registerUser, adminLogin, userDetails };

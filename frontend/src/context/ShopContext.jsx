@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
+
 export const ShopContext = createContext();
 
 const ShopContextProvider = (props) => {
@@ -33,9 +34,7 @@ const ShopContextProvider = (props) => {
 
   const addToCart = async (itemId, size) => {
     if (!size) {
-      toast.error("Please select a size", {
-        position: "bottom-right"
-      });
+      toast.error("Please select a size", { position: "bottom-right" });
       return;
     }
 
@@ -53,21 +52,17 @@ const ShopContextProvider = (props) => {
 
     setCartItems(cartData);
 
-    toast.success("Item added to cart", {
-      position: "bottom-right"
-    });
+    toast.success("Item added to cart", { position: "bottom-right" });
     if (token) {
       try {
         await axios.post(
-          backendUrl + "/api/cart/add",
+          `${backendUrl}/api/cart/add`,
           { itemId, size },
           { headers: { token } }
         );
       } catch (error) {
         console.error("Error adding item to cart:", error);
-        toast.error("Error adding item to cart", {
-          position: "bottom-right"
-        });
+        toast.error("Error adding item to cart", { position: "bottom-right" });
       }
     }
   };
@@ -78,13 +73,7 @@ const ShopContextProvider = (props) => {
     for (const itemId in cartItems) {
       const itemSizes = cartItems[itemId];
       for (const size in itemSizes) {
-        try {
-          if (itemSizes[size] > 0) {
-            totalcount += itemSizes[size];
-          }
-        } catch (error) {
-          console.error("Error accessing item size quantity:", error);
-        }
+        totalcount += itemSizes[size] || 0;
       }
     }
     return totalcount;
@@ -115,15 +104,13 @@ const ShopContextProvider = (props) => {
     if (token) {
       try {
         await axios.post(
-          backendUrl + "/api/cart/update",
+          `${backendUrl}/api/cart/update`,
           { itemId, size, quantity },
           { headers: { token } }
         );
       } catch (error) {
         console.error("Error updating item quantity:", error);
-        toast.error("Error updating item quantity",{
-          position: "bottom-right"
-        } );
+        toast.error("Error updating item quantity", { position: "bottom-right" });
       }
     }
   };
@@ -137,13 +124,9 @@ const ShopContextProvider = (props) => {
 
       if (productInfo) {
         for (const size in itemSizes) {
-          try {
-            const quantity = itemSizes[size];
-            if (quantity > 0) {
-              totalAmount += productInfo.price * quantity;
-            }
-          } catch (error) {
-            console.error("Error calculating cart amount:", error);
+          const quantity = itemSizes[size];
+          if (quantity > 0) {
+            totalAmount += productInfo.price * quantity;
           }
         }
       } else {
@@ -155,7 +138,7 @@ const ShopContextProvider = (props) => {
 
   const getProductsData = async () => {
     try {
-      const response = await axios.get(backendUrl + "/api/product/list");
+      const response = await axios.get(`${backendUrl}/api/product/list`);
       if (response.data.success) {
         setProducts(response.data.products);
       } else {
@@ -167,10 +150,10 @@ const ShopContextProvider = (props) => {
     }
   };
 
-  const getUserCart = async () => {
+  const getUserCart = async (token) => {
     try {
       const response = await axios.post(
-        backendUrl + "/api/cart/get",
+        `${backendUrl}/api/cart/get`,
         {},
         { headers: { token } }
       );
