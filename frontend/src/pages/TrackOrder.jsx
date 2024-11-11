@@ -1,122 +1,221 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import Title from "../components/Title";
 import { ShopContext } from '../context/ShopContext';
 
 const TrackOrder = () => {
-    const { backendUrl, token } = useContext(ShopContext);  
-    const [orderId, setOrderId] = useState('');
+    const location = useLocation();
+    const navigate = useNavigate();
     const [orderDetails, setOrderDetails] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
 
-    const handleTrackOrder = async () => {
-        if (!token) {
-            setError("You must be logged in to track your order.");
-            return;
+    useEffect(() => {
+        // Log the received state to debug
+        console.log("Location state:", location.state);
+
+        if (location.state?.orderDetails) {
+            setOrderDetails(location.state.orderDetails);
         }
-        if (!orderId.trim()) {
-            setError("Please enter a valid Order ID");
-            return;
+    }, [location.state]);
+
+    // Handle going back to orders page
+    const handleGoBack = () => {
+        navigate('/order');
+    };
+    useEffect(() => {
+        console.log("Received order details:", location.state?.orderDetails);
+        if (location.state?.orderDetails) {
+            setOrderDetails(location.state.orderDetails);
         }
+    }, [location.state]);
 
-        setLoading(true);
-        setError(null);
-        setOrderDetails(null);
+    // If no state or order details, show error
+    if (!location.state?.orderDetails) {
+        return (
+            <div className="container mx-auto px-4 py-8 pt-24">
+                <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
+                    <div className="text-center">
+                        <p className="text-red-600 mb-4">No order details found. Please go back and try again.</p>
+                        <button
+                            onClick={handleGoBack}
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                        >
+                            Back to Orders
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
+    // Format date function
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
         try {
-            const response = await fetch(`${backendUrl}/api/order/userorders`, {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ orderId })
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
-
-            if (response.ok) {
-                const data = await response.json();
-                setOrderDetails(data); // Assuming data contains order details
-            } else if (response.status === 401) {
-                setError("Not Authorized. Please log in again.");
-            } else {
-                const errorData = await response.json();
-                setError(errorData.message || "Unable to find order. Please check the Order ID.");
-            }
-        } catch (err) {
-            setError("An error occurred while tracking your order. Please try again.");
-            console.error("Order tracking error:", err);
-        } finally {
-            setLoading(false);
+        } catch (error) {
+            console.error("Date formatting error:", error);
+            return 'Invalid Date';
         }
     };
 
-    return (
-        <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8 pt-24">
-            <div className="max-w-md mx-auto bg-white shadow-md rounded-lg p-8">
-                <h2 className="text-2xl font-bold text-center mb-6">Track Your Order</h2>
+    // Determine step completion based on order status
+    const getStepCompletion = (status) => {
+        switch (status) {
+            case 'Delivered':
+                return [true, true, true, true];
+            case 'Shipped':
+                return [true, true, true, false];
+            case 'Processing':
+                return [true, true, false, false];
+            default:
+                return [true, false, false, false];
+        }
+    };
 
+    const getStepClassName = (stepStatus) => {
+        return `w-8 h-8 rounded-full flex items-center justify-center ${stepStatus ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
+            }`;
+    };
+
+    const getLineClassName = (completed) => {
+        return `flex-1 h-1 ${completed ? 'bg-green-500' : 'bg-gray-300'}`;
+    };
+
+    const stepCompletion = getStepCompletion(orderDetails?.status);
+
+    return (
+        <div className="container mx-auto px-4 py-8 pt-24">
+            <div className="mb-8">
+                <Title text1="TRACK" text2="ORDER" />
+            </div>
+
+            <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
+                {/* Back Button */}
                 <div className="mb-4">
-                    <input
-                        type="text"
-                        value={orderId}
-                        onChange={(e) => setOrderId(e.target.value)}
-                        placeholder="Enter Order ID"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    <button
+                        onClick={handleGoBack}
+                        className="px-4 py-2 text-blue-600 hover:text-blue-800 transition duration-300 flex items-center"
+                    >
+                        ← Back to Orders
+                    </button>
                 </div>
 
-                <button
-                    onClick={handleTrackOrder}
-                    disabled={loading}
-                    className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300 disabled:opacity-50"
-                >
-                    {loading ? 'Tracking...' : 'Track Order'}
-                </button>
+                {/* Order Details */}
+                <div className="mb-8">
+                    <h3 className="text-lg font-semibold mb-4">Order Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-start space-x-4">
+                            <img
+                                src={orderDetails?.image?.[0] || "/placeholder.svg"}
+                                alt={orderDetails?.name}
+                                className="w-24 h-24 object-cover rounded"
+                            />
+                            <div className="space-y-2">
+                                <p className="font-semibold text-lg">{orderDetails?.name || 'N/A'}</p>
 
-                {error && (
-                    <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                        {error}
-                    </div>
-                )}
+                                <div className="text-gray-600 space-y-1">
+                                    <p>
+                                        <span className="font-medium">Order ID: </span>
+                                        {orderDetails?.orderId || 'N/A'}
+                                    </p>
 
-                {orderDetails && (
-                    <div className="mt-6 bg-gray-50 p-4 rounded-md">
-                        <h3 className="text-lg font-semibold mb-4">Order Details</h3>
-                        <div className="space-y-2">
-                            <div className="flex justify-between">
-                                <span className="font-medium">Order ID:</span>
-                                <span>{orderDetails._id || orderDetails.orderId}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="font-medium">Status:</span>
-                                <span
-                                    className={`font-bold ${orderDetails.status === 'Delivered' ? 'text-green-600' :
-                                        orderDetails.status === 'Cancelled' ? 'text-red-600' :
-                                            'text-yellow-600'
-                                        }`}
-                                >
-                                    {orderDetails.status || 'Processing'}
-                                </span>
-                            </div>
+                                    <p>
+                                        <span className="font-medium">Size: </span>
+                                        {orderDetails?.size || 'N/A'}
+                                    </p>
 
-                            {orderDetails.items && orderDetails.items.length > 0 && (
-                                <div className="mt-4">
-                                    <h4 className="font-semibold mb-2">Order Items:</h4>
-                                    {orderDetails.items.map((item, index) => (
-                                        <div
-                                            key={index}
-                                            className="bg-white border rounded-md p-3 mb-2"
-                                        >
-                                            <div className="flex justify-between">
-                                                <span>{item.name || 'Product'}</span>
-                                                <span>Qty: {item.quantity || 1}</span>
-                                            </div>
-                                        </div>
-                                    ))}
+                                    <p>
+                                        <span className="font-medium">Quantity: </span>
+                                        {orderDetails?.quantity || 'N/A'}
+                                    </p>
+
+                                    <p>
+                                        <span className="font-medium">Price: </span>
+                                        ${orderDetails?.price || 'N/A'}
+                                    </p>
+
+                                    <p>
+                                        <span className="font-medium">Payment Method: </span>
+                                        {orderDetails?.paymentMethod || 'N/A'}
+                                    </p>
+
+                                    <p>
+                                        <span className="font-medium">Order Date: </span>
+                                        {formatDate(orderDetails?.date)}
+                                    </p>
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </div>
-                )}
+                </div>
+
+                {/* Tracking Status */}
+                <div className="mb-8">
+                    <h3 className="text-lg font-semibold mb-6">Tracking Status</h3>
+                    <div className="relative">
+                        {/* Progress Steps */}
+                        <div className="flex items-center justify-between">
+                            {/* Order Placed */}
+                            <div className="flex flex-col items-center">
+                                <div className={getStepClassName(stepCompletion[0])}>
+                                    <span>✓</span>
+                                </div>
+                                <p className="mt-2 text-sm">Order Placed</p>
+                            </div>
+
+                            {/* Processing */}
+                            <div className="flex-1 flex items-center">
+                                <div className={getLineClassName(stepCompletion[1])}></div>
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <div className={getStepClassName(stepCompletion[1])}>
+                                    <span>✓</span>
+                                </div>
+                                <p className="mt-2 text-sm">Processing</p>
+                            </div>
+
+                            {/* Shipped */}
+                            <div className="flex-1 flex items-center">
+                                <div className={getLineClassName(stepCompletion[2])}></div>
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <div className={getStepClassName(stepCompletion[2])}>
+                                    <span>✓</span>
+                                </div>
+                                <p className="mt-2 text-sm">Shipped</p>
+                            </div>
+
+                            {/* Delivered */}
+                            <div className="flex-1 flex items-center">
+                                <div className={getLineClassName(stepCompletion[3])}></div>
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <div className={getStepClassName(stepCompletion[3])}>
+                                    <span>✓</span>
+                                </div>
+                                <p className="mt-2 text-sm">Delivered</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Current Status */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-center text-lg font-medium">
+                        Current Status:
+                        <span className={`ml-2 ${orderDetails?.status === 'Delivered' ? 'text-green-600' :
+                            orderDetails?.status === 'Cancelled' ? 'text-red-600' :
+                                'text-blue-600'
+                            }`}>
+                            {orderDetails?.status || 'Processing'}
+                        </span>
+                    </p>
+                </div>
             </div>
         </div>
     );

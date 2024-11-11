@@ -11,8 +11,24 @@ const Orders = () => {
   const navigate = useNavigate();
 
 
-  const handleTrackOrder = () => {
-    navigate('/TrackOrder');
+
+  const handleTrackOrder = (item) => {
+    console.log("Passing item to TrackOrder:", item);
+    navigate('/TrackOrder', {
+      state: {
+        orderDetails: {
+          orderId: item.orderId,
+          name: item.name,
+          image: item.image,
+          size: item.size,
+          quantity: item.quantity,
+          date: item.date,
+          status: item.status,
+          price: item.price,
+          paymentMethod: item.paymentMethod
+        }
+      }
+    });
   };
 
   const handleCancelOrder = async (orderId) => {
@@ -167,7 +183,7 @@ const Orders = () => {
                 </div>
                 <button
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                  onClick={() => handleTrackOrder(item.orderId)}
+                  onClick={() => handleTrackOrder(item)}
                 >
                   Track Order
                 </button>
