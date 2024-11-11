@@ -41,7 +41,7 @@ function PlaceOrder() {
   const handleOrderSuccess = () => {
     toast.success("Order Placed Successfully");
     setCartItems({});
-    navigate("/orders");
+    navigate("/order");
     setIsProcessing(false);
   };
 
