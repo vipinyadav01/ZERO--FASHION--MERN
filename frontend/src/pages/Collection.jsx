@@ -9,15 +9,15 @@ const Collection = () => {
   const [showFilter, setShowFilter] = useState(false);
   const [filterProducts, setFilterProducts] = useState([]);
   const [category, setCategory] = useState(() => {
-    const savedCategory = localStorage.getItem('category');
+    const savedCategory = localStorage.getItem("category");
     return savedCategory ? JSON.parse(savedCategory) : [];
   });
   const [subCategory, setSubCategory] = useState(() => {
-    const savedSubCategory = localStorage.getItem('subCategory');
+    const savedSubCategory = localStorage.getItem("subCategory");
     return savedSubCategory ? JSON.parse(savedSubCategory) : [];
   });
   const [sortType, setSortType] = useState(() => {
-    return localStorage.getItem('sortType') || "relevant";
+    return localStorage.getItem("sortType") || "relevant";
   });
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +27,7 @@ const Collection = () => {
       ? category.filter((item) => item !== value)
       : [...category, value];
     setCategory(updatedCategory);
-    localStorage.setItem('category', JSON.stringify(updatedCategory));
+    localStorage.setItem("category", JSON.stringify(updatedCategory));
   };
 
   const toggleSubCategory = (e) => {
@@ -36,19 +36,21 @@ const Collection = () => {
       ? subCategory.filter((item) => item !== value)
       : [...subCategory, value];
     setSubCategory(updatedSubCategory);
-    localStorage.setItem('subCategory', JSON.stringify(updatedSubCategory));
+    localStorage.setItem("subCategory", JSON.stringify(updatedSubCategory));
   };
 
   const applyFilter = () => {
     setLoading(true);
     let productsCopy = [...products];
 
+    // Filter by search term if applicable
     if (showSearch && search) {
       productsCopy = productsCopy.filter((item) =>
         item.name.toLowerCase().includes(search.toLowerCase())
       );
     }
 
+    // Filter by category and subcategory
     if (category.length > 0) {
       productsCopy = productsCopy.filter((item) =>
         category.includes(item.category)
@@ -75,7 +77,6 @@ const Collection = () => {
         sortedProducts.sort((a, b) => b.price - a.price);
         break;
       default:
-        // Keep the current order for "relevant"
         break;
     }
 
@@ -85,8 +86,6 @@ const Collection = () => {
   useEffect(() => {
     if (products.length > 0) {
       applyFilter();
-    } else {
-      setLoading(false);
     }
   }, [products, category, subCategory, search, showSearch]);
 
@@ -94,8 +93,8 @@ const Collection = () => {
     if (filterProducts.length > 0) {
       sortProduct();
     }
-    localStorage.setItem('sortType', sortType);
-  }, [sortType, filterProducts]);
+    localStorage.setItem("sortType", sortType);
+  }, [sortType]);
 
   return (
     <div className="flex flex-col sm:flex-row gap-1 sm:gap-10 pt-24 border-t">
@@ -168,7 +167,6 @@ const Collection = () => {
       <div className="flex-1">
         <div className="flex justify-between items-center text-base sm:text-2xl mb-4">
           <Title text1={"All"} text2={"COLLECTIONS"} />
-          {/* Product sort */}
           <select
             onChange={(e) => setSortType(e.target.value)}
             className="border-2 border-gray-300 text-sm px-2 py-1 rounded"

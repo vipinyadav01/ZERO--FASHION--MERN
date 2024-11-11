@@ -1,39 +1,45 @@
 import React, { useContext, useState, useEffect } from "react";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
+import { useNavigate } from "react-router-dom";
 
 const Orders = () => {
   const { backendUrl, token, currency } = useContext(ShopContext);
   const [orderData, setOrderData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const handleTrackOrder = (orderId) => {
-    window.open(`${backendUrl}/orders/${orderId}`, "_blank");
+
+  const handleTrackOrder = () => {
+    navigate('/TrackOrder');
   };
 
   const handleCancelOrder = async (orderId) => {
     try {
-      const response = await fetch(`${backendUrl}/api/order/cancel/${orderId}`, {
+      const response = await fetch(`${backendUrl}/api/order/${orderId}/cancel`, {
         method: "POST",
         headers: {
-          token,
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
       });
       const data = await response.json();
-      if (data.success) {
+      if (response.ok && data.success) {
         setOrderData(prevOrders =>
           prevOrders.map(order =>
-            order.orderId === orderId ? { ...order, status: "Cancelled" } : order
+            order._id === orderId
+              ? { ...order, status: "Cancelled" }
+              : order
           )
         );
+        setError("Order cancelled successfully");
       } else {
-        setError("Failed to cancel order. Please try again.");
+        setError(data.message || "Failed to cancel order");
       }
     } catch (error) {
       console.error("Error cancelling order:", error);
-      setError("An error occurred while cancelling the order.");
+      setError("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -95,6 +101,19 @@ const Orders = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded flex justify-between items-center">
+          <div>
+            <strong>Error: </strong>{error}
+          </div>
+          <button
+            onClick={() => setError(null)}
+            className="ml-4 text-red-900 hover:underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       <div className="mb-8">
         <Title text1={"MY"} text2={"ORDERS"} />
       </div>
@@ -127,16 +146,24 @@ const Orders = () => {
                     <p>Size: {item.size}</p>
                     <p>Date: {new Date(item.date).toLocaleDateString()}</p>
                     <p>Payment: {item.paymentMethod}</p>
+                    <p>OrderId:{item.orderId}</p>
                   </div>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${item.status === "Delivered" ? "bg-green-500" :
-                    item.status === "Cancelled" ? "bg-gray-500" :
-                      "bg-yellow-500"
-                    }`}></div>
-                  <p className="text-sm font-medium">{item.status}</p>
+                  <div
+                    className={`w-3 h-3 rounded-full ${item.status === "Delivered" ? "bg-green-500" :
+                      item.status === "Cancelled" ? "bg-red-500" :
+                        "bg-yellow-500"
+                      }`}
+                  ></div>
+                  <p
+                    className={`text-sm font-medium ${item.status === "Cancelled" ? "text-red-600" : ""
+                      }`}
+                  >
+                    {item.status}
+                  </p>
                 </div>
                 <button
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
