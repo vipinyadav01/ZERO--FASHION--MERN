@@ -3,34 +3,39 @@ import { NavLink } from "react-router-dom";
 import { assets } from "../assets/assets";
 
 const Sidebar = () => {
+  const navItems = [
+    { to: "/add", icon: assets.add_icon, text: "Add Items" },
+    { to: "/list", icon: assets.order_icon, text: "List Items" },
+    { to: "/orders", icon: assets.order_icon, text: "Orders" },
+  ];
+
   return (
-    <div className="w-[200px] min-h-screen border-r-2">
-      <div className="flex flex-col gap-4 pt-6 pl-[20%] text-[15px]">
-        <NavLink
-          className="flex items-center gap-3 border border-gray-300 border-r-0 px-3 py-2 rounded-l"
-          to="/add"
-        >
-          <img className="w-5 h-5" src={assets.add_icon} alt="" />
-          <p>Add Items</p> {/* Removed 'hidden md:block' */}
-        </NavLink>
-
-        <NavLink
-          className="flex items-center gap-3 border border-gray-300 border-r-0 px-3 py-2 rounded-l"
-          to="/list"
-        >
-          <img className="w-5 h-5" src={assets.order_icon} alt="" />
-          <p>List Items</p> {/* Removed 'hidden md:block' */}
-        </NavLink>
-
-        <NavLink
-          className="flex items-center gap-3 border border-gray-300 border-r-0 px-3 py-2 rounded-l"
-          to="/orders"
-        >
-          <img className="w-5 h-5" src={assets.order_icon} alt="" />
-          <p>Orders</p> {/* Removed 'hidden md:block' */}
-        </NavLink>
-      </div>
-    </div>
+    <aside className="w-16 sm:w-64 min-h-screen bg-white shadow-lg transition-all duration-300 ease-in-out">
+      <nav className="flex flex-col h-full py-6">
+        <div className="px-4 mb-6">
+          <h2 className="text-xl font-bold text-gray-800 hidden sm:block">Dashboard</h2>
+        </div>
+        <ul className="space-y-2 flex-grow">
+          {navItems.map((item, index) => (
+            <li key={index}>
+              <NavLink
+                to={item.to}
+                className={({ isActive }) =>
+                  `flex items-center space-x-3 px-4 py-3 rounded-l-full transition-all duration-200 ease-in-out
+                  ${isActive
+                    ? "bg-blue-500 text-white"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`
+                }
+              >
+                <img className="w-6 h-6" src={item.icon} alt="" />
+                <span className="hidden sm:inline">{item.text}</span>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
   );
 };
 

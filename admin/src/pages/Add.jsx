@@ -205,7 +205,7 @@ const AddProduct = ({ token }) => {
             <input
               onChange={(e) => setName(e.target.value)}
               value={name}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 bg-white"
               type="text"
               placeholder="Enter product name"
               required
@@ -220,7 +220,7 @@ const AddProduct = ({ token }) => {
             <textarea
               onChange={(e) => setDescription(e.target.value)}
               value={description}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 min-h-[100px]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 bg-white"
               placeholder="Enter product description"
               required
             />
@@ -233,7 +233,7 @@ const AddProduct = ({ token }) => {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 bg-white"
               >
                 <option value="Men">Men</option>
                 <option value="Women">Women</option>
@@ -246,7 +246,7 @@ const AddProduct = ({ token }) => {
               <select
                 value={subCategory}
                 onChange={(e) => setSubCategory(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 bg-white"
               >
                 <option value="Topwear">Topwear</option>
                 <option value="Bottomwear">Bottomwear</option>
@@ -271,16 +271,17 @@ const AddProduct = ({ token }) => {
 
           {/* Sizes */}
           <div>
-            <label className="block mb-2 font-medium">Available Sizes</label>
-            <div className="flex gap-4 flex-wrap">
+            <label className="block mb-2 font-semibold text-gray-700">Available Sizes</label>
+            <div className="flex flex-wrap gap-4">
               {["S", "M", "L", "XL", "XXL"].map((size) => (
                 <button
                   key={size}
                   onClick={() => handleSizeToggle(size)}
                   type="button"
-                  className={`px-4 py-2 border border-gray-300 rounded-lg ${
-                    sizes.includes(size) ? "bg-blue-500 text-white" : "bg-white"
-                  }`}
+                  className={`px-4 py-2 border-2 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${sizes.includes(size)
+                    ? "bg-blue-500 text-white border-blue-500 hover:bg-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:text-blue-500"
+                    }`}
                 >
                   {size}
                 </button>
@@ -303,13 +304,25 @@ const AddProduct = ({ token }) => {
         </div>
 
         {/* Submit Button */}
-        <button
-          type="submit"
-          className="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors mt-4"
-          disabled={loading}
-        >
-          {loading ? "Adding Product..." : "Add Product"}
-        </button>
+        <div className="flex justify-center">
+          <button
+            type="submit"
+            className="px-8 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={loading}
+          >
+            {loading ? (
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Adding Product...
+              </span>
+            ) : (
+              "Add Product"
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );
