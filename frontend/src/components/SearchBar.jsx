@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useContext } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const SearchBar = () => {
   const { search, setSearch, showSearch, setShowSearch } = useContext(ShopContext);
   const [visible, setVisible] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const searchInputRef = useRef(null);
 
   useEffect(() => {
     if (location.pathname.includes("collection") || location.pathname === "/") {
@@ -20,6 +22,7 @@ const SearchBar = () => {
   useEffect(() => {
     if (showSearch) {
       document.body.style.overflow = 'hidden';
+      searchInputRef.current.focus();
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -29,22 +32,34 @@ const SearchBar = () => {
     };
   }, [showSearch]);
 
-  if (!visible || !showSearch) {
-    return null;
-  }
-
   const handleSearchClose = () => {
     setShowSearch(false);
     setSearch("");
   };
 
+  const handleSearch = (e) => {
+    setSearch(e.target.value);
+    if (e.key === 'Enter') {
+      navigate(`/search?q=${e.target.value}`);
+      setShowSearch(false);
+    }
+  };
+
   return (
     <>
       {/* Mobile overlay */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={handleSearchClose} />
+      {showSearch && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 md:hidden"
+          onClick={handleSearchClose}
+        />
+      )}
 
-      {/* Search bar container - Updated positioning */}
-      <div className="fixed mt-16 md:mt-20 inset-x-0 z-30 bg-white md:bg-gray-50 transform transition-transform duration-200 ease-in-out">
+      {/* Search bar container */}
+      <div
+        className={`fixed top-0 left-0 right-0 z-40 bg-white md:bg-gray-50 transform transition-transform duration-200 ease-in-out ${showSearch ? 'translate-y-0' : '-translate-y-full'
+          }`}
+      >
         <div className="border-b shadow-md">
           {/* Mobile header */}
           <div className="flex items-center justify-between px-4 py-2 border-b md:hidden">
@@ -71,8 +86,14 @@ const SearchBar = () => {
                     alt=""
                   />
                   <input
+                    ref={searchInputRef}
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={handleSearch}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setShowSearch(false);
+                      }
+                    }}
                     className="w-full pl-12 pr-4 py-3 md:py-2 outline-none bg-transparent text-sm"
                     type="text"
                     placeholder="Search products..."
@@ -82,7 +103,10 @@ const SearchBar = () => {
                   {search && (
                     <button
                       type="button"
-                      onClick={() => setSearch("")}
+                      onClick={() => {
+                        setSearch("");
+                        setShowSearch(false);
+                      }}
                       className="absolute right-4 p-1 hover:opacity-75"
                       aria-label="Clear search"
                     >
@@ -101,23 +125,6 @@ const SearchBar = () => {
               >
                 <img className="w-3" src={assets.cross_icon} alt="" />
               </button>
-            </div>
-
-            {/* Recent searches - Mobile only */}
-            <div className="mt-6 md:hidden">
-              <h3 className="text-sm font-medium text-gray-500 mb-3">Recent Searches</h3>
-              <div className="space-y-4">
-                {["Summer Collection", "New Arrivals", "Sale Items"].map((item, index) => (
-                  <button
-                    key={index}
-                    className="flex items-center w-full text-left text-sm hover:bg-gray-50 p-2 rounded"
-                    onClick={() => setSearch(item)}
-                  >
-                    <img className="w-4 mr-3 opacity-50" src={assets.search_icon} alt="" />
-                    {item}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
         </div>
