@@ -35,7 +35,7 @@ const PublicRoute = ({ children }) => {
 
   if (token) {
 
-    const from = location.state?.from || "/list";
+    const from = location.state?.from || "/add";
     return <Navigate to={from} replace />;
   }
   return children;
@@ -124,7 +124,7 @@ const App = () => {
                 <div className="flex flex-1 w-full">
                   <Sidebar />
                   <main className="flex-1 p-4 overflow-auto">
-                    <Navigate to="/list" replace />
+                    <Navigate to="/add" replace />
                   </main>
                 </div>
               </div>
@@ -194,7 +194,7 @@ const App = () => {
               <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
               <p className="text-gray-600 mb-4">Page not found</p>
               <button
-                onClick={() => navigate("/list")}
+                onClick={() => navigate("/login")}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
               >
                 Go to Home

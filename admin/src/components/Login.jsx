@@ -19,7 +19,6 @@ const Login = ({ setToken }) => {
       ...prev,
       [name]: value,
     }));
-    // Clear error when user starts typing
     if (error) setError(null);
   };
 
@@ -40,15 +39,10 @@ const Login = ({ setToken }) => {
       );
 
       if (response.data.success) {
-        // Set token in localStorage and context
         localStorage.setItem("token", response.data.token);
         setToken(response.data.token);
-
-        // Show success message
         toast.success(response.data.message || "Login successful!");
-
-        // Navigate to dashboard/list page
-        navigate("/list");
+        navigate("/add");
       } else {
         throw new Error(response.data.message || "Login failed");
       }
