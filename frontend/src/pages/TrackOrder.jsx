@@ -66,16 +66,23 @@ const TrackOrder = () => {
     // Determine step completion based on order status
     const getStepCompletion = (status) => {
         switch (status) {
-            case 'Delivered':
-                return [true, true, true, true];
+            case 'Order Placed':
+                return [true, false, false, false, false];
+            case 'Packing':
+                return [true, true, false, false, false];
             case 'Shipped':
-                return [true, true, true, false];
-            case 'Processing':
-                return [true, true, false, false];
+                return [true, true, true, false, false];
+            case 'Out for Delivery':
+                return [true, true, true, true, false];
+            case 'Delivered':
+                return [true, true, true, true, true];
+            case 'Cancelled':
+                return [false, false, false, false, false];
             default:
-                return [true, false, false, false];
+                return [false, false, false, false, false];
         }
     };
+
 
     const getStepClassName = (stepStatus) => {
         return `w-8 h-8 rounded-full flex items-center justify-center ${stepStatus ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
