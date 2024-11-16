@@ -105,7 +105,7 @@ const App = () => {
       <Routes>
         {/* Public Routes */}
         <Route
-          path="/login"
+          path="/"
           element={
             <PublicRoute>
               <Login setToken={handleLogin} />
@@ -115,7 +115,7 @@ const App = () => {
 
         {/* Protected Routes */}
         <Route
-          path="/"
+          path="/login"
           element={
             <ProtectedRoute>
               <div className="flex flex-col min-h-screen">
