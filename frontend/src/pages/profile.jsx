@@ -40,7 +40,7 @@ const ProfileInfo = () => {
   }
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6 max-w-md mx-auto mt-28">
+    <div className="bg-white shadow-md rounded-lg p-6 max-w-md mx-auto mt-32">
       <div className="flex flex-col items-center">
         <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mb-4">
           {user.avatar ? (
