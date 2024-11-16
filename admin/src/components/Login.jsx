@@ -1,12 +1,38 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { backendUrl } from "../App";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, Mail, Lock } from "lucide-react";
 
+const useTokenExpiration = (setToken) => {
+  useEffect(() => {
+    // Clear any existing timeouts when the component mounts
+    const existingToken = localStorage.getItem("token");
+    if (existingToken) {
+      localStorage.removeItem("token");
+      setToken(null);
+    }
+  }, [setToken]);
+
+  const setTokenWithExpiry = (token) => {
+    localStorage.setItem("token", token);
+    setToken(token);
+
+    // Set timeout to clear token after 3 minutes
+    setTimeout(() => {
+      localStorage.removeItem("token");
+      setToken(null);
+      toast.info("Session expired. Please login again.");
+    }, 3 * 60 * 1000); 
+  };
+
+  return setTokenWithExpiry;
+};
+
 const Login = ({ setToken }) => {
   const navigate = useNavigate();
+  const setTokenWithExpiry = useTokenExpiration(setToken);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -44,7 +70,6 @@ const Login = ({ setToken }) => {
     setIsLoading(true);
     setError(null);
 
-    // Set all fields as touched on submit
     setTouched({
       email: true,
       password: true,
@@ -68,8 +93,7 @@ const Login = ({ setToken }) => {
       );
 
       if (response.data.success) {
-        localStorage.setItem("token", response.data.token);
-        setToken(response.data.token);
+        setTokenWithExpiry(response.data.token);
         toast.success("Welcome back! Login successful!");
         navigate("/add");
       } else {
@@ -182,8 +206,7 @@ const Login = ({ setToken }) => {
           )}
 
           <button
-            className={`w-full py-2.5 px-4 rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform active:scale-[0.98] flex items-center justify-center space-x-2 ${isLoading ? "opacity-75 cursor-not-allowed" : ""
-              }`}
+            className={`w-full py-2.5 px-4 rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform active:scale-[0.98] flex items-center justify-center space-x-2 ${isLoading ? "opacity-75 cursor-not-allowed" : ""}`}
             type="submit"
             disabled={isLoading}
           >
