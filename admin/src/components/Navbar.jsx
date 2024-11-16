@@ -14,15 +14,20 @@ const Navbar = ({ setToken }) => {
   }
 
   return (
-    <nav className="bg-white shadow-md">
+    <nav className="bg-white shadow-md fixed top-0 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0 flex items-center">
-            <img 
-              className="w-[max(10%,80px)] h-auto" 
-              src={assets.logo} 
-              alt="Company logo" 
+            <img
+              className="w-6 h-6 sm:w-12 sm:h-12"
+              src={assets.logo}
+              alt="Company logo"
             />
+            <div className="ml-4">
+              <div className="text-lg font-bold leading-none">ZERO</div>
+              <div className="text-xl font-extrabold uppercase leading-none">FASHION</div>
+              <div className="text-sm font-bold tracking-wide ">ADMIN</div>
+            </div>
           </div>
           <div className="flex items-center">
             <button
@@ -35,8 +40,8 @@ const Navbar = ({ setToken }) => {
                 rounded-full
                 text-white
                 transition duration-150 ease-in-out
-                ${isLoading 
-                  ? 'bg-gray-400 cursor-not-allowed' 
+                ${isLoading
+                  ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500'
                 }
               `}

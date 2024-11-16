@@ -61,9 +61,14 @@ const Navbar = () => {
   return (
     <div className="fixed top-0 left-0 right-0 bg-white z-500">
       <div className="flex items-center justify-between py-5 font-medium max-w-7xl mx-auto px-4">
-        <Link to={"/"}>
-          <img src={assets.logo} className="w-36" alt="logoImage" />
+        <Link to={"/"} className="flex gap-4 items-center">
+          <img src={assets.logo} alt="logoImage" className="w-5 h-5 sm:w-12 sm:h-12" />
+        <div className="align-left">
+          <div className="text-lg font-bold leading-none">ZERO</div>
+          <div className="text-xl font-extrabold uppercase leading-none">FASHION</div>
+        </div>
         </Link>
+
 
         <ul className="hidden sm:flex gap-5 text-sm text-gray-700">
           <NavLink to="/" className="flex flex-col items-center gap-1 hover:text-black">

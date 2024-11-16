@@ -124,7 +124,7 @@ const App = () => {
               <div className="flex flex-col min-h-screen">
                 <Navbar setToken={handleLogout} />
                 <hr className="border-gray-200" />
-                <div className="flex flex-1 w-full">
+                <div className="flex flex-1 w-full mt-16">
                   <Sidebar />
                   <main className="flex-1 p-4 overflow-auto">
                     <Add token={token} />
@@ -141,8 +141,8 @@ const App = () => {
             <ProtectedRoute>
               <div className="flex flex-col min-h-screen">
                 <Navbar setToken={handleLogout} />
-                <hr className="border-gray-200" />
-                <div className="flex flex-1 w-full">
+                <hr className="border-gray-200 " />
+                <div className="flex flex-1 w-full mt-16">
                   <Sidebar />
                   <main className="flex-1 p-4 overflow-auto">
                     <List token={token} />
@@ -160,7 +160,7 @@ const App = () => {
               <div className="flex flex-col min-h-screen">
                 <Navbar setToken={handleLogout} />
                 <hr className="border-gray-200" />
-                <div className="flex flex-1 w-full">
+                <div className="flex flex-1 w-full mt-16">
                   <Sidebar />
                   <main className="flex-1 p-4 overflow-auto">
                     <Order token={token} />

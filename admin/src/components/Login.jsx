@@ -19,12 +19,11 @@ const useTokenExpiration = (setToken) => {
     localStorage.setItem("token", token);
     setToken(token);
 
-    // Set timeout to clear token after 3 minutes
     setTimeout(() => {
       localStorage.removeItem("token");
       setToken(null);
       toast.info("Session expired. Please login again.");
-    }, 3 * 60 * 1000); 
+    }, 10 * 60 * 1000);
   };
 
   return setTokenWithExpiry;
