@@ -25,7 +25,7 @@ const Product = () => {
   }, [productId, products]); // Added products as dependency
 
   return productData ? (
-    <div className="border-t-2  transition-opacity ease-in duration-500 opacity-100 pt-24">
+    <div className="border-t-2  transition-opacity ease-in duration-500 opacity-100 mt-24">
       <div className="flex gap-12 sm:gap-12 flex-col sm:flex-row">
         {/*---------- product images ----------*/}
         <div className="flex-1 flex flex-col-reverse gap-3 sm:flex-row">

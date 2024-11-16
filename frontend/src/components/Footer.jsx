@@ -6,10 +6,9 @@ const Footer = () => {
     <div>
       <div className="flex flex-col sm:grid grid-cols-[3fr_1fr_1fr] gap-14 my-10 mt-10 text-sm">
         <div>
-          <img src={assets.logo} alt="logo" className="mb-5 w-32" />
+          <img src={assets.logo} alt="logo" className="mb-5 w-12" />
           <p className="w-full md:w-2/3 text-gray-600">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Obcaecati
-            delectus nostrum animi eaque temporibus maiores.
+            Welcome to Zero Fashion–where style meets sustainability. Discover trendy, eco-friendly apparel designed to elevate your wardrobe while caring for the planet.
           </p>
         </div>
 
@@ -26,7 +25,7 @@ const Footer = () => {
         <div>
           <p className="text-xl font-medium mb-5">GET IN TOUCH</p>
           <ul className="flex flex-col gap-1 text-gray-600">
-            <li>+91 9918572513</li>
+            <li>+91-9918572513</li>
             <li>VipinYadav9m@gmail.com</li>
           </ul>
         </div>
@@ -35,7 +34,7 @@ const Footer = () => {
       <div>
         <hr />
         <p className="py-5 text-sm text-center">
-          Copyright 2024 @ zerofashion.com - All Right Reserved Design by Vipin
+          Copyright {new Date().getFullYear()} @ zerofashion.vercel.app - All Right Reserved Design by Vipin
           Yadav
         </p>
       </div>

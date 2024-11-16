@@ -252,7 +252,7 @@ function PlaceOrder() {
   return (
     <form
       onSubmit={onSubmitHandler}
-      className="flex flex-col sm:flex-row justify-between gap-4 pt-28 sm:pt-24 min-h-[80vh] border-t"
+      className="flex flex-col sm:flex-row justify-between gap-4 mt-28 sm:pt-24 min-h-[80vh] border-t"
     >
       {/* Left Side - Delivery Information */}
       <div className="flex flex-col gap-4 w-full sm:max-w-[480px]">

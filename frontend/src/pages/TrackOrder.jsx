@@ -89,7 +89,7 @@ const TrackOrder = () => {
     const stepCompletion = getStepCompletion(orderDetails?.status);
 
     return (
-        <div className="container mx-auto px-4 py-8 pt-24">
+        <div className="container mx-auto px-4 py-8 mt-24">
             <div className="mb-8">
                 <Title text1="TRACK" text2="ORDER" />
             </div>
