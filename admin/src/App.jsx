@@ -34,7 +34,6 @@ const PublicRoute = ({ children }) => {
   const location = useLocation();
 
   if (token) {
-
     const from = location.state?.from || "/add";
     return <Navigate to={from} replace />;
   }
@@ -47,7 +46,6 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check token validity
     const checkAuth = async () => {
       try {
         if (token) {
@@ -106,6 +104,11 @@ const App = () => {
         {/* Public Routes */}
         <Route
           path="/"
+          element={<Navigate to="/login" replace />}
+        />
+
+        <Route
+          path="/login"
           element={
             <PublicRoute>
               <Login setToken={handleLogin} />
@@ -114,24 +117,6 @@ const App = () => {
         />
 
         {/* Protected Routes */}
-        <Route
-          path="/login"
-          element={
-            <ProtectedRoute>
-              <div className="flex flex-col min-h-screen">
-                <Navbar setToken={handleLogout} />
-                <hr className="border-gray-200" />
-                <div className="flex flex-1 w-full">
-                  <Sidebar />
-                  <main className="flex-1 p-4 overflow-auto">
-                    <Navigate to="/add" replace />
-                  </main>
-                </div>
-              </div>
-            </ProtectedRoute>
-          }
-        />
-
         <Route
           path="/add"
           element={
