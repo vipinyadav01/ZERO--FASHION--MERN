@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { backendUrl } from "../App";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, Mail, Lock } from "lucide-react";
+import PropTypes from 'prop-types';
 
 const useTokenExpiration = (setToken) => {
   useEffect(() => {
@@ -230,6 +231,10 @@ const Login = ({ setToken }) => {
       </div>
     </div>
   );
+};
+
+Login.propTypes = {
+  setToken: PropTypes.func.isRequired,
 };
 
 export default Login;
