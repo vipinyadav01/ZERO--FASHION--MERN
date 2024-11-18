@@ -8,22 +8,16 @@ import { Eye, EyeOff, LogIn, Mail, Lock } from "lucide-react";
 const useTokenExpiration = (setToken) => {
   useEffect(() => {
     // Clear any existing timeouts when the component mounts
-    const existingToken = localStorage.getItem("token");
+    const existingToken = sessionStorage.getItem("token");
     if (existingToken) {
-      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
       setToken(null);
     }
   }, [setToken]);
 
   const setTokenWithExpiry = (token) => {
-    localStorage.setItem("token", token);
+    sessionStorage.setItem("token", token);
     setToken(token);
-
-    setTimeout(() => {
-      localStorage.removeItem("token");
-      setToken(null);
-      toast.info("Session expired. Please login again.");
-    }, 10 * 60 * 1000);
   };
 
   return setTokenWithExpiry;
@@ -91,7 +85,7 @@ const Login = ({ setToken }) => {
         }
       );
 
-      if (response.data.success) {
+      if (response && response.data && response.data.success) {
         setTokenWithExpiry(response.data.token);
         toast.success("Welcome back! Login successful!");
         navigate("/add");
