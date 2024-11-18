@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { backendUrl } from "../App";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, Mail, Lock } from "lucide-react";
-import PropTypes from 'prop-types';
 
 const useTokenExpiration = (setToken) => {
   useEffect(() => {
@@ -39,6 +38,18 @@ const Login = ({ setToken }) => {
     password: false,
   });
 
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem("token");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -49,9 +60,9 @@ const Login = ({ setToken }) => {
   };
 
   const handleBlur = (field) => {
-    setTouched(prev => ({
+    setTouched((prev) => ({
       ...prev,
-      [field]: true
+      [field]: true,
     }));
   };
 
@@ -108,22 +119,26 @@ const Login = ({ setToken }) => {
 
   const getInputErrorClass = (field) => {
     if (touched[field]) {
-      if (field === 'email' && !validateEmail(formData.email)) {
-        return 'border-red-500 focus:ring-red-500 focus:border-red-500';
+      if (field === "email" && !validateEmail(formData.email)) {
+        return "border-red-500 focus:ring-red-500 focus:border-red-500";
       }
-      if (field === 'password' && formData.password.length < 6) {
-        return 'border-red-500 focus:ring-red-500 focus:border-red-500';
+      if (field === "password" && formData.password.length < 6) {
+        return "border-red-500 focus:ring-red-500 focus:border-red-500";
       }
     }
-    return 'border-gray-300 focus:ring-blue-500 focus:border-blue-500';
+    return "border-gray-300 focus:ring-blue-500 focus:border-blue-500";
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center w-full bg-gradient-to-br from-blue-50 to-indigo-50 px-4">
       <div className="bg-white shadow-2xl rounded-2xl px-8 py-8 w-full max-w-md transform transition-all hover:scale-[1.01]">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome to ZeroFashion</h1>
-          <p className="text-gray-600">Please enter your credentials to login</p>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Welcome to ZeroFashion
+          </h1>
+          <p className="text-gray-600">
+            Please enter your credentials to login
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -142,15 +157,19 @@ const Login = ({ setToken }) => {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                onBlur={() => handleBlur('email')}
-                className={`w-full pl-10 pr-3 py-2 border rounded-lg shadow-sm focus:outline-none ${getInputErrorClass('email')}`}
+                onBlur={() => handleBlur("email")}
+                className={`w-full pl-10 pr-3 py-2 border rounded-lg shadow-sm focus:outline-none ${getInputErrorClass(
+                  "email"
+                )}`}
                 placeholder="admin@example.com"
                 required
                 disabled={isLoading}
               />
             </div>
             {touched.email && !validateEmail(formData.email) && (
-              <p className="text-red-500 text-sm mt-1">Please enter a valid email address</p>
+              <p className="text-red-500 text-sm mt-1">
+                Please enter a valid email address
+              </p>
             )}
           </div>
 
@@ -169,8 +188,10 @@ const Login = ({ setToken }) => {
                 type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={handleChange}
-                onBlur={() => handleBlur('password')}
-                className={`w-full pl-10 pr-10 py-2 border rounded-lg shadow-sm focus:outline-none ${getInputErrorClass('password')}`}
+                onBlur={() => handleBlur("password")}
+                className={`w-full pl-10 pr-10 py-2 border rounded-lg shadow-sm focus:outline-none ${getInputErrorClass(
+                  "password"
+                )}`}
                 placeholder="••••••••"
                 required
                 disabled={isLoading}
@@ -188,7 +209,9 @@ const Login = ({ setToken }) => {
               </button>
             </div>
             {touched.password && formData.password.length < 6 && (
-              <p className="text-red-500 text-sm mt-1">Password must be at least 6 characters</p>
+              <p className="text-red-500 text-sm mt-1">
+                Password must be at least 6 characters
+              </p>
             )}
           </div>
 
@@ -200,7 +223,9 @@ const Login = ({ setToken }) => {
           )}
 
           <button
-            className={`w-full py-2.5 px-4 rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform active:scale-[0.98] flex items-center justify-center space-x-2 ${isLoading ? "opacity-75 cursor-not-allowed" : ""}`}
+            className={`w-full py-2.5 px-4 rounded-lg text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform active:scale-[0.98] flex items-center justify-center space-x-2 ${
+              isLoading ? "opacity-75 cursor-not-allowed" : ""
+            }`}
             type="submit"
             disabled={isLoading}
           >
@@ -222,7 +247,9 @@ const Login = ({ setToken }) => {
             <button
               type="button"
               className="text-blue-600 hover:text-blue-700 font-medium"
-              onClick={() => toast.info("Please contact your administrator for assistance.")}
+              onClick={() =>
+                toast.info("Please contact your administrator for assistance.")
+              }
             >
               Get Help
             </button>
@@ -231,10 +258,6 @@ const Login = ({ setToken }) => {
       </div>
     </div>
   );
-};
-
-Login.propTypes = {
-  setToken: PropTypes.func.isRequired,
 };
 
 export default Login;

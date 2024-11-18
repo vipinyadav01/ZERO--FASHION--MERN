@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -19,7 +25,7 @@ export const currency = "₹";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   const location = useLocation();
 
   if (!token) {
@@ -30,7 +36,7 @@ const ProtectedRoute = ({ children }) => {
 
 // Public Route Component (for login)
 const PublicRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   const location = useLocation();
 
   if (token) {
@@ -42,16 +48,18 @@ const PublicRoute = ({ children }) => {
 
 const App = () => {
   const navigate = useNavigate();
-  const [token, setToken] = useState(() => localStorage.getItem("token") || "");
+  const [token, setToken] = useState(
+    () => sessionStorage.getItem("token") || ""
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         if (token) {
-          localStorage.setItem("token", token);
+          sessionStorage.setItem("token", token);
         } else {
-          localStorage.removeItem("token");
+          sessionStorage.removeItem("token");
           navigate("/login");
         }
       } catch (error) {
@@ -67,14 +75,14 @@ const App = () => {
 
   const handleLogout = () => {
     setToken("");
-    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
     toast.success("Logged out successfully");
     navigate("/login");
   };
 
   const handleLogin = (newToken) => {
     setToken(newToken);
-    localStorage.setItem("token", newToken);
+    sessionStorage.setItem("token", newToken);
   };
 
   if (isLoading) {
@@ -102,10 +110,7 @@ const App = () => {
 
       <Routes>
         {/* Public Routes */}
-        <Route
-          path="/"
-          element={<Navigate to="/login" replace />}
-        />
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
         <Route
           path="/login"
