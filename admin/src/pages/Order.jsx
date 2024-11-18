@@ -9,7 +9,7 @@ const Order = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchAllOrders = async () => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     if (!token) {
       setLoading(false);
@@ -38,7 +38,7 @@ const Order = () => {
 
   const statusHandler = async (event, orderId) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const response = await axios.post(
         backendUrl + "/api/order/status",
         { orderId, status: event.target.value },

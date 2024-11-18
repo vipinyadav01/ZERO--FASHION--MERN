@@ -38,7 +38,7 @@ const Login = () => {
 
         if (response.data.success) {
           setToken(response.data.token);
-          sessionStorage.setItem("token", response.data.token);
+          localStorage.setItem("token", response.data.token);
           toast.success("Account created successfully!");
         } else {
           toast.error(response.data.message);
@@ -51,7 +51,7 @@ const Login = () => {
 
         if (response.data.success) {
           setToken(response.data.token);
-          sessionStorage.setItem("token", response.data.token);
+          localStorage.setItem("token", response.data.token);
           toast.success("Welcome back!");
         } else {
           toast.error(response.data.message);
@@ -72,8 +72,8 @@ const Login = () => {
   }, [token, navigate]);
 
   useEffect(() => {
-    if (!token && sessionStorage.getItem("token")) {
-      setToken(sessionStorage.getItem("token"));
+    if (!token && localStorage.getItem("token")) {
+      setToken(localStorage.getItem("token"));
     }
   }, [token, setToken]);
 
