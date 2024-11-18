@@ -20,6 +20,7 @@ const DropdownItem = ({ onClick, color = 'gray', children }) => (
     whileHover={{ backgroundColor: color === 'red' ? '#fee2e2' : '#f3f4f6' }}
     onClick={onClick}
     className={`px-4 py-2 text-sm ${color === 'red' ? 'text-red-600' : 'text-gray-700'} cursor-pointer`}
+    style={{ fontFamily: 'Doto' }}
   >
     {children}
   </motion.p>

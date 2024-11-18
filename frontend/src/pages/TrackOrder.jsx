@@ -1,203 +1,242 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Title from "../components/Title";
-import { ShopContext } from '../context/ShopContext';
+import { ShopContext } from "../context/ShopContext";
 
 const TrackOrder = () => {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const [orderDetails, setOrderDetails] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [orderDetails, setOrderDetails] = useState(null);
 
-    useEffect(() => {
-        console.log("Location state:", location.state);
-        if (location.state?.orderDetails) {
-            setOrderDetails(location.state.orderDetails);
-        }
-    }, [location.state]);
-
-    const handleGoBack = () => {
-        navigate('/order');
-    };
-
-    if (!location.state?.orderDetails) {
-        return (
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="container mx-auto px-4 py-8 pt-24"
-            >
-                <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
-                    <div className="text-center">
-                        <p className="text-red-600 mb-4">No order details found. Please go back and try again.</p>
-                        <button
-                            onClick={handleGoBack}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
-                        >
-                            Back to Orders
-                        </button>
-                    </div>
-                </div>
-            </motion.div>
-        );
+  useEffect(() => {
+    console.log("Location state:", location.state);
+    if (location.state?.orderDetails) {
+      setOrderDetails(location.state.orderDetails);
     }
+  }, [location.state]);
 
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        try {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        } catch (error) {
-            console.error("Date formatting error:", error);
-            return 'Invalid Date';
-        }
-    };
+  const handleGoBack = () => {
+    navigate("/order");
+  };
 
-    const getStepCompletion = (status) => {
-        switch (status) {
-            case 'Order Placed': return [true, false, false, false, false];
-            case 'Packing': return [true, true, false, false, false];
-            case 'Shipped': return [true, true, true, false, false];
-            case 'Out for Delivery': return [true, true, true, true, false];
-            case 'Delivered': return [true, true, true, true, true];
-            case 'Cancelled': return [false, false, false, false, false];
-            default: return [false, false, false, false, false];
-        }
-    };
-
-    const getStepClassName = (stepStatus) => {
-        return `w-8 h-8 rounded-full flex items-center justify-center ${stepStatus ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
-            }`;
-    };
-
-    const getLineClassName = (completed) => {
-        return `flex-1 h-1 ${completed ? 'bg-green-500' : 'bg-gray-300'}`;
-    };
-
-    const stepCompletion = getStepCompletion(orderDetails?.status);
-
+  if (!location.state?.orderDetails) {
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="container mx-auto px-4 py-8 mt-24"
-        >
-            <motion.div
-                initial={{ y: -20 }}
-                animate={{ y: 0 }}
-                className="mb-8"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="container mx-auto px-4 py-8 pt-24"
+      >
+        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">
+              No order details found. Please go back and try again.
+            </p>
+            <button
+              onClick={handleGoBack}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
             >
-                <Title text1="TRACK" text2="ORDER" />
-            </motion.div>
-
-            <motion.div
-                initial={{ y: 20 }}
-                animate={{ y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6"
-            >
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleGoBack}
-                    className="px-4 py-2 text-blue-600 hover:text-blue-800 transition duration-300 flex items-center mb-4"
-                >
-                    ← Back to Orders
-                </motion.button>
-
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="mb-8"
-                >
-                    <h3 className="text-lg font-semibold mb-4">Order Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex items-start space-x-4">
-                            <motion.img
-                                whileHover={{ scale: 1.1 }}
-                                src={orderDetails?.image?.[0] || "/placeholder.svg"}
-                                alt={orderDetails?.name}
-                                className="w-24 h-24 object-cover rounded"
-                            />
-                            <div className="space-y-2">
-                                <p className="font-semibold text-lg">{orderDetails?.name || 'N/A'}</p>
-                                <div className="text-gray-600 space-y-1">
-                                    <p><span className="font-medium">Order ID: </span>{orderDetails?.orderId || 'N/A'}</p>
-                                    <p><span className="font-medium">Size: </span>{orderDetails?.size || 'N/A'}</p>
-                                    <p><span className="font-medium">Quantity: </span>{orderDetails?.quantity || 'N/A'}</p>
-                                    <p><span className="font-medium">Price: </span>${orderDetails?.price || 'N/A'}</p>
-                                    <p><span className="font-medium">Payment Method: </span>{orderDetails?.paymentMethod || 'N/A'}</p>
-                                    <p><span className="font-medium">Order Date: </span>{formatDate(orderDetails?.date)}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="mb-8"
-                >
-                    <h3 className="text-lg font-semibold mb-6">Tracking Status</h3>
-                    <div className="relative">
-                        <div className="flex items-center justify-between">
-                            {['Order Placed', 'Packing', 'Shipped', 'Out for Delivery', 'Delivered'].map((label, index) => (
-                                <React.Fragment key={label}>
-                                    <motion.div
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        transition={{ delay: 0.5 + index * 0.1 }}
-                                        className="flex flex-col items-center"
-                                    >
-                                        <div className={getStepClassName(stepCompletion[index])}>
-                                            <span>{stepCompletion[index] ? '✓' : ''}</span>
-                                        </div>
-                                        <p className="mt-2 text-sm">{label}</p>
-                                    </motion.div>
-                                    {index < 4 && (
-                                        <motion.div
-                                            initial={{ scaleX: 0 }}
-                                            animate={{ scaleX: 1 }}
-                                            transition={{ delay: 0.5 + index * 0.1 }}
-                                            className="flex-1 flex items-center"
-                                        >
-                                            <div className={getLineClassName(stepCompletion[index + 1])}></div>
-                                        </motion.div>
-                                    )}
-                                </React.Fragment>
-                            ))}
-                        </div>
-                    </div>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                    className="bg-gray-50 p-4 rounded-lg"
-                >
-                    <p className="text-center text-lg font-medium">
-                        Current Status:
-                        <span className={`ml-2 ${orderDetails?.status === 'Delivered' ? 'text-green-600' :
-                                orderDetails?.status === 'Cancelled' ? 'text-red-600' :
-                                    'text-blue-600'
-                            }`}>
-                            {orderDetails?.status || 'Processing'}
-                        </span>
-                    </p>
-                </motion.div>
-            </motion.div>
-        </motion.div>
+              Back to Orders
+            </button>
+          </div>
+        </div>
+      </motion.div>
     );
+  }
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch (error) {
+      console.error("Date formatting error:", error);
+      return "Invalid Date";
+    }
+  };
+
+  const getStepCompletion = (status) => {
+    switch (status) {
+      case "Order Placed":
+        return [true, false, false, false, false];
+      case "Packing":
+        return [true, true, false, false, false];
+      case "Shipped":
+        return [true, true, true, false, false];
+      case "Out for Delivery":
+        return [true, true, true, true, false];
+      case "Delivered":
+        return [true, true, true, true, true];
+      case "Cancelled":
+        return [false, false, false, false, false];
+      default:
+        return [false, false, false, false, false];
+    }
+  };
+
+  const getStepClassName = (stepStatus) => {
+    return `w-8 h-8 rounded-full flex items-center justify-center ${
+      stepStatus ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"
+    }`;
+  };
+
+  const getLineClassName = (completed) => {
+    return `flex-1 h-1 ${completed ? "bg-green-500" : "bg-gray-300"}`;
+  };
+
+  const stepCompletion = getStepCompletion(orderDetails?.status);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="container mx-auto px-4 py-8 mt-24"
+    >
+      <motion.div initial={{ y: -20 }} animate={{ y: 0 }} className="mb-8">
+        <Title text1="TRACK" text2="ORDER" />
+      </motion.div>
+
+      <motion.div
+        initial={{ y: 20 }}
+        animate={{ y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6"
+      >
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleGoBack}
+          className="px-4 py-2 text-blue-600 hover:text-blue-800 transition duration-300 flex items-center mb-4"
+        >
+          ← Back to Orders
+        </motion.button>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mb-8"
+        >
+          <h3 className="text-lg font-semibold mb-4">Order Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-start space-x-4">
+              <motion.img
+                whileHover={{ scale: 1.1 }}
+                src={orderDetails?.image?.[0] || "/placeholder.svg"}
+                alt={orderDetails?.name}
+                className="w-24 h-24 object-cover rounded"
+              />
+              <div className="space-y-2">
+                <p className="font-semibold text-lg">
+                  {orderDetails?.name || "N/A"}
+                </p>
+                <div className="text-gray-600 space-y-1">
+                  <p>
+                    <span className="font-medium">Order ID: </span>
+                    {orderDetails?.orderId || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Size: </span>
+                    {orderDetails?.size || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Quantity: </span>
+                    {orderDetails?.quantity || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Price: </span>$
+                    {orderDetails?.price || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Payment Method: </span>
+                    {orderDetails?.paymentMethod || "N/A"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Order Date: </span>
+                    {formatDate(orderDetails?.date)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mb-8"
+        >
+          <h3 className="text-lg font-semibold mb-6">Tracking Status</h3>
+          <div className="relative">
+            <div className="flex items-center justify-between">
+              {[
+                "Order Placed",
+                "Packing",
+                "Shipped",
+                "Out for Delivery",
+                "Delivered",
+              ].map((label, index) => (
+                <React.Fragment key={label}>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.5 + index * 0.1 }}
+                    className="flex flex-col items-center"
+                  >
+                    <div className={getStepClassName(stepCompletion[index])}>
+                      <span>{stepCompletion[index] ? "✓" : ""}</span>
+                    </div>
+                    <p className="mt-2 text-sm">{label}</p>
+                  </motion.div>
+                  {index < 4 && (
+                    <motion.div
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ delay: 0.5 + index * 0.1 }}
+                      className="flex-1 flex items-center"
+                    >
+                      <div
+                        className={getLineClassName(stepCompletion[index + 1])}
+                      ></div>
+                    </motion.div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="bg-gray-50 p-4 rounded-lg"
+        >
+          <p className="text-center text-lg font-medium">
+            Current Status:
+            <span
+              className={`ml-2 ${
+                orderDetails?.status === "Delivered"
+                  ? "text-green-600"
+                  : orderDetails?.status === "Cancelled"
+                  ? "text-red-600"
+                  : "text-blue-600"
+              }`}
+            >
+              {orderDetails?.status || "Processing"}
+            </span>
+          </p>
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  );
 };
 
 export default TrackOrder;

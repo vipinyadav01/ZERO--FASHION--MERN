@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { ShopContext } from "../context/ShopContext";
 
 const ProfileInfo = () => {
-  const { token, backendUrl } = useContext(ShopContext);
+  const backendUrl = useContext(ShopContext).backendUrl;
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -15,6 +15,7 @@ const ProfileInfo = () => {
         },
       });
       const result = await res.json();
+      console.log("Fetched user details:", result.user);
       setUser(result.user);
     } catch (error) {
       console.error("Error fetching user details:", error);
@@ -22,35 +23,36 @@ const ProfileInfo = () => {
   };
 
   useEffect(() => {
-    if (token) {
+    const token = sessionStorage.getItem("token");
+    if (token && backendUrl) {
       getUserDetails(token);
     }
-  }, [token, backendUrl]);
+  }, [backendUrl]);
 
   if (!user) {
     return (
-      <div className="bg-white shadow-md rounded-lg p-6 max-w-md mx-auto mt-8 animate-pulse">
+      <div className="bg-white border border-gray-300 rounded-lg p-6 max-w-md mx-auto mt-12 animate-pulse">
         <div className="flex flex-col items-center">
           <div className="w-24 h-24 bg-gray-300 rounded-full mb-4"></div>
-          <div className="h-6 bg-gray-300 w-3/4 mb-2"></div>
-          <div className="h-4 bg-gray-300 w-1/2 mb-4"></div>
+          <div className="h-6 bg-gray-200 w-3/4 mb-2"></div>
+          <div className="h-4 bg-gray-200 w-1/2 mb-4"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6 max-w-md mx-auto mt-32">
+    <div className="bg-white border border-gray-200 rounded-lg p-6 max-w-md mx-auto mt-16 shadow-sm">
       <div className="flex flex-col items-center">
-        <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mb-4">
+        <div className="w-28 h-28 rounded-full border border-gray-200 flex items-center justify-center mb-6 overflow-hidden shadow-sm">
           {user.avatar ? (
             <img
               src={user.avatar}
               alt={user.name}
-              className="w-full h-full rounded-full object-cover"
+              className="w-full h-full object-cover"
             />
           ) : (
-            <span className="text-2xl text-gray-500">
+            <span className="text-3xl text-gray-600 font-light">
               {user.name?.charAt(0).toUpperCase()}
             </span>
           )}
@@ -61,10 +63,10 @@ const ProfileInfo = () => {
             <input
               type="text"
               defaultValue={user.name}
-              className="text-xl font-semibold text-gray-800 mb-2 text-center w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
+              className="text-2xl font-light text-gray-800 mb-3 text-center w-full border-b border-gray-300 pb-1 focus:outline-none focus:border-black transition-colors duration-300"
             />
           ) : (
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            <h2 className="text-2xl font-light text-gray-800 mb-3">
               {user.name}
             </h2>
           )}
@@ -73,7 +75,7 @@ const ProfileInfo = () => {
               <input
                 type="email"
                 defaultValue={user.email}
-                className="text-center w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
+                className="text-center w-full border-b border-gray-300 pb-1 focus:outline-none focus:border-black transition-colors duration-300"
               />
             ) : (
               <span>{user.email}</span>
@@ -85,7 +87,7 @@ const ProfileInfo = () => {
                 <input
                   type="tel"
                   defaultValue={user.phone}
-                  className="text-center w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
+                  className="text-center w-full border-b border-gray-300 pb-1 focus:outline-none focus:border-black transition-colors duration-300"
                 />
               ) : (
                 <span>{user.phone}</span>
@@ -98,7 +100,7 @@ const ProfileInfo = () => {
                 <input
                   type="text"
                   defaultValue={user.location}
-                  className="text-center w-full border-b-2 border-gray-300 focus:outline-none focus:border-blue-500"
+                  className="text-center w-full border-b border-gray-300 pb-1 focus:outline-none focus:border-black transition-colors duration-300"
                 />
               ) : (
                 <span>{user.location}</span>
@@ -110,7 +112,7 @@ const ProfileInfo = () => {
       <div className="mt-6">
         <button
           onClick={() => setIsEditing(!isEditing)}
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          className="w-full bg-gray-100 text-gray-800 py-3 rounded-md hover:bg-gray-200 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-300"
         >
           {isEditing ? "Save Changes" : "Edit Profile"}
         </button>
