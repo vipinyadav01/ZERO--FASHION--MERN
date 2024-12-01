@@ -1,14 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import { ShopContext } from "../context/ShopContext";
-import { Edit2, Save, Camera, MapPin, Clock } from "lucide-react";
 
 const ProfileInfo = () => {
-  const { backendUrl } = useContext(ShopContext);
+  const backendUrl = useContext(ShopContext).backendUrl;
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedUser, setEditedUser] = useState({ location: "Mathura" });
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
   const getUserDetails = async (authToken) => {
     if (!authToken) return;
@@ -21,7 +17,6 @@ const ProfileInfo = () => {
       const result = await res.json();
       console.log("Fetched user details:", result.user);
       setUser(result.user);
-      setEditedUser(result.user || { location: "Mathura" });
     } catch (error) {
       console.error("Error fetching user details:", error);
     }
@@ -32,58 +27,24 @@ const ProfileInfo = () => {
     if (token && backendUrl) {
       getUserDetails(token);
     }
-
-    // Update date and time every minute
-    const timer = setInterval(() => setCurrentDateTime(new Date()), 60000);
-    return () => clearInterval(timer);
   }, [backendUrl]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditedUser((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = async () => {
-    try {
-      setIsLoading(true);
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${backendUrl}/api/user/update`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          token: token,
-        },
-        body: JSON.stringify(editedUser),
-      });
-      const result = await res.json();
-      if (result.success) {
-        setUser(editedUser);
-        setIsEditing(false);
-      }
-    } catch (error) {
-      console.error("Error updating user details:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   if (!user) {
     return (
-      <div className="bg-gradient-to-br from-gray-300 to-gray-500 text-white border border-gray-700 rounded-lg p-8 max-w-md mx-auto mt-12 animate-pulse shadow-xl">
+      <div className="bg-white border border-gray-300 rounded-lg p-6 max-w-md mx-auto mt-12 animate-pulse">
         <div className="flex flex-col items-center">
-          <div className="w-32 h-32 bg-gray-700 rounded-full mb-6"></div>
-          <div className="h-8 bg-gray-700 w-3/4 mb-4"></div>
-          <div className="h-6 bg-gray-700 w-1/2 mb-6"></div>
-          <div className="h-10 bg-gray-700 w-full rounded-md"></div>
+          <div className="w-24 h-24 bg-gray-300 rounded-full mb-4"></div>
+          <div className="h-6 bg-gray-200 w-3/4 mb-2"></div>
+          <div className="h-4 bg-gray-200 w-1/2 mb-4"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-300 to-gray-500 text-white border border-gray-700 rounded-lg p-8 max-w-md mx-auto mt-16 shadow-xl">
+    <div className="bg-white border border-gray-200 rounded-lg p-6 max-w-md mx-auto mt-16 shadow-sm">
       <div className="flex flex-col items-center">
-        <div className="relative w-32 h-32 rounded-full border-4 border-blue-500 flex items-center justify-center mb-6 overflow-hidden shadow-md group">
+        <div className="w-28 h-28 rounded-full border border-gray-200 flex items-center justify-center mb-6 overflow-hidden shadow-sm">
           {user.avatar ? (
             <img
               src={user.avatar}
@@ -91,92 +52,71 @@ const ProfileInfo = () => {
               className="w-full h-full object-cover"
             />
           ) : (
-            <span className="text-5xl text-blue-700 font-light font-serif">
+            <span className="text-3xl text-gray-600 font-light">
               {user.name?.charAt(0).toUpperCase()}
             </span>
           )}
-          {isEditing && (
-            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Camera className="text-white w-8 h-8" />
-            </div>
-          )}
         </div>
 
-        <div className="text-center w-full space-y-4">
-          <h2 className="text-3xl font-semibold text-white font-serif">
-            {user.name}
-          </h2>
-          <div className="flex items-center justify-center space-x-2 text-blue-500">
-            <MapPin className="w-4 h-4" />
-            <span className="text-sm">Mathura</span>
-            <Clock className="w-4 h-4 ml-2" />
-            <span className="text-sm">
-              {currentDateTime.toLocaleString("en-US", {
-                hour: "numeric",
-                minute: "numeric",
-                hour12: true,
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </span>
-          </div>
-          <p className="text-white-400">{user.email}</p>
-          {user.location && <p className="text-gray-300">{user.location}</p>}
+        <div className="text-center w-full">
+          {isEditing ? (
+            <input
+              type="text"
+              defaultValue={user.name}
+              className="text-2xl font-light text-gray-800 mb-3 text-center w-full border-b border-gray-300 pb-1 focus:outline-none focus:border-black transition-colors duration-300"
+            />
+          ) : (
+            <h2 className="text-2xl font-light text-gray-800 mb-3">
+              {user.name}
+            </h2>
+          )}
+          <p className="text-gray-600 mb-4">
+            {isEditing ? (
+              <input
+                type="email"
+                defaultValue={user.email}
+                className="text-center w-full border-b border-gray-300 pb-1 focus:outline-none focus:border-black transition-colors duration-300"
+              />
+            ) : (
+              <span>{user.email}</span>
+            )}
+          </p>
+          {user.phone && (
+            <p className="text-gray-600 mb-2">
+              {isEditing ? (
+                <input
+                  type="tel"
+                  defaultValue={user.phone}
+                  className="text-center w-full border-b border-gray-300 pb-1 focus:outline-none focus:border-black transition-colors duration-300"
+                />
+              ) : (
+                <span>{user.phone}</span>
+              )}
+            </p>
+          )}
+          {user.location && (
+            <p className="text-gray-600 mb-4">
+              {isEditing ? (
+                <input
+                  type="text"
+                  defaultValue={user.location}
+                  className="text-center w-full border-b border-gray-300 pb-1 focus:outline-none focus:border-black transition-colors duration-300"
+                />
+              ) : (
+                <span>{user.location}</span>
+              )}
+            </p>
+          )}
         </div>
       </div>
-      <div className="mt-8">
+      <div className="mt-6">
         <button
-          onClick={() => setIsEditing(true)}
-          className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center space-x-2"
+          onClick={() => setIsEditing(!isEditing)}
+          className="w-full bg-gray-100 text-gray-800 py-3 rounded-md hover:bg-gray-200 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-300"
         >
-          <Edit2 className="w-5 h-5" />
-          <span>Edit Profile</span>
+          {isEditing ? "Save Changes" : "Edit Profile"}
         </button>
       </div>
-      {isEditing && (
-        <div className="mt-4 space-y-4">
-          <input
-            type="text"
-            name="name"
-            value={editedUser.name}
-            onChange={handleInputChange}
-            className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
-            placeholder="Name"
-          />
-          <input
-            type="email"
-            name="email"
-            value={editedUser.email}
-            onChange={handleInputChange}
-            className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
-            placeholder="Email"
-          />
-          <input
-            type="text"
-            name="location"
-            value={editedUser.location}
-            onChange={handleInputChange}
-            className="w-full bg-gray-800 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
-            placeholder="Location"
-          />
-          <div className="flex space-x-2">
-            <button
-              onClick={handleSave}
-              className="flex-1 bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center justify-center"
-              disabled={isLoading}
-            >
-              {isLoading ? "Saving..." : "Save Changes"}
-            </button>
-            <button
-              onClick={() => setIsEditing(false)}
-              className="flex-1 bg-red-600 text-white py-2 rounded-md hover:bg-red-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
