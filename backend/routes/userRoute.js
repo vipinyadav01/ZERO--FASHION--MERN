@@ -3,12 +3,11 @@ import {
   loginUser,
   registerUser,
   adminLogin,
-  userDetails
+  userDetails,
 } from "../controllers/userController.js";
 import authUser from "../middleware/auth.js";
 
 const userRouter = express.Router();
-
 
 userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
