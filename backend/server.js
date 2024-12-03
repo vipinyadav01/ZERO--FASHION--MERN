@@ -1,4 +1,3 @@
-// server.js
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
@@ -8,7 +7,6 @@ import userRouter from "./routes/userRoute.js";
 import productRouter from "./routes/productRoutes.js";
 import cartRouter from "./routes/cartRoute.js";
 import orderRouter from "./routes/orderRoute.js";
-
 
 // App config
 const app = express();
@@ -29,12 +27,12 @@ app.use((req, res, next) => {
 // API endpoints
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
+app.use("/api/cart", cartRouter);
+app.use("/api/order", orderRouter);
 
 app.get("/", (req, res) => {
   res.send("API Working correctly");
 });
-app.use("/api/cart", cartRouter);
-app.use("/api/order", orderRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
