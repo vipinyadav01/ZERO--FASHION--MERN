@@ -8,9 +8,20 @@ const Cart = () => {
   const [cartData, setCartData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [addingToCart, setAddingToCart] = useState({});
+  const [deletingFromCart, setDeletingFromCart] = useState({});
 
-  // Load cart data from localStorage on component mount
+  // Check for token and redirect if not present
   useEffect(() => {
+    const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
+    if (!token) {
+      navigate("/login");
+    } else {
+      loadCartData();
+    }
+  }, [navigate]);
+
+  const loadCartData = () => {
     try {
       const savedCart = localStorage.getItem('cartItems');
       const cartItems = savedCart ? JSON.parse(savedCart) : {};
@@ -33,11 +44,16 @@ const Cart = () => {
       setError("Failed to load cart items. Please try again.");
       setIsLoading(false);
     }
-  }, [products]);
+  };
 
-  const handleQuantityChange = (itemId, size, newQuantity) => {
+  const handleQuantityChange = async (itemId, size, newQuantity) => {
     try {
       const validQuantity = Math.max(0, Math.min(99, parseInt(newQuantity) || 0));
+
+      setAddingToCart({ ...addingToCart, [`${itemId}-${size}`]: true });
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Update local state
       setCartData(prev => {
@@ -69,11 +85,25 @@ const Cart = () => {
     } catch (err) {
       console.error('Error updating quantity:', err);
       setError("Failed to update quantity. Please try again.");
+    } finally {
+      setAddingToCart({ ...addingToCart, [`${itemId}-${size}`]: false });
     }
   };
 
-  const handleDeleteItem = (itemId, size) => {
-    handleQuantityChange(itemId, size, 0);
+  const handleDeleteItem = async (itemId, size) => {
+    try {
+      setDeletingFromCart({ ...deletingFromCart, [`${itemId}-${size}`]: true });
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      handleQuantityChange(itemId, size, 0);
+    } catch (err) {
+      console.error('Error deleting item:', err);
+      setError("Failed to delete item. Please try again.");
+    } finally {
+      setDeletingFromCart({ ...deletingFromCart, [`${itemId}-${size}`]: false });
+    }
   };
 
   // Calculate cart total
@@ -230,29 +260,49 @@ const Cart = () => {
                         </div>
                       </div>
                     </div>
-                    <input
-                      className="border max-w-10 sm:max-w-20 px-1 sm:px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-black"
-                      type="number"
-                      min="1"
-                      max="99"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        handleQuantityChange(item._id, item.size, e.target.value)
-                      }
-                      aria-label={`Quantity for ${productData.name}`}
-                    />
+                    <div className="relative">
+                      <input
+                        className="border max-w-10 sm:max-w-20 px-1 sm:px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          handleQuantityChange(item._id, item.size, e.target.value)
+                        }
+                        aria-label={`Quantity for ${productData.name}`}
+                      />
+                      {addingToCart[`${item._id}-${item.size}`] && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70">
+                          <motion.div
+                            className="w-4 h-4 border-2 border-black border-t-transparent rounded-full"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          />
+                        </div>
+                      )}
+                    </div>
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => handleDeleteItem(item._id, item.size)}
-                      className="group p-1 hover:bg-red-50 rounded transition-colors"
+                      className="group p-1 hover:bg-red-50 rounded transition-colors relative"
                       aria-label="Remove item"
+                      disabled={deletingFromCart[`${item._id}-${item.size}`]}
                     >
-                      <img
-                        className="w-4 mr-4 sm:w-5 group-hover:opacity-70 transition-opacity"
-                        src={assets.bin_icon}
-                        alt="Remove"
-                      />
+                      {deletingFromCart[`${item._id}-${item.size}`] ? (
+                        <motion.div
+                          className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
+                      ) : (
+                        <img
+                          className="w-4 mr-4 sm:w-5 group-hover:opacity-70 transition-opacity"
+                          src={assets.bin_icon}
+                          alt="Remove"
+                        />
+                      )}
                     </motion.button>
                   </motion.div>
                 );
@@ -321,3 +371,4 @@ const Cart = () => {
 };
 
 export default Cart;
+
