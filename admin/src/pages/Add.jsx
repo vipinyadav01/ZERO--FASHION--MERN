@@ -145,19 +145,23 @@ const AddProduct = ({ token }) => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-4 animate-fadeIn">
-            <h2 className="text-3xl font-bold text-center mb-8 text-gray-800 hover:text-blue-600 transition-colors duration-300">
+        <div className="max-w-4xl mx-auto p-6 animate-fadeIn">
+            <h2 className="text-4xl font-bold text-center mb-8 text-gray-800 hover:text-blue-600 transition-colors duration-300">
                 Add New Product
             </h2>
 
-            <form onSubmit={onSubmitHandler} className="flex flex-col w-full items-center gap-6">
-                <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
-                    <p className="mb-4 text-center text-lg font-semibold text-gray-700">Upload Images</p>
-                    <div className="flex gap-4 justify-center flex-wrap">
+            <form onSubmit={onSubmitHandler} className="flex flex-col w-full items-center gap-8">
+                <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                    <p className="mb-4 text-center text-xl font-semibold text-gray-700">Upload Images</p>
+                    <div className="flex gap-6 justify-center flex-wrap">
                         {[image1, image2, image3, image4].map((image, index) => (
-                            <label key={index} htmlFor={`image${index + 1}`} className="cursor-pointer transform transition-all duration-300 hover:scale-110 hover:rotate-2">
+                            <label
+                                key={index}
+                                htmlFor={`image${index + 1}`}
+                                className="cursor-pointer transform transition-all duration-300 hover:scale-110 hover:rotate-2"
+                            >
                                 <img
-                                    className="w-24 h-24 object-cover border-2 border-gray-200 rounded-lg hover:border-blue-500"
+                                    className="w-28 h-28 object-cover border-2 border-gray-200 rounded-lg hover:border-blue-500"
                                     src={image ? image.preview : assets.upload_area}
                                     alt=""
                                 />
@@ -173,13 +177,13 @@ const AddProduct = ({ token }) => {
                     </div>
                 </div>
 
-                <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-md space-y-6 hover:shadow-xl transition-shadow duration-300">
+                <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg space-y-8 hover:shadow-2xl transition-shadow duration-300">
                     <div className="transform transition-all duration-300 hover:translate-x-2">
                         <label className="block mb-2 font-medium text-gray-700">Product Name</label>
                         <input
                             onChange={(e) => setName(e.target.value)}
                             value={name}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
                             type="text"
                             placeholder="Enter product name"
                             required
@@ -191,19 +195,19 @@ const AddProduct = ({ token }) => {
                         <textarea
                             onChange={(e) => setDescription(e.target.value)}
                             value={description}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
                             placeholder="Enter product description"
                             required
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div className="transform transition-all duration-300 hover:translate-y-[-4px]">
                             <label className="block mb-2 font-medium text-gray-700">Category</label>
                             <select
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
                             >
                                 <option value="Men">Men</option>
                                 <option value="Women">Women</option>
@@ -216,7 +220,7 @@ const AddProduct = ({ token }) => {
                             <select
                                 value={subCategory}
                                 onChange={(e) => setSubCategory(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
                             >
                                 <option value="Topwear">Topwear</option>
                                 <option value="Bottomwear">Bottomwear</option>
@@ -229,7 +233,7 @@ const AddProduct = ({ token }) => {
                             <input
                                 onChange={(e) => setPrice(e.target.value)}
                                 value={price}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
                                 type="number"
                                 min="0"
                                 step="0.01"
@@ -241,15 +245,15 @@ const AddProduct = ({ token }) => {
 
                     <div>
                         <label className="block mb-2 font-semibold text-gray-700">Available Sizes</label>
-                        <div className="flex flex-wrap gap-4">
+                        <div className="flex flex-wrap gap-6">
                             {["S", "M", "L", "XL", "XXL"].map((size) => (
                                 <button
                                     key={size}
                                     onClick={() => handleSizeToggle(size)}
                                     type="button"
-                                    className={`px-4 py-2 border-2 rounded-lg transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${sizes.includes(size)
-                                            ? "bg-blue-500 text-white border-blue-500 hover:bg-blue-600"
-                                            : "bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:text-blue-500"
+                                    className={`px-6 py-3 border-2 rounded-lg transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${sizes.includes(size)
+                                            ? "bg-blue-500 text-white"
+                                            : "bg-white text-gray-700 border-gray-300"
                                         }`}
                                 >
                                     {size}
@@ -258,51 +262,26 @@ const AddProduct = ({ token }) => {
                         </div>
                     </div>
 
-                    <div className="flex items-center transform transition-all duration-300 hover:translate-x-2">
+                    <div className="flex items-center gap-4 mt-4">
                         <input
-                            type="checkbox"
+                            onChange={() => setBestseller(!bestseller)}
                             checked={bestseller}
-                            onChange={(e) => setBestseller(e.target.checked)}
-                            className="mr-2 w-4 h-4 text-blue-500 transition-colors duration-300"
+                            type="checkbox"
+                            id="bestseller"
+                            className="h-5 w-5 cursor-pointer"
                         />
-                        <label className="text-gray-700 hover:text-blue-500 transition-colors duration-300">Mark as Bestseller</label>
+                        <label htmlFor="bestseller" className="font-semibold text-gray-700">Bestseller</label>
                     </div>
-                </div>
 
-                <div className="flex justify-center">
-                    <button
-                        type="submit"
-                        className="px-8 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <span className="flex items-center">
-                                <svg
-                                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                </svg>
-                                Adding Product...
-                            </span>
-                        ) : (
-                            "Add Product"
-                        )}
-                    </button>
+                    <div className="flex justify-center gap-8 mt-6">
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-8 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300"
+                        >
+                            {loading ? "Adding..." : "Add Product"}
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
