@@ -1,374 +1,309 @@
 import React, { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
-import { assets } from "../assets/assets";
 import { motion, AnimatePresence } from "framer-motion";
+import { Loader } from "lucide-react";
 
 const Cart = () => {
-  const { products, currency, navigate, updateQuantity } = useContext(ShopContext);
-  const [cartData, setCartData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [addingToCart, setAddingToCart] = useState({});
-  const [deletingFromCart, setDeletingFromCart] = useState({});
+    const { products = [], currency = "$", updateQuantity } = useContext(ShopContext);
+    const [cartData, setCartData] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [addingToCart, setAddingToCart] = useState({});
+    const [deletingFromCart, setDeletingFromCart] = useState({});
 
-  // Check for token and redirect if not present
-  useEffect(() => {
-    const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
-    if (!token) {
-      navigate("/login");
-    } else {
-      loadCartData();
-    }
-  }, [navigate]);
-
-  const loadCartData = () => {
-    try {
-      const savedCart = localStorage.getItem('cartItems');
-      const cartItems = savedCart ? JSON.parse(savedCart) : {};
-
-      if (products.length > 0) {
-        const tempData = Object.entries(cartItems).flatMap(([itemId, sizes]) =>
-          Object.entries(sizes)
-            .filter(([_, quantity]) => quantity > 0)
-            .map(([size, quantity]) => ({
-              _id: itemId,
-              size,
-              quantity
-            }))
-        );
-        setCartData(tempData);
-      }
-      setIsLoading(false);
-    } catch (err) {
-      console.error('Error loading cart data:', err);
-      setError("Failed to load cart items. Please try again.");
-      setIsLoading(false);
-    }
-  };
-
-  const handleQuantityChange = async (itemId, size, newQuantity) => {
-    try {
-      const validQuantity = Math.max(0, Math.min(99, parseInt(newQuantity) || 0));
-
-      setAddingToCart({ ...addingToCart, [`${itemId}-${size}`]: true });
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Update local state
-      setCartData(prev => {
-        const updated = prev.map(item =>
-          item._id === itemId && item.size === size
-            ? { ...item, quantity: validQuantity }
-            : item
-        );
-        return validQuantity === 0
-          ? updated.filter(item => !(item._id === itemId && item.size === size))
-          : updated;
-      });
-
-      // Update localStorage
-      const savedCart = JSON.parse(localStorage.getItem('cartItems') || '{}');
-      if (!savedCart[itemId]) savedCart[itemId] = {};
-
-      if (validQuantity === 0) {
-        delete savedCart[itemId][size];
-        if (Object.keys(savedCart[itemId]).length === 0) {
-          delete savedCart[itemId];
+    const navigate = (path) => {
+        if (typeof window !== "undefined") {
+            window.location.href = path;
         }
-      } else {
-        savedCart[itemId][size] = validQuantity;
-      }
+    };
 
-      localStorage.setItem('cartItems', JSON.stringify(savedCart));
-      updateQuantity(itemId, size, validQuantity);
-    } catch (err) {
-      console.error('Error updating quantity:', err);
-      setError("Failed to update quantity. Please try again.");
-    } finally {
-      setAddingToCart({ ...addingToCart, [`${itemId}-${size}`]: false });
-    }
-  };
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate("/login");
+            return;
+        }
+        loadCartData();
+    }, [products]);
 
-  const handleDeleteItem = async (itemId, size) => {
-    try {
-      setDeletingFromCart({ ...deletingFromCart, [`${itemId}-${size}`]: true });
+    const loadCartData = () => {
+        try {
+            if (!Array.isArray(products)) {
+                throw new Error("Products data is not in the correct format");
+            }
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+            const savedCart = localStorage.getItem('cartItems');
+            const cartItems = savedCart ? JSON.parse(savedCart) : {};
 
-      handleQuantityChange(itemId, size, 0);
-    } catch (err) {
-      console.error('Error deleting item:', err);
-      setError("Failed to delete item. Please try again.");
-    } finally {
-      setDeletingFromCart({ ...deletingFromCart, [`${itemId}-${size}`]: false });
-    }
-  };
+            const tempData = Object.entries(cartItems).flatMap(([itemId, sizes]) =>
+                Object.entries(sizes)
+                    .filter(([_, quantity]) => quantity > 0)
+                    .map(([size, quantity]) => ({
+                        _id: itemId,
+                        size,
+                        quantity: parseInt(quantity)
+                    }))
+            );
 
-  // Calculate cart total
-  const calculateTotal = () => {
-    return cartData.reduce((total, item) => {
-      const product = products.find(p => p._id === item._id);
-      return total + (product?.price || 0) * item.quantity;
-    }, 0);
-  };
+            setCartData(tempData);
+            setIsLoading(false);
+        } catch (err) {
+            console.error('Error loading cart data:', err);
+            setError("Failed to load cart items. Please try again.");
+            setIsLoading(false);
+        }
+    };
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
+    const handleQuantityChange = async (itemId, size, newQuantity) => {
+        try {
+            const validQuantity = Math.max(0, Math.min(99, parseInt(newQuantity) || 0));
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
+            if (isNaN(validQuantity)) {
+                throw new Error("Invalid quantity value");
+            }
 
-  const errorVariants = {
-    hidden: { opacity: 0, x: -20 },
-    show: { opacity: 1, x: 0 }
-  };
+            setAddingToCart(prev => ({ ...prev, [`${itemId}-${size}`]: true }));
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="flex justify-center items-center min-h-[400px]"
-      >
-        <motion.div
-          className="w-8 h-8 border-4 border-black border-t-transparent rounded-full"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        />
-      </motion.div>
-    );
-  }
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
-  // Error state
-  if (error) {
-    return (
-      <motion.div
-        variants={errorVariants}
-        initial="hidden"
-        animate="show"
-        className="bg-red-50 border-l-4 border-red-500 p-4 mt-4"
-      >
-        <p className="text-red-700">{error}</p>
-      </motion.div>
-    );
-  }
+            setCartData(prev => {
+                const updated = prev.map(item =>
+                    item._id === itemId && item.size === size
+                        ? { ...item, quantity: validQuantity }
+                        : item
+                ).filter(item => item.quantity > 0);
 
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="border-t mt-24"
-    >
-      <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="flex justify-between items-center mb-6"
-      >
-        <h2 className="text-2xl font-semibold">Your Cart</h2>
-        <span className="text-sm text-gray-500">
-          {cartData.length} {cartData.length === 1 ? 'item' : 'items'}
-        </span>
-      </motion.div>
+                return updated;
+            });
 
-      {/* Empty cart state */}
-      {cartData.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center py-16"
-        >
-          <p className="text-gray-500 mb-4">Your cart is empty</p>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => navigate("/Collection")}
-            className="bg-black text-white text-sm px-6 py-2 hover:bg-gray-800 transition-colors"
-          >
-            Continue Shopping
-          </motion.button>
-        </motion.div>
-      ) : (
-        <>
-          {/* Cart items list */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="space-y-4"
-          >
-            <AnimatePresence>
-              {cartData.map((item, index) => {
-                const productData = products.find(
-                  (product) => product._id === item._id
-                );
+            // Update localStorage
+            const savedCart = JSON.parse(localStorage.getItem('cartItems') || '{}');
+            if (validQuantity > 0) {
+                savedCart[itemId] = {
+                    ...savedCart[itemId],
+                    [size]: validQuantity
+                };
+            } else {
+                if (savedCart[itemId]) {
+                    delete savedCart[itemId][size];
+                    if (Object.keys(savedCart[itemId]).length === 0) {
+                        delete savedCart[itemId];
+                    }
+                }
+            }
 
-                if (!productData) return null;
+            localStorage.setItem('cartItems', JSON.stringify(savedCart));
+            if (typeof updateQuantity === 'function') {
+                updateQuantity(itemId, size, validQuantity);
+            }
+        } catch (err) {
+            console.error('Error updating quantity:', err);
+            setError("Failed to update quantity. Please try again.");
+        } finally {
+            setAddingToCart(prev => ({ ...prev, [`${itemId}-${size}`]: false }));
+        }
+    };
 
-                const itemPrice = productData.price * item.quantity;
+    const handleDeleteItem = async (itemId, size) => {
+        try {
+            setDeletingFromCart(prev => ({ ...prev, [`${itemId}-${size}`]: true }));
+            await handleQuantityChange(itemId, size, 0);
+        } catch (err) {
+            console.error('Error deleting item:', err);
+            setError("Failed to delete item. Please try again.");
+        } finally {
+            setDeletingFromCart(prev => ({ ...prev, [`${itemId}-${size}`]: false }));
+        }
+    };
 
-                return (
-                  <motion.div
-                    key={`${item._id}-${item.size}-${index}`}
-                    variants={itemVariants}
-                    exit={{ opacity: 0, x: -100 }}
-                    layout
-                    className="py-4 border-t border-b text-gray-700 grid grid-cols-[4fr_0.5fr_0.5fr] sm:grid-cols-[4fr_2fr_0.5fr] items-center gap-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start gap-6">
-                      <motion.div
-                        className="relative w-16 sm:w-20 aspect-square"
-                        whileHover={{ scale: 1.05 }}
-                      >
-                        <img
-                          className="w-full h-full object-cover"
-                          src={productData.image?.[0]}
-                          alt={productData.name}
-                          onError={(e) => {
-                            e.target.src = "/api/placeholder/80/80";
-                          }}
-                        />
-                      </motion.div>
-                      <div>
-                        <p className="text-xs sm:text-lg font-medium">
-                          {productData.name}
-                        </p>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 mt-2">
-                          <motion.p
-                            className="font-medium"
-                            animate={{ opacity: 1 }}
-                            key={itemPrice}
-                          >
-                            {currency}
-                            {itemPrice.toLocaleString()}
-                          </motion.p>
-                          <p className="px-2 sm:px-3 sm:py-1 border bg-slate-50 text-sm">
-                            Size: {item.size}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="relative">
-                      <input
-                        className="border max-w-10 sm:max-w-20 px-1 sm:px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-black"
-                        type="number"
-                        min="1"
-                        max="99"
-                        value={item.quantity}
-                        onChange={(e) =>
-                          handleQuantityChange(item._id, item.size, e.target.value)
-                        }
-                        aria-label={`Quantity for ${productData.name}`}
-                      />
-                      {addingToCart[`${item._id}-${item.size}`] && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70">
-                          <motion.div
-                            className="w-4 h-4 border-2 border-black border-t-transparent rounded-full"
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleDeleteItem(item._id, item.size)}
-                      className="group p-1 hover:bg-red-50 rounded transition-colors relative"
-                      aria-label="Remove item"
-                      disabled={deletingFromCart[`${item._id}-${item.size}`]}
-                    >
-                      {deletingFromCart[`${item._id}-${item.size}`] ? (
-                        <motion.div
-                          className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full"
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        />
-                      ) : (
-                        <img
-                          className="w-4 mr-4 sm:w-5 group-hover:opacity-70 transition-opacity"
-                          src={assets.bin_icon}
-                          alt="Remove"
-                        />
-                      )}
-                    </motion.button>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </motion.div>
+    const calculateTotal = () => {
+        return cartData.reduce((total, item) => {
+            const product = products.find(p => p?._id === item._id);
+            const price = product?.price || 0;
+            const quantity = parseInt(item.quantity) || 0;
+            return total + (price * quantity);
+        }, 0);
+    };
 
-          {/* Cart total and checkout */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex justify-end my-20"
-          >
-            <div className="w-full sm:w-[450px]">
-              <motion.div
-                className="border-t pt-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-gray-600">Subtotal</span>
-                  <motion.span
-                    key={calculateTotal()}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="font-medium"
-                  >
-                    {currency}
-                    {calculateTotal().toLocaleString()}
-                  </motion.span>
-                </div>
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-gray-600">Shipping</span>
-                  <span className="font-medium">Calculated at checkout as per your location</span>
-                </div>
-                <div className="flex justify-between items-center border-t pt-4">
-                  <span className="text-lg font-semibold">Total</span>
-                  <motion.span
-                    key={calculateTotal()}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-lg font-semibold"
-                  >
-                    {currency}
-                    {calculateTotal().toLocaleString()}
-                  </motion.span>
-                </div>
-              </motion.div>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => navigate("/place-order")}
-                className="w-full bg-black text-white text-sm my-8 px-8 py-3 hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                disabled={cartData.length === 0}
-              >
-                Proceed to Checkout
-              </motion.button>
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-[400px]">
+                <Loader className="w-8 h-8 animate-spin" />
             </div>
-          </motion.div>
-        </>
-      )}
-    </motion.div>
-  );
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mt-4">
+                <p className="text-red-700">{error}</p>
+                <button
+                    onClick={loadCartData}
+                    className="mt-2 text-red-600 hover:text-red-800 underline"
+                >
+                    Try Again
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="border-t mt-24">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-semibold">Your Cart</h2>
+                <span className="text-sm text-gray-500">
+                    {cartData.length} {cartData.length === 1 ? 'item' : 'items'}
+                </span>
+            </div>
+
+            {cartData.length === 0 ? (
+                <div className="text-center py-16">
+                    <p className="text-gray-500 mb-4">Your cart is empty</p>
+                    <button
+                        onClick={() => navigate("/Collection")}
+                        className="bg-black text-white text-sm px-6 py-2 hover:bg-gray-800 transition-colors"
+                    >
+                        Continue Shopping
+                    </button>
+                </div>
+            ) : (
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="space-y-4"
+                    >
+                        {cartData.map((item) => {
+                            const productData = products.find(p => p?._id === item._id);
+
+                            if (!productData) {
+                                return null;
+                            }
+
+                            const itemPrice = (productData.price || 0) * (parseInt(item.quantity) || 0);
+                            const itemKey = `${item._id}-${item.size}`;
+
+                            return (
+                                <motion.div
+                                    key={itemKey}
+                                    layout
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, x: -100 }}
+                                    className="py-4 border-t border-b text-gray-700 grid grid-cols-[4fr_0.5fr_0.5fr] sm:grid-cols-[4fr_2fr_0.5fr] items-center gap-4 hover:bg-gray-50 transition-colors"
+                                >
+                                    <div className="flex items-start gap-6">
+                                        <div className="relative w-16 sm:w-20 aspect-square">
+                                            <img
+                                                className="w-full h-full object-cover"
+                                                src={productData.image?.[0] || "/api/placeholder/80/80"}
+                                                alt={productData.name || "Product"}
+                                                onError={(e) => {
+                                                    e.target.src = "/api/placeholder/80/80";
+                                                }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs sm:text-lg font-medium">
+                                                {productData.name || "Product Name Unavailable"}
+                                            </p>
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 mt-2">
+                                                <p className="font-medium">
+                                                    {currency}
+                                                    {itemPrice.toLocaleString()}
+                                                </p>
+                                                <p className="px-2 sm:px-3 sm:py-1 border bg-slate-50 text-sm">
+                                                    Size: {item.size}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="relative">
+                                        <input
+                                            className="border max-w-10 sm:max-w-20 px-1 sm:px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-black"
+                                            type="number"
+                                            min="1"
+                                            max="99"
+                                            value={item.quantity}
+                                            onChange={(e) => handleQuantityChange(item._id, item.size, e.target.value)}
+                                            aria-label={`Quantity for ${productData.name || "Product"}`}
+                                        />
+                                        {addingToCart[itemKey] && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70">
+                                                <Loader className="w-4 h-4 animate-spin" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <button
+                                        onClick={() => handleDeleteItem(item._id, item.size)}
+                                        className="group p-1 hover:bg-red-50 rounded transition-colors"
+                                        aria-label="Remove item"
+                                        disabled={deletingFromCart[itemKey]}
+                                    >
+                                        {deletingFromCart[itemKey] ? (
+                                            <Loader className="w-4 h-4 text-red-500 animate-spin" />
+                                        ) : (
+                                            <svg
+                                                className="w-4 h-4 text-gray-600 group-hover:text-red-500"
+                                                fill="none"
+                                                strokeWidth="2"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                />
+                                            </svg>
+                                        )}
+                                    </button>
+                                </motion.div>
+                            );
+                        })}
+                    </motion.div>
+
+                    <div className="flex justify-end my-20">
+                        <div className="w-full sm:w-[450px]">
+                            <div className="border-t pt-4">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-gray-600">Subtotal</span>
+                                    <span className="font-medium">
+                                        {currency}
+                                        {calculateTotal().toLocaleString()}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center mb-4">
+                                    <span className="text-gray-600">Shipping</span>
+                                    <span className="font-medium text-right">
+                                        Calculated at checkout
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center border-t pt-4">
+                                    <span className="text-lg font-semibold">Total</span>
+                                    <span className="text-lg font-semibold">
+                                        {currency}
+                                        {calculateTotal().toLocaleString()}
+                                    </span>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => navigate("/place-order")}
+                                className="w-full bg-black text-white text-sm my-8 px-8 py-3 hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                disabled={cartData.length === 0}
+                            >
+                                Proceed to Checkout
+                            </button>
+                        </div>
+                    </div>
+                </AnimatePresence>
+            )}
+        </div>
+    );
 };
 
 export default Cart;
-

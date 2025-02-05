@@ -18,31 +18,35 @@ import Verify from "./pages/Verify";
 import ProfileInfo from "./pages/profile";
 import TrackOrder from "./pages/TrackOrder";
 import PrivacyPolicy from "./pages/Privacy-Policy";
+import Wishlist from "./pages/Wishlist";
+import Notification from "./pages/Notification"
 
 const App = () => {
-  return (
-    <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
-      <ToastContainer />
-      <Navbar />
-      <SearchBar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/collection" element={<Collection />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/product/:productId" element={<Product />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/place-order" element={<PlaceOrder />} />
-        <Route path="/order" element={<Orders />} />
-        <Route path="/verify" element={<Verify />} />
-        <Route path="/profile" element={<ProfileInfo />} />
-        <Route path="/TrackOrder" element={<TrackOrder />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      </Routes>
-      <Footer />
-    </div>
-  );
+    return (
+        <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
+            <ToastContainer />
+            <Navbar />
+            <SearchBar />
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/collection" element={<Collection />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/product/:productId" element={<Product />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/place-order" element={<PlaceOrder />} />
+                <Route path="/order" element={<Orders />} />
+                <Route path="/verify" element={<Verify />} />
+                <Route path="/profile" element={<ProfileInfo />} />
+                <Route path="/TrackOrder" element={<TrackOrder />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/notifications" element={<Notification />} />
+            </Routes>
+            <Footer />
+        </div>
+    );
 };
 
 export default App;
