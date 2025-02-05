@@ -1,4 +1,5 @@
 import React from "react";
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import Collection from "./pages/Collection";
@@ -45,6 +46,7 @@ const App = () => {
                 <Route path="/notifications" element={<Notification />} />
             </Routes>
             <Footer />
+            <SpeedInsights />
         </div>
     );
 };
