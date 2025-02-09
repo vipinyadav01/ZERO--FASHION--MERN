@@ -21,6 +21,7 @@ import TrackOrder from "./pages/TrackOrder";
 import PrivacyPolicy from "./pages/Privacy-Policy";
 import Wishlist from "./pages/Wishlist";
 import Notification from "./pages/Notification"
+import Support from "./pages/Support";
 
 const App = () => {
     return (
@@ -44,6 +45,7 @@ const App = () => {
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/wishlist" element={<Wishlist />} />
                 <Route path="/notifications" element={<Notification />} />
+                <Route path="/support" element={<Support />} />
             </Routes>
             <Footer />
             <SpeedInsights />
