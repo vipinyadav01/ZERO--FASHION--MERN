@@ -4,11 +4,25 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { Eye, EyeOff, LogIn, UserPlus, Mail, Lock, User } from "lucide-react";
 
+const LoginSkeleton = () => (
+    <div className="animate-pulse">
+        <div className="h-8 bg-gray-200 rounded-lg w-3/4 mx-auto mb-4"></div>
+        <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto mb-8"></div>
+        <div className="space-y-6">
+            <div className="h-12 bg-gray-200 rounded-lg"></div>
+            <div className="h-12 bg-gray-200 rounded-lg"></div>
+            <div className="h-12 bg-gray-200 rounded-lg"></div>
+            <div className="h-12 bg-gray-200 rounded-lg"></div>
+        </div>
+    </div>
+);
+
 const Login = () => {
     const [currentState, setCurrentState] = useState("Login");
     const { token, setToken, navigate, backendUrl } = useContext(ShopContext);
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [isPageLoading, setIsPageLoading] = useState(true);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -16,50 +30,115 @@ const Login = () => {
         password: "",
     });
 
+    const [formErrors, setFormErrors] = useState({
+        name: "",
+        email: "",
+        password: "",
+    });
+
+    const validateForm = () => {
+        let isValid = true;
+        const errors = {
+            name: "",
+            email: "",
+            password: "",
+        };
+
+        // Name validation (only for Sign Up)
+        if (currentState === "Sign Up" && !formData.name.trim()) {
+            errors.name = "Name is required";
+            isValid = false;
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!formData.email) {
+            errors.email = "Email is required";
+            isValid = false;
+        } else if (!emailRegex.test(formData.email)) {
+            errors.email = "Please enter a valid email address";
+            isValid = false;
+        }
+
+        // Password validation
+        if (!formData.password) {
+            errors.password = "Password is required";
+            isValid = false;
+        } else if (currentState === "Sign Up" && formData.password.length < 6) {
+            errors.password = "Password must be at least 6 characters long";
+            isValid = false;
+        }
+
+        setFormErrors(errors);
+        return isValid;
+    };
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
+        // Clear error when user starts typing
+        setFormErrors(prev => ({
+            ...prev,
+            [name]: ""
+        }));
     };
 
     const onSubmitHandler = async (event) => {
         event.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
         setIsLoading(true);
 
         try {
-            if (currentState === "Sign Up") {
-                const response = await axios.post(`${backendUrl}/api/user/register`, {
-                    name: formData.name,
-                    email: formData.email,
-                    password: formData.password,
-                });
+            const endpoint = currentState === "Sign Up"
+                ? `${backendUrl}/api/user/register`
+                : `${backendUrl}/api/user/login`;
 
-                if (response.data.success) {
-                    setToken(response.data.token);
-                    localStorage.setItem("token", response.data.token);
-                    toast.success("Account created successfully!");
-                } else {
-                    toast.error(response.data.message);
+            const payload = currentState === "Sign Up"
+                ? formData
+                : { email: formData.email, password: formData.password };
+
+            const response = await axios.post(endpoint, payload, {
+                headers: {
+                    'Content-Type': 'application/json',
                 }
+            });
+
+            if (response.data.success) {
+                setToken(response.data.token);
+                localStorage.setItem("token", response.data.token);
+                toast.success(currentState === "Sign Up"
+                    ? "Account created successfully!"
+                    : "Welcome back!");
+                navigate("/");
             } else {
-                const response = await axios.post(`${backendUrl}/api/user/login`, {
-                    email: formData.email,
-                    password: formData.password,
-                });
-
-                if (response.data.success) {
-                    setToken(response.data.token);
-                    localStorage.setItem("token", response.data.token);
-                    toast.success("Welcome back!");
-                } else {
-                    toast.error(response.data.message);
-                }
+                throw new Error(response.data.message);
             }
         } catch (error) {
-            console.error(error);
-            toast.error(error.response?.data?.message || "Something went wrong");
+            let errorMessage = "Something went wrong. Please try again.";
+
+            if (error.response) {
+                // Server responded with error
+                errorMessage = error.response.data.message || errorMessage;
+
+                // Handle specific error cases
+                if (error.response.status === 409) {
+                    errorMessage = "Email already exists. Please use a different email.";
+                } else if (error.response.status === 401) {
+                    errorMessage = "Invalid email or password.";
+                }
+            } else if (error.request) {
+                // Request made but no response
+                errorMessage = "Unable to connect to server. Please check your internet connection.";
+            }
+
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -69,18 +148,36 @@ const Login = () => {
         if (token) {
             navigate("/");
         }
+        // Simulate loading delay
+        const timer = setTimeout(() => {
+            setIsPageLoading(false);
+        }, 1000);
+
+        return () => clearTimeout(timer);
     }, [token, navigate]);
 
     useEffect(() => {
-        if (!token && localStorage.getItem("token")) {
-            setToken(localStorage.getItem("token"));
+        const storedToken = localStorage.getItem("token");
+        if (!token && storedToken) {
+            setToken(storedToken);
         }
     }, [token, setToken]);
 
     const toggleForm = () => {
         setCurrentState(prev => prev === "Login" ? "Sign Up" : "Login");
         setFormData({ name: "", email: "", password: "" });
+        setFormErrors({ name: "", email: "", password: "" });
     };
+
+    if (isPageLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white px-4 py-12">
+                <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-8">
+                    <LoginSkeleton />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-white px-4 py-12">
@@ -109,11 +206,14 @@ const Login = () => {
                                     name="name"
                                     value={formData.name}
                                     onChange={handleChange}
-                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className={`w-full pl-10 pr-3 py-2 border ${formErrors.name ? 'border-red-500' : 'border-gray-300'
+                                        } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                                     placeholder="John Doe"
-                                    required
                                 />
                             </div>
+                            {formErrors.name && (
+                                <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>
+                            )}
                         </div>
                     )}
 
@@ -128,11 +228,14 @@ const Login = () => {
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
-                                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className={`w-full pl-10 pr-3 py-2 border ${formErrors.email ? 'border-red-500' : 'border-gray-300'
+                                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                                 placeholder="your@email.com"
-                                required
                             />
                         </div>
+                        {formErrors.email && (
+                            <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>
+                        )}
                     </div>
 
                     <div className="space-y-2">
@@ -146,9 +249,9 @@ const Login = () => {
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className={`w-full pl-10 pr-10 py-2 border ${formErrors.password ? 'border-red-500' : 'border-gray-300'
+                                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
                                 placeholder="••••••••"
-                                required
                             />
                             <button
                                 type="button"
@@ -162,10 +265,13 @@ const Login = () => {
                                 )}
                             </button>
                         </div>
+                        {formErrors.password && (
+                            <p className="text-red-500 text-sm mt-1">{formErrors.password}</p>
+                        )}
                     </div>
 
                     {currentState === "Login" && (
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-end">
                             <button
                                 type="button"
                                 className="text-sm text-blue-600 hover:text-blue-700 hover:underline"

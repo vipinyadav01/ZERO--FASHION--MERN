@@ -128,24 +128,54 @@ const Cart = () => {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center min-h-[400px]">
-                <Loader className="w-8 h-8 animate-spin" />
+            <div className="animate-pulse border-t mt-24">
+                {/* Header Skeleton */}
+                <div className="flex justify-between items-center mb-6">
+                    <div className="h-8 w-32 bg-gray-200 rounded"></div>
+                    <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                </div>
+
+                {/* Cart Items Skeleton */}
+                {[1, 2, 3].map((item) => (
+                    <div
+                        key={item}
+                        className="py-4 border-t border-b grid grid-cols-[4fr_0.5fr_0.5fr] sm:grid-cols-[4fr_2fr_0.5fr] items-center gap-4 mb-4"
+                    >
+                        <div className="flex items-start gap-6">
+                            <div className="w-16 sm:w-20 aspect-square bg-gray-200 rounded"></div>
+                            <div className="space-y-2">
+                                <div className="h-4 w-40 bg-gray-200 rounded"></div>
+                                <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                                <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                            </div>
+                        </div>
+                        <div className="h-8 w-20 bg-gray-200 rounded"></div>
+                        <div className="h-8 w-8 bg-gray-200 rounded"></div>
+                    </div>
+                ))}
+
+                {/* Total Section Skeleton */}
+                <div className="flex justify-end my-20">
+                    <div className="w-full sm:w-[450px] space-y-4">
+                        <div className="h-4 w-full bg-gray-200 rounded"></div>
+                        <div className="h-4 w-full bg-gray-200 rounded"></div>
+                        <div className="h-8 w-full bg-gray-200 rounded"></div>
+                    </div>
+                </div>
             </div>
         );
     }
 
     if (error) {
-        return (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 mt-4">
-                <p className="text-red-700">{error}</p>
-                <button
-                    onClick={loadCartData}
-                    className="mt-2 text-red-600 hover:text-red-800 underline"
-                >
-                    Try Again
-                </button>
-            </div>
-        );
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mt-4">
+            <p className="text-red-700">{error}</p>
+            <button
+                onClick={loadCartData}
+                className="mt-2 text-red-600 hover:text-red-800 underline"
+            >
+                Try Again
+            </button>
+        </div>
     }
 
     return (

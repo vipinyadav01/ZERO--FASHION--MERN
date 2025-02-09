@@ -28,21 +28,23 @@ const ProfileInfo = () => {
         if (token && backendUrl) {
             getUserDetails(token);
         }
-
-        // Update date and time every minute
         const timer = setInterval(() => setCurrentDateTime(new Date()), 60000);
         return () => clearInterval(timer);
     }, [backendUrl]);
 
     if (!user) {
         return (
-            <div className="flex justify-center items-center h-screen bg-gradient-to-br from-gray-800 via-gray-900 to-black">
-                <div className="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-3xl p-8 w-80 animate-pulse">
-                    <div className="flex flex-col items-center">
-                        <div className="w-32 h-32 bg-gray-300 rounded-full mb-6"></div>
-                        <div className="h-8 bg-gray-300 w-3/4 mb-4 rounded-full"></div>
-                        <div className="h-6 bg-gray-300 w-1/2 mb-6 rounded-full"></div>
-                        <div className="h-10 bg-gray-300 w-full rounded-full"></div>
+            <div className="flex justify-center items-center h-screen bg-gradient-to-br from-purple-300 via-blue-500 to-black">
+                <div className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-3xl p-10 w-96 shadow-2xl border border-white/10">
+                    <div className="flex flex-col items-center space-y-6">
+                        <div className="w-36 h-36 bg-gradient-to-r from-gray-300 to-gray-400 rounded-full mb-6 animate-pulse shadow-xl">
+                            <div className="w-full h-full rounded-full animate-spin-slow opacity-30 border-t-4 border-white"></div>
+                        </div>
+                        <div className="space-y-4 w-full">
+                            <div className="h-8 bg-gradient-to-r from-gray-300 to-gray-400 w-3/4 mx-auto rounded-lg animate-pulse"></div>
+                            <div className="h-6 bg-gradient-to-r from-gray-300 to-gray-400 w-1/2 mx-auto rounded-lg animate-pulse"></div>
+                            <div className="h-10 bg-gradient-to-r from-gray-300 to-gray-400 w-full rounded-lg animate-pulse mt-6"></div>
+                        </div>
                     </div>
                 </div>
             </div>
