@@ -8,24 +8,16 @@ import {
 } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-// Components
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Login from "./components/Login";
-
-
-// Pages
 import Add from "./pages/Add";
 import List from "./pages/List";
 import Order from "./pages/Order";
 import OrderCharts from "./pages/OrderCharts";
-
-// Constants
+import Dashboard from "./pages/Dashboard";
 export const backendUrl = import.meta.env.VITE_BACKEND_URL;
 export const currency = "₹";
-
-// Protected Route Component
 const ProtectedRoute = ({ children }) => {
     const token = sessionStorage.getItem("token");
     const location = useLocation();
@@ -35,8 +27,6 @@ const ProtectedRoute = ({ children }) => {
     }
     return children;
 };
-
-// Public Route Component (for login)
 const PublicRoute = ({ children }) => {
     const token = sessionStorage.getItem("token");
     const location = useLocation();
@@ -135,6 +125,23 @@ const App = () => {
                                     <Sidebar />
                                     <main className="flex-1 p-4 overflow-auto">
                                         <Add token={token} />
+                                    </main>
+                                </div>
+                            </div>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/dashboard"
+                    element={
+                        <ProtectedRoute>
+                            <div className="flex flex-col min-h-screen">
+                                <Navbar setToken={handleLogout} />
+                                <hr className="border-gray-200" />
+                                <div className="flex flex-1 w-full mt-16">
+                                    <Sidebar />
+                                    <main className="flex-1 p-4 overflow-auto">
+                                        <Dashboard token={token} />
                                     </main>
                                 </div>
                             </div>
