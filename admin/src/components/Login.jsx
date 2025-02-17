@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { backendUrl } from "../App";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, LogIn, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, LogIn, Mail, Lock, Shield, AlertCircle } from "lucide-react";
 
 const useTokenExpiration = (setToken) => {
     useEffect(() => {
@@ -99,7 +99,7 @@ const Login = ({ setToken }) => {
             if (response && response.data && response.data.success) {
                 setTokenWithExpiry(response.data.token);
                 toast.success("Welcome back! Login successful!");
-                navigate("/order-charts");
+                navigate("/dashboard");
             } else {
                 throw new Error(response.data.message || "Login failed");
             }
@@ -125,134 +125,194 @@ const Login = ({ setToken }) => {
                 return "border-red-500 focus:ring-red-500 focus:border-red-500";
             }
         }
-        return "border-gray-300 focus:ring-blue-500 focus:border-blue-500";
+        return "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500";
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center w-full bg-gradient-to-br from-blue-50 to-indigo-50 px-4">
-            <div className="bg-white shadow-2xl rounded-2xl px-8 py-8 w-full max-w-md transform transition-all hover:scale-[1.01]">
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                        Welcome to ZeroFashion
-                    </h1>
-                    <p className="text-gray-600">
-                        Please enter your credentials to login
-                    </p>
+        <div className="min-h-screen flex items-center justify-center w-full bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 px-4">
+            <div className="flex overflow-hidden rounded-2xl shadow-2xl max-w-4xl w-full">
+                {/* Left Panel - Decorative */}
+                <div className="hidden lg:block lg:w-1/2 bg-indigo-600 text-white p-12 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700 opacity-90"></div>
+                    <div className="relative z-10 h-full flex flex-col justify-between">
+                        <div>
+                            <h2 className="text-3xl font-bold mb-6">ZeroFashion Admin</h2>
+                            <p className="text-indigo-100 mb-8">
+                                Manage your inventory, track orders, and boost your sales with our powerful admin dashboard.
+                            </p>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="flex items-center space-x-4">
+                                <div className="bg-white/20 p-2 rounded-full">
+                                    <Shield className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <h3 className="font-medium text-white">Secure Access</h3>
+                                    <p className="text-indigo-100 text-sm">End-to-end encrypted connection</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center space-x-4">
+                                <div className="bg-white/20 p-2 rounded-full">
+                                    <LogIn className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <h3 className="font-medium text-white">Easy Management</h3>
+                                    <p className="text-indigo-100 text-sm">Control your store from anywhere</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                        <label
-                            className="block text-sm font-medium text-gray-700"
-                            htmlFor="email"
-                        >
-                            Email Address
-                        </label>
-                        <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                onBlur={() => handleBlur("email")}
-                                className={`w-full pl-10 pr-3 py-2 border rounded-lg shadow-sm focus:outline-none ${getInputErrorClass(
-                                    "email"
-                                )}`}
-                                placeholder="admin@example.com"
-                                required
-                                disabled={isLoading}
-                            />
-                        </div>
-                        {touched.email && !validateEmail(formData.email) && (
-                            <p className="text-red-500 text-sm mt-1">
-                                Please enter a valid email address
+                {/* Right Panel - Login Form */}
+                <div className="w-full lg:w-1/2 bg-white p-8 lg:p-12">
+                    <div className="max-w-md mx-auto">
+                        <div className="text-center mb-8">
+                            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                                Welcome Back
+                            </h1>
+                            <p className="text-gray-600">
+                                Please enter your credentials to continue
                             </p>
-                        )}
-                    </div>
+                        </div>
 
-                    <div className="space-y-2">
-                        <label
-                            className="block text-sm font-medium text-gray-700"
-                            htmlFor="password"
-                        >
-                            Password
-                        </label>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                            <input
-                                id="password"
-                                name="password"
-                                type={showPassword ? "text" : "password"}
-                                value={formData.password}
-                                onChange={handleChange}
-                                onBlur={() => handleBlur("password")}
-                                className={`w-full pl-10 pr-10 py-2 border rounded-lg shadow-sm focus:outline-none ${getInputErrorClass(
-                                    "password"
-                                )}`}
-                                placeholder="••••••••"
-                                required
-                                disabled={isLoading}
-                            />
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="space-y-2">
+                                <label
+                                    className="block text-sm font-medium text-gray-700"
+                                    htmlFor="email"
+                                >
+                                    Email Address
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                        <Mail className="h-5 w-5" />
+                                    </div>
+                                    <input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        onBlur={() => handleBlur("email")}
+                                        className={`w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm focus:outline-none text-gray-700 ${getInputErrorClass(
+                                            "email"
+                                        )}`}
+                                        placeholder="admin@example.com"
+                                        required
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                                {touched.email && !validateEmail(formData.email) && (
+                                    <p className="text-red-500 text-sm mt-1 flex items-center">
+                                        <AlertCircle className="h-4 w-4 mr-1" />
+                                        Please enter a valid email address
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <label
+                                        className="block text-sm font-medium text-gray-700"
+                                        htmlFor="password"
+                                    >
+                                        Password
+                                    </label>
+                                    <button
+                                        type="button"
+                                        className="text-sm text-indigo-600 hover:text-indigo-800 font-medium focus:outline-none"
+                                        onClick={() =>
+                                            toast.info("Contact your administrator to reset your password.")
+                                        }
+                                    >
+                                        Forgot password?
+                                    </button>
+                                </div>
+                                <div className="relative">
+                                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                        <Lock className="h-5 w-5" />
+                                    </div>
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type={showPassword ? "text" : "password"}
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        onBlur={() => handleBlur("password")}
+                                        className={`w-full pl-10 pr-10 py-3 border rounded-lg shadow-sm focus:outline-none text-gray-700 ${getInputErrorClass(
+                                            "password"
+                                        )}`}
+                                        placeholder="••••••••"
+                                        required
+                                        disabled={isLoading}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-5 w-5" />
+                                        ) : (
+                                            <Eye className="h-5 w-5" />
+                                        )}
+                                    </button>
+                                </div>
+                                {touched.password && formData.password.length < 6 && (
+                                    <p className="text-red-500 text-sm mt-1 flex items-center">
+                                        <AlertCircle className="h-4 w-4 mr-1" />
+                                        Password must be at least 6 characters
+                                    </p>
+                                )}
+                            </div>
+
+                            {error && (
+                                <div className="text-sm text-red-600 bg-red-50 rounded-lg p-4 flex items-start">
+                                    <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                                    <span>{error}</span>
+                                </div>
+                            )}
+
                             <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                className={`w-full py-3 px-4 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all transform active:scale-[0.98] flex items-center justify-center space-x-2 ${isLoading ? "opacity-75 cursor-not-allowed" : ""
+                                    }`}
+                                type="submit"
+                                disabled={isLoading}
                             >
-                                {showPassword ? (
-                                    <EyeOff className="h-5 w-5" />
+                                {isLoading ? (
+                                    <>
+                                        <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                                        <span>Authenticating...</span>
+                                    </>
                                 ) : (
-                                    <Eye className="h-5 w-5" />
+                                    <>
+                                        <LogIn className="h-5 w-5" />
+                                        <span>Sign in to Dashboard</span>
+                                    </>
                                 )}
                             </button>
-                        </div>
-                        {touched.password && formData.password.length < 6 && (
-                            <p className="text-red-500 text-sm mt-1">
-                                Password must be at least 6 characters
-                            </p>
-                        )}
+
+                            <div className="text-center">
+                                <p className="text-sm text-gray-600 mt-6">
+                                    Having trouble logging in?{" "}
+                                    <button
+                                        type="button"
+                                        className="text-indigo-600 hover:text-indigo-700 font-medium focus:outline-none"
+                                        onClick={() =>
+                                            toast.info("Please contact your administrator for assistance.")
+                                        }
+                                    >
+                                        Get Help
+                                    </button>
+                                </p>
+                            </div>
+                        </form>
                     </div>
-
-                    {error && (
-                        <div className="text-sm text-red-600 bg-red-50 rounded-lg p-4 flex items-center">
-                            <span className="mr-2">⚠️</span>
-                            {error}
-                        </div>
-                    )}
-
-                    <button
-                        className={`w-full py-2.5 px-4 rounded-lg text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform active:scale-[0.98] flex items-center justify-center space-x-2 ${isLoading ? "opacity-75 cursor-not-allowed" : ""
-                            }`}
-                        type="submit"
-                        disabled={isLoading}
-                    >
-                        {isLoading ? (
-                            <>
-                                <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-                                <span>Logging in...</span>
-                            </>
-                        ) : (
-                            <>
-                                <LogIn className="h-5 w-5" />
-                                <span>Login to AdminPanel</span>
-                            </>
-                        )}
-                    </button>
-
-                    <p className="text-center text-sm text-gray-600 mt-4">
-                        Having trouble logging in?{" "}
-                        <button
-                            type="button"
-                            className="text-blue-600 hover:text-blue-700 font-medium"
-                            onClick={() =>
-                                toast.info("Please contact your administrator for assistance.")
-                            }
-                        >
-                            Get Help
-                        </button>
-                    </p>
-                </form>
+                </div>
             </div>
         </div>
     );

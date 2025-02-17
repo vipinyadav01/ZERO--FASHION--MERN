@@ -148,37 +148,6 @@ const OrderDashboard = () => {
                         <option value="year">Last 12 months</option>
                     </select>
                 </div>
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                        <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-sm font-medium text-gray-500">Total Orders</h3>
-                            <span className={`text-xs px-2 py-1 rounded-full ${stats.growthRate >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                {stats.growthRate.toFixed(1)}%
-                            </span>
-                        </div>
-                        <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                        <h3 className="text-sm font-medium text-gray-500 mb-4">Revenue</h3>
-                        <p className="text-2xl font-bold text-gray-900">₹{stats.revenue.toLocaleString()}</p>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                        <h3 className="text-sm font-medium text-gray-500 mb-4">Average Order Value</h3>
-                        <p className="text-2xl font-bold text-gray-900">₹{stats.avgOrderValue.toFixed(2)}</p>
-                    </div>
-
-                    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                        <h3 className="text-sm font-medium text-gray-500 mb-4">Success Rate</h3>
-                        <p className="text-2xl font-bold text-gray-900">
-                            {((stats.delivered / stats.total) * 100).toFixed(1)}%
-                        </p>
-                    </div>
-                </div>
-
                 {/* Charts Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                     {/* Revenue Trend */}
@@ -281,10 +250,10 @@ const OrderDashboard = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-2 py-1 text-xs font-medium rounded-full ${order.status === 'Delivered'
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : order.status === 'Cancelled'
-                                                        ? 'bg-red-100 text-red-800'
-                                                        : 'bg-yellow-100 text-yellow-800'
+                                                ? 'bg-green-100 text-green-800'
+                                                : order.status === 'Cancelled'
+                                                    ? 'bg-red-100 text-red-800'
+                                                    : 'bg-yellow-100 text-yellow-800'
                                                 }`}>
                                                 {order.status}
                                             </span>

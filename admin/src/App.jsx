@@ -16,8 +16,14 @@ import List from "./pages/List";
 import Order from "./pages/Order";
 import OrderCharts from "./pages/OrderCharts";
 import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import Setting from "./pages/Setting";
+import { MoveLeft, AlertCircle } from 'lucide-react';
+
 export const backendUrl = import.meta.env.VITE_BACKEND_URL;
 export const currency = "₹";
+
+// Protected Route Component
 const ProtectedRoute = ({ children }) => {
     const token = sessionStorage.getItem("token");
     const location = useLocation();
@@ -27,22 +33,88 @@ const ProtectedRoute = ({ children }) => {
     }
     return children;
 };
+
+// Public Route Component
 const PublicRoute = ({ children }) => {
     const token = sessionStorage.getItem("token");
     const location = useLocation();
 
     if (token) {
-        const from = location.state?.from || "/add";
+        const from = location.state?.from || "/dashboard";
         return <Navigate to={from} replace />;
     }
     return children;
 };
 
+// Layout Component
+const DashboardLayout = ({ children, handleLogout }) => (
+    <div className="flex flex-col min-h-screen">
+        <Navbar setToken={handleLogout} />
+        <hr className="border-gray-200" />
+        <div className="flex flex-1 w-full mt-16">
+            <Sidebar />
+            <main className="flex-1 p-4 overflow-auto">
+                {children}
+            </main>
+        </div>
+    </div>
+);
+
+// 404 Component
+const NotFound = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const isAuthenticated = sessionStorage.getItem("token");
+
+    return (
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+            <div className="max-w-lg w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+                <div className="mb-8">
+                    <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+                    <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
+                    <p className="text-xl text-gray-600 mb-2">Page Not Found</p>
+                    <p className="text-gray-500">
+                        The page you're looking for doesn't exist or has been moved.
+                    </p>
+                    <p className="text-sm text-gray-400 mt-2">
+                        Attempted path: {location.pathname}
+                    </p>
+                </div>
+
+                <div className="space-y-4">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <MoveLeft className="h-5 w-5" />
+                        Go Back
+                    </button>
+
+                    <button
+                        onClick={() => navigate(isAuthenticated ? '/dashboard' : '/login')}
+                        className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                        Go to {isAuthenticated ? 'Dashboard' : 'Login'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Loading Component
+const LoadingSpinner = () => (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+    </div>
+);
+
 const App = () => {
     const navigate = useNavigate();
-    const [token, setToken] = useState(
-        () => sessionStorage.getItem("token") || ""
-    );
+    const [token, setToken] = useState(() => sessionStorage.getItem("token") || "");
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -68,21 +140,19 @@ const App = () => {
     const handleLogout = () => {
         setToken("");
         sessionStorage.removeItem("token");
+        sessionStorage.removeItem("user");
         toast.success("Logged out successfully");
         navigate("/login");
     };
 
-    const handleLogin = (newToken) => {
+    const handleLogin = (newToken, username) => {
         setToken(newToken);
         sessionStorage.setItem("token", newToken);
+        sessionStorage.setItem("user", username);
     };
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-            </div>
-        );
+        return <LoadingSpinner />;
     }
 
     return (
@@ -103,7 +173,6 @@ const App = () => {
             <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Navigate to="/login" replace />} />
-
                 <Route
                     path="/login"
                     element={
@@ -114,110 +183,30 @@ const App = () => {
                 />
 
                 {/* Protected Routes */}
-                <Route
-                    path="/add"
-                    element={
-                        <ProtectedRoute>
-                            <div className="flex flex-col min-h-screen">
-                                <Navbar setToken={handleLogout} />
-                                <hr className="border-gray-200" />
-                                <div className="flex flex-1 w-full mt-16">
-                                    <Sidebar />
-                                    <main className="flex-1 p-4 overflow-auto">
-                                        <Add token={token} />
-                                    </main>
-                                </div>
-                            </div>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/dashboard"
-                    element={
-                        <ProtectedRoute>
-                            <div className="flex flex-col min-h-screen">
-                                <Navbar setToken={handleLogout} />
-                                <hr className="border-gray-200" />
-                                <div className="flex flex-1 w-full mt-16">
-                                    <Sidebar />
-                                    <main className="flex-1 p-4 overflow-auto">
-                                        <Dashboard token={token} />
-                                    </main>
-                                </div>
-                            </div>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/list"
-                    element={
-                        <ProtectedRoute>
-                            <div className="flex flex-col min-h-screen">
-                                <Navbar setToken={handleLogout} />
-                                <hr className="border-gray-200 " />
-                                <div className="flex flex-1 w-full mt-16">
-                                    <Sidebar />
-                                    <main className="flex-1 p-4 overflow-auto">
-                                        <List token={token} />
-                                    </main>
-                                </div>
-                            </div>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/orders"
-                    element={
-                        <ProtectedRoute>
-                            <div className="flex flex-col min-h-screen">
-                                <Navbar setToken={handleLogout} />
-                                <hr className="border-gray-200" />
-                                <div className="flex flex-1 w-full mt-16">
-                                    <Sidebar />
-                                    <main className="flex-1 p-4 overflow-auto">
-                                        <Order token={token} />
-                                    </main>
-                                </div>
-                            </div>
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/order-charts"
-                    element={
-                        <ProtectedRoute>
-                            <div className="flex flex-col min-h-screen">
-                                <Navbar setToken={handleLogout} />
-                                <hr className="border-gray-200" />
-                                <div className="flex flex-1 w-full mt-16">
-                                    <Sidebar />
-                                    <main className="flex-1 p-4 overflow-auto">
-                                        <OrderCharts token={token} />
-                                    </main>
-                                </div>
-                            </div>
-                        </ProtectedRoute>
-                    }
-                />
+                {[
+                    { path: "/dashboard", Component: Dashboard },
+                    { path: "/add", Component: Add },
+                    { path: "/list", Component: List },
+                    { path: "/orders", Component: Order },
+                    { path: "/order-charts", Component: OrderCharts },
+                    { path: "/profile", Component: Profile },
+                    { path: "/setting", Component: Setting },
+                ].map(({ path, Component }) => (
+                    <Route
+                        key={path}
+                        path={path}
+                        element={
+                            <ProtectedRoute>
+                                <DashboardLayout handleLogout={handleLogout}>
+                                    <Component token={token} />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                ))}
 
                 {/* 404 Route */}
-                <Route
-                    path="*"
-                    element={
-                        <div className="flex flex-col items-center justify-center h-[60vh]">
-                            <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
-                            <p className="text-gray-600 mb-4">Page not found</p>
-                            <button
-                                onClick={() => navigate("/login")}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                            >
-                                Go to Home
-                            </button>
-                        </div>
-                    }
-                />
+                <Route path="*" element={<NotFound />} />
             </Routes>
         </div>
     );
