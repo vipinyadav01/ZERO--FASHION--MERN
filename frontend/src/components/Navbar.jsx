@@ -154,7 +154,7 @@ const Navbar = () => {
                 <div className="flex items-center justify-between h-16">
                     <Link to="/" className="flex items-center space-x-3">
                         <motion.div
-                            className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center"
+                            className="w-10 h-10 bg-black rounded-lg flex items-center justify-center"
                             variants={animations.logoHover}
                             initial="rest"
                             whileHover="hover"
@@ -322,7 +322,7 @@ const Navbar = () => {
                                     className="flex items-center space-x-3"
                                     onClick={() => setVisible(false)}
                                 >
-                                    <div className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
                                         <span className="text-white font-bold text-xl">ZF</span>
                                     </div>
                                     <div className="flex flex-col">
