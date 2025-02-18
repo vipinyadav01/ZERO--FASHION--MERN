@@ -62,7 +62,7 @@ const WishlistItem = memo(({ item, onRemove, onAddToCart }) => {
                         onClick={() => onAddToCart(item)}
                         disabled={!item.inStock}
                         className={`
-                            flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium
+                            flex-1 mr-4 flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-sm font-medium
                             ${item.inStock
                                 ? 'bg-black text-white hover:bg-gray-700'
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'}
@@ -195,7 +195,7 @@ const Wishlist = () => {
     const sortedItems = getSortedItems();
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-24 pb-8 px-16 sm:px-6 lg:px-8">
+        <div className="flex justify-center items-center min-h-screen bg-white p-4 mt-24">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">

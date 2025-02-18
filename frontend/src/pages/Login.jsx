@@ -44,13 +44,10 @@ const Login = () => {
             password: "",
         };
 
-        // Name validation (only for Sign Up)
         if (currentState === "Sign Up" && !formData.name.trim()) {
             errors.name = "Name is required";
             isValid = false;
         }
-
-        // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!formData.email) {
             errors.email = "Email is required";
@@ -59,8 +56,6 @@ const Login = () => {
             errors.email = "Please enter a valid email address";
             isValid = false;
         }
-
-        // Password validation
         if (!formData.password) {
             errors.password = "Password is required";
             isValid = false;
@@ -79,7 +74,6 @@ const Login = () => {
             ...prev,
             [name]: value
         }));
-        // Clear error when user starts typing
         setFormErrors(prev => ({
             ...prev,
             [name]: ""

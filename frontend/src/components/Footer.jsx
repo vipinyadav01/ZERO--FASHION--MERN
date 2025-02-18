@@ -84,7 +84,7 @@ const Newsletter = memo(() => {
     };
 
     return (
-        <div className="mb-8">
+        <div className="mb-8 max-w-md">
             <h3 className="text-lg font-semibold mb-4">Subscribe to Our Newsletter</h3>
             <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
                 <input
@@ -125,7 +125,7 @@ const Footer = () => {
         { href: "/TrackOrder", label: "Track Order", icon: MapPin },
         { href: "/privacy-policy", label: "Privacy Policy" },
         { href: "/terms", label: "Terms & Conditions" },
-        { href: "/faq", label: "FAQ" },
+        { href: "/support", label: "FAQ" },
     ];
 
     const socialLinks = [
@@ -137,7 +137,7 @@ const Footer = () => {
     ];
 
     return (
-        <footer className="bg-gray-50 pt-12 pb-6 relative">
+        <footer className="flex justify-center items-center min-h-screen bg-white  pt-12 pb-6 relative">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
                     <div className="col-span-1 md:col-span-2">
