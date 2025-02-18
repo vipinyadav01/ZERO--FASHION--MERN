@@ -145,7 +145,7 @@ const Navbar = () => {
 
     return (
         <motion.nav
-            className={`fixed top-0 left-0 right-0 bg-white z-50 transition-all duration-300 ${scrolled ? "shadow-lg py-2" : "py-4"
+            className={`fixed top-0 left-0 right-0 bg-white z-50 transition-all duration-300 ${scrolled ? "shadow-lg py-1" : "py-3"
                 }`}
             initial={false}
             animate={{ y: scrolled ? -10 : 0 }}
@@ -213,7 +213,7 @@ const Navbar = () => {
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="absolute right-0 mt-2 w-44 bg-white shadow-xl rounded-lg overflow-hidden"
+                                        className="absolute right-0 mt-2 w-40 bg-white shadow-xl rounded-lg overflow-hidden"
                                     >
                                         <div className="py-2">
                                             <Link
@@ -250,7 +250,7 @@ const Navbar = () => {
                             >
                                 <ShoppingBag size={20} />
                                 {getCartCount() > 0 && (
-                                    <span className="absolute -top-2 -right-2 bg-indigo-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                                    <span className="absolute -top-2 -right-1 bg-indigo-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
                                         {getCartCount()}
                                     </span>
                                 )}
