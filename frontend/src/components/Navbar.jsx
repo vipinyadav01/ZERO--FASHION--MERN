@@ -314,7 +314,7 @@ const Navbar = () => {
                         className="fixed inset-0 bg-white z-50 md:hidden overflow-y-auto"
                     >
                         {/* Menu Container */}
-                        <div className="flex flex-col h-full p-6">
+                        <div className="flex flex-col h-full p-4">
                             {/* Header */}
                             <div className="flex justify-between items-center mb-8">
                                 <Link
