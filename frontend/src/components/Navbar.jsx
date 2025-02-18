@@ -111,10 +111,12 @@ const Navbar = () => {
     }, []);
 
     useEffect(() => {
-        document.body.style.overflow = visible ? "hidden" : "unset";
-        return () => {
-            document.body.style.overflow = "unset";
-        };
+        if (visible) {
+            document.body.classList.add("overflow-hidden");
+        } else {
+            document.body.classList.remove("overflow-hidden");
+        }
+        return () => document.body.classList.remove("overflow-hidden");
     }, [visible]);
 
     useEffect(() => {
@@ -142,6 +144,16 @@ const Navbar = () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
+
+    useEffect(() => {
+        if (location.pathname.includes("/search")) {
+            setShowSearch(true);
+        } else {
+            setShowSearch(false);
+        }
+
+        return () => setShowSearch(false);
+    }, [location.pathname, setShowSearch]);
 
     return (
         <motion.nav
@@ -199,6 +211,7 @@ const Navbar = () => {
                                 whileTap={{ scale: 0.9 }}
                                 className="text-gray-600 hover:text-indigo-600 transition-colors duration-200 relative group"
                                 aria-label="User profile"
+                                aria-expanded={showUserDropdown}
                             >
                                 <User size={20} />
                                 <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -247,6 +260,7 @@ const Navbar = () => {
                                 whileTap={{ scale: 0.9 }}
                                 className="text-gray-600 hover:text-indigo-600 transition-colors duration-200 relative group"
                                 aria-label="Shopping cart"
+                                aria-expanded={showCartDropdown}
                             >
                                 <ShoppingBag size={20} />
                                 {getCartCount() > 0 && (
@@ -301,107 +315,119 @@ const Navbar = () => {
             </div>
             <AnimatePresence>
                 {visible && (
-                    <motion.div
-                        key="mobile-menu"
-                        variants={{
-                            hidden: { x: "100%" },
-                            visible: { x: 0, transition: { type: "spring", stiffness: 100 } },
-                            exit: { x: "100%", transition: { ease: "easeInOut", duration: 0.3 } },
-                        }}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        className="fixed inset-0 bg-white z-50 md:hidden overflow-y-auto"
-                    >
-                        {/* Menu Container */}
-                        <div className="flex flex-col h-full p-4">
-                            {/* Header */}
-                            <div className="flex justify-between items-center mb-8">
-                                <Link
-                                    to="/"
-                                    className="flex items-center space-x-3"
-                                    onClick={() => setVisible(false)}
-                                >
-                                    <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-                                        <span className="text-white font-bold text-xl">ZF</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                                            ZERO
-                                        </span>
-                                        <span className="text-sm font-medium text-gray-900">FASHION</span>
-                                    </div>
-                                </Link>
+                    <>
+                        {/* Backdrop to close menu on outside click */}
+                        <motion.div
+                            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setVisible(false)}
+                        />
 
-                                {/* Close Button */}
-                                <motion.button
-                                    onClick={() => setVisible(false)}
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    className="text-gray-600 hover:text-indigo-600 transition-colors duration-200"
-                                    aria-label="Close menu"
-                                >
-                                    <X size={24} />
-                                </motion.button>
-                            </div>
-
-                            {/* Navigation Links */}
-                            <div className="flex flex-col space-y-4">
-                                {navLinks.map(({ path, label }) => (
-                                    <motion.div
-                                        key={path}
-                                        whileHover={{ x: 10 }}
-                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                    >
-                                        <NavLink
-                                            to={path}
-                                            className={({ isActive }) =>
-                                                `text-xl font-medium ${isActive
-                                                    ? "text-indigo-600"
-                                                    : "text-gray-800 hover:text-indigo-600"
-                                                } transition-colors duration-200 flex items-center space-x-2`
-                                            }
-                                            onClick={() => setVisible(false)}
-                                        >
-                                            {label}
-                                        </NavLink>
-                                    </motion.div>
-                                ))}
-                            </div>
-
-                            {/* Authentication Buttons */}
-                            <div className="mt-auto">
-                                {token ? (
-                                    <>
-                                        <Link
-                                            to="/profile"
-                                            className="block w-full py-3 px-4 bg-indigo-50 text-indigo-600 rounded-lg text-center mb-4"
-                                            onClick={() => setVisible(false)}
-                                        >
-                                            My Profile
-                                        </Link>
-                                        <button
-                                            onClick={() => {
-                                                logout();
-                                                setVisible(false);
-                                            }}
-                                            className="w-full py-3 px-4 bg-red-50 text-red-600 rounded-lg text-center"
-                                        >
-                                            Logout
-                                        </button>
-                                    </>
-                                ) : (
+                        {/* Sidebar Menu */}
+                        <motion.div
+                            key="mobile-menu"
+                            variants={{
+                                hidden: { x: "100%" },
+                                visible: { x: 0, transition: { type: "spring", stiffness: 100 } },
+                                exit: { x: "100%", transition: { ease: "easeInOut", duration: 0.3 } },
+                            }}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className="fixed top-0 right-0 w-4/5 max-w-xs h-full bg-white z-50 shadow-lg overflow-y-auto"
+                        >
+                            {/* Menu Container */}
+                            <div className="flex flex-col h-full p-4">
+                                {/* Header */}
+                                <div className="flex justify-between items-center mb-6">
                                     <Link
-                                        to="/login"
-                                        className="block w-full py-3 px-4 bg-indigo-600 text-white rounded-lg text-center"
+                                        to="/"
+                                        className="flex items-center space-x-3"
                                         onClick={() => setVisible(false)}
                                     >
-                                        Login
+                                        <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+                                            <span className="text-white font-bold text-xl">ZF</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                                                ZERO
+                                            </span>
+                                            <span className="text-sm font-medium text-gray-900">FASHION</span>
+                                        </div>
                                     </Link>
-                                )}
+
+                                    {/* Close Button */}
+                                    <motion.button
+                                        onClick={() => setVisible(false)}
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        className="text-gray-600 hover:text-indigo-600 transition-colors duration-200"
+                                        aria-label="Close menu"
+                                    >
+                                        <X size={24} />
+                                    </motion.button>
+                                </div>
+
+                                {/* Navigation Links */}
+                                <div className="flex flex-col space-y-4">
+                                    {navLinks.map(({ path, label }) => (
+                                        <motion.div
+                                            key={path}
+                                            whileHover={{ x: 10 }}
+                                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                        >
+                                            <NavLink
+                                                to={path}
+                                                className={({ isActive }) =>
+                                                    `text-xl font-medium ${isActive
+                                                        ? "text-indigo-600"
+                                                        : "text-gray-800 hover:text-indigo-600"
+                                                    } transition-colors duration-200 flex items-center space-x-2`
+                                                }
+                                                onClick={() => setVisible(false)}
+                                            >
+                                                {label}
+                                            </NavLink>
+                                        </motion.div>
+                                    ))}
+                                </div>
+
+                                {/* Authentication Buttons */}
+                                <div className="mt-auto pb-4">
+                                    {token ? (
+                                        <>
+                                            <Link
+                                                to="/profile"
+                                                className="block w-full py-3 px-4 bg-indigo-50 text-indigo-600 rounded-lg text-center mb-4"
+                                                onClick={() => setVisible(false)}
+                                            >
+                                                My Profile
+                                            </Link>
+                                            <button
+                                                onClick={() => {
+                                                    logout();
+                                                    setVisible(false);
+                                                }}
+                                                className="w-full py-3 px-4 bg-red-50 text-red-600 rounded-lg text-center"
+                                            >
+                                                Logout
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <Link
+                                            to="/login"
+                                            className="block w-full py-3 px-4 bg-indigo-600 text-white rounded-lg text-center"
+                                            onClick={() => setVisible(false)}
+                                        >
+                                            Login
+                                        </Link>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    </motion.div>
+                        </motion.div>
+                    </>
                 )}
             </AnimatePresence>
 
