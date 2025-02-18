@@ -213,7 +213,7 @@ const Navbar = () => {
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="absolute right-0 mt-2 w-48 bg-white shadow-xl rounded-lg overflow-hidden"
+                                        className="absolute right-0 mt-2 w-44 bg-white shadow-xl rounded-lg overflow-hidden"
                                     >
                                         <div className="py-2">
                                             <Link
