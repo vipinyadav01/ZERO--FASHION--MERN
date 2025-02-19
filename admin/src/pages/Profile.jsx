@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
     User,
     Mail,
@@ -13,10 +14,10 @@ import {
 const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [profileData, setProfileData] = useState({
-        fullName: 'Admin User',
+        fullName: 'Vipin Yadav Admin',
         email: 'admin@zerofashion.com',
-        phone: '+91 9876543210',
-        location: 'Mumbai, India',
+        phone: '+91 9918572513',
+        location: 'Varanasi, India',
         joinDate: 'January 2024',
         role: 'Administrator',
         avatar: 'https://img-cdn.pixlr.com/image-generator/history/65bb506dcb310754719cf81f/ede935de-1138-4f66-8ed7-44bd16efc709/medium.webp'
@@ -29,11 +30,16 @@ const Profile = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
-                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="bg-white rounded-3xl shadow-lg overflow-hidden"
+                >
                     {/* Profile Header */}
-                    <div className="relative h-48 bg-gradient-to-r from-blue-500 to-blue-600">
+                    <div className="relative h-48 bg-gradient-to-r from-indigo-500 to-purple-500">
                         <div className="absolute -bottom-16 left-8">
                             <div className="relative">
                                 <img
@@ -50,18 +56,25 @@ const Profile = () => {
                         </div>
                     </div>
 
-                    <div className="pt-20 pb-8 px-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                        className="pt-20 pb-8 px-8"
+                    >
                         <div className="flex justify-between items-start mb-6">
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">{profileData.fullName}</h1>
-                                <p className="text-sm text-gray-500">{profileData.role}</p>
+                                <h1 className="text-3xl font-bold text-gray-900">{profileData.fullName}</h1>
+                                <p className="text-sm text-gray-600">{profileData.role}</p>
                             </div>
-                            <button
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
                                 onClick={() => setIsEditing(!isEditing)}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
                             >
                                 {isEditing ? 'Cancel' : 'Edit Profile'}
-                            </button>
+                            </motion.button>
                         </div>
 
                         <form onSubmit={handleSubmit}>
@@ -77,7 +90,7 @@ const Profile = () => {
                                             disabled={!isEditing}
                                             value={profileData.fullName}
                                             onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
-                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"
                                         />
                                     </div>
 
@@ -91,7 +104,7 @@ const Profile = () => {
                                             disabled={!isEditing}
                                             value={profileData.email}
                                             onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"
                                         />
                                     </div>
 
@@ -105,7 +118,7 @@ const Profile = () => {
                                             disabled={!isEditing}
                                             value={profileData.phone}
                                             onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"
                                         />
                                     </div>
                                 </div>
@@ -121,7 +134,7 @@ const Profile = () => {
                                             disabled={!isEditing}
                                             value={profileData.location}
                                             onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
-                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"
                                         />
                                     </div>
 
@@ -155,18 +168,20 @@ const Profile = () => {
 
                             {isEditing && (
                                 <div className="mt-6 flex justify-end">
-                                    <button
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
                                         type="submit"
-                                        className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
                                     >
                                         <Save className="w-4 h-4" />
                                         Save Changes
-                                    </button>
+                                    </motion.button>
                                 </div>
                             )}
                         </form>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             </div>
         </div>
     );
