@@ -4,7 +4,6 @@ import { toast } from 'react-toastify';
 import {
     BarChart3,
     Users,
-    DollarSign,
     ShoppingCart,
     TrendingUp,
     TrendingDown,
@@ -24,7 +23,6 @@ const Dashboard = () => {
         updateDateTime();
         setCurrentUser(sessionStorage.getItem("user") || "Guest");
         setGreeting(getGreeting());
-
         // Update time every second
         const timer = setInterval(() => {
             updateDateTime();
@@ -32,7 +30,6 @@ const Dashboard = () => {
         }, 1000);
         return () => clearInterval(timer);
     }, []);
-
     const getGreeting = () => {
         const hour = new Date().getHours();
         if (hour >= 5 && hour < 12) return "Good Morning";
@@ -78,11 +75,15 @@ const Dashboard = () => {
     // Calculate dashboard metrics
     const calculateDashboardMetrics = () => {
         const totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
+        const totalOrders = orders.length;
+        const activeUsers = Math.floor(orders.length * 1.5);
+        const conversionRate = ((orders.length / (orders.length * 2)) * 100).toFixed(1);
+
         return {
             totalRevenue: totalRevenue.toFixed(2),
-            totalOrders: orders.length,
-            activeUsers: Math.floor(orders.length * 1.5),
-            conversionRate: ((orders.length / (orders.length * 2)) * 100).toFixed(1),
+            totalOrders,
+            activeUsers,
+            conversionRate,
         };
     };
 
@@ -106,10 +107,10 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <StatsCard
                     title="Total Revenue"
-                    value={`$${dashboardMetrics.totalRevenue}`}
+                    value={`₹${dashboardMetrics.totalRevenue}`}
                     trend="+12.5%"
                     isPositive={true}
-                    icon={<DollarSign className="h-6 w-6" />}
+                    icon={<ShoppingCart className="h-6 w-6" />}
                     color="blue"
                 />
                 <StatsCard
