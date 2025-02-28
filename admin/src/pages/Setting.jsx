@@ -230,6 +230,16 @@ const Settings = () => {
                                                     type={settings.showPasswords.current ? "text" : "password"}
                                                     placeholder="Current Password"
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                                    value={settings.passwordForm.currentPassword}
+                                                    onChange={(e) =>
+                                                        setSettings({
+                                                            ...settings,
+                                                            passwordForm: {
+                                                                ...settings.passwordForm,
+                                                                currentPassword: e.target.value
+                                                            }
+                                                        })
+                                                    }
                                                 />
                                                 <button
                                                     type="button"
@@ -254,6 +264,16 @@ const Settings = () => {
                                                     type={settings.showPasswords.new ? "text" : "password"}
                                                     placeholder="New Password"
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                                    value={settings.passwordForm.newPassword}
+                                                    onChange={(e) =>
+                                                        setSettings({
+                                                            ...settings,
+                                                            passwordForm: {
+                                                                ...settings.passwordForm,
+                                                                newPassword: e.target.value
+                                                            }
+                                                        })
+                                                    }
                                                 />
                                                 <button
                                                     type="button"
@@ -267,6 +287,40 @@ const Settings = () => {
                                                     })}
                                                 >
                                                     {settings.showPasswords.new ? (
+                                                        <EyeOff className="w-5 h-5" />
+                                                    ) : (
+                                                        <Eye className="w-5 h-5" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                            <div className="relative">
+                                                <input
+                                                    type={settings.showPasswords.confirm ? "text" : "password"}
+                                                    placeholder="Confirm Password"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                                    value={settings.passwordForm.confirmPassword}
+                                                    onChange={(e) =>
+                                                        setSettings({
+                                                            ...settings,
+                                                            passwordForm: {
+                                                                ...settings.passwordForm,
+                                                                confirmPassword: e.target.value
+                                                            }
+                                                        })
+                                                    }
+                                                />
+                                                <button
+                                                    type="button"
+                                                    className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                                                    onClick={() => setSettings({
+                                                        ...settings,
+                                                        showPasswords: {
+                                                            ...settings.showPasswords,
+                                                            confirm: !settings.showPasswords.confirm
+                                                        }
+                                                    })}
+                                                >
+                                                    {settings.showPasswords.confirm ? (
                                                         <EyeOff className="w-5 h-5" />
                                                     ) : (
                                                         <Eye className="w-5 h-5" />

@@ -7,7 +7,8 @@ import {
     ShoppingCart,
     ChevronLeft,
     LayoutDashboard,
-    User
+    User,
+    Settings,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -33,6 +34,7 @@ const Sidebar = () => {
         { to: "/add", icon: <PlusCircle className="w-4 h-4" />, text: "Add Items", color: "from-green-400 to-green-600" },
         { to: "/list", icon: <ListTodo className="w-4 h-4" />, text: "Inventory", color: "from-yellow-400 to-yellow-600" },
         { to: "/orders", icon: <ShoppingCart className="w-4 h-4" />, text: "Orders", color: "from-red-400 to-red-600" },
+        { to: "/setting", icon: <Settings className="w-4 h-4" />, text: "Setting", color: "from-black  to-yellow-200 via-red-500" },
     ];
 
     return (

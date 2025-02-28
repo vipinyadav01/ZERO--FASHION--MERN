@@ -4,14 +4,9 @@ import { Link } from "react-router-dom";
 import {
     User,
     LogOut,
-    BarChart2,
     Menu,
     X,
     ChevronDown,
-    Package,
-    Settings,
-    ShoppingBag,
-    Users
 } from "lucide-react";
 
 const Navbar = ({ setToken }) => {
@@ -50,12 +45,6 @@ const Navbar = ({ setToken }) => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
-
-    const navItems = [
-        { name: "Customers", href: "/dashboard", icon: <Users size={18} /> },
-        { name: "Setting", href: "/setting", icon: <Settings size={18} /> },
-    ];
-
     return (
         <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg fixed top-0 w-full z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,21 +66,6 @@ const Navbar = ({ setToken }) => {
                             </div>
                         </Link>
                     </div>
-
-                    {/* Navigation links - Desktop */}
-                    <div className="hidden md:flex md:items-center md:space-x-4">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.name}
-                                to={item.href}
-                                className="px-3 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-slate-700 rounded-md transition-colors duration-200 flex items-center space-x-1"
-                            >
-                                {item.icon}
-                                <span>{item.name}</span>
-                            </Link>
-                        ))}
-                    </div>
-
                     {/* Mobile menu button */}
                     <div className="flex items-center md:hidden">
                         <button
