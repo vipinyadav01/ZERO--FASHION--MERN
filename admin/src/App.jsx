@@ -18,6 +18,7 @@ import OrderCharts from "./pages/OrderCharts";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Setting from "./pages/Setting";
+import Users from "./pages/UserProfile";
 import { MoveLeft, AlertCircle } from 'lucide-react';
 
 export const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -191,6 +192,7 @@ const App = () => {
                     { path: "/order-charts", Component: OrderCharts },
                     { path: "/profile", Component: Profile },
                     { path: "/setting", Component: Setting },
+                    { path: "/UserProfile", Component: Users },
                 ].map(({ path, Component }) => (
                     <Route
                         key={path}

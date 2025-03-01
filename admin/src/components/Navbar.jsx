@@ -1,13 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
-import { assets } from "../assets/assets";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {
-    User,
-    LogOut,
-    Menu,
-    X,
-    ChevronDown,
-} from "lucide-react";
+import { User, LogOut, Menu, X, ChevronDown } from "lucide-react";
+import { assets } from "../assets/assets";
 
 const Navbar = ({ setToken }) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -24,13 +18,8 @@ const Navbar = ({ setToken }) => {
         }, 1000);
     };
 
-    const toggleMenu = () => {
-        setIsMenuOpen(!isMenuOpen);
-    };
-
-    const toggleDropdown = () => {
-        setIsDropdownOpen(!isDropdownOpen);
-    };
+    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+    const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -39,40 +28,44 @@ const Navbar = ({ setToken }) => {
                 setIsDropdownOpen(false);
             }
         };
-
         document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    const navItems = [
+        { name: "Dashboard", href: "/dashboard", icon: <User size={18} /> },
+        { name: "Profile", href: "/profile", icon: <User size={18} /> },
+    ];
+
     return (
         <nav className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-lg fixed top-0 w-full z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo and branding */}
-                    <div className="flex-shrink-0 flex items-center">
-                        <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-                            <img
-                                className="w-10 h-10 sm:w-11 sm:h-11 object-contain"
-                                src={assets.logo}
-                                alt="Zero Fashion Logo"
-                            />
-                            <div>
-                                <div className="flex items-baseline">
-                                    <span className="text-lg font-bold text-white mr-1">ZERO</span>
-                                    <span className="text-xl font-extrabold text-white uppercase">FASHION</span>
-                                </div>
-                                <div className="text-xs font-semibold text-teal-300 tracking-widest uppercase -mt-1">Admin Panel</div>
+                    <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+                        <img
+                            className="w-10 h-10 sm:w-11 sm:h-11 object-contain"
+                            src={assets.logo}
+                            alt="Zero Fashion Logo"
+                        />
+                        <div>
+                            <div className="flex items-baseline">
+                                <span className="text-lg font-bold text-white mr-1">ZERO</span>
+                                <span className="text-xl font-extrabold text-white uppercase">FASHION</span>
                             </div>
-                        </Link>
-                    </div>
+                            <div className="text-xs font-semibold text-teal-300 tracking-widest uppercase -mt-1">
+                                Admin Panel
+                            </div>
+                        </div>
+                    </Link>
+
                     {/* Mobile menu button */}
                     <div className="flex items-center md:hidden">
                         <button
                             onClick={toggleMenu}
                             type="button"
                             className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors duration-200"
-                            aria-expanded={isMenuOpen ? "true" : "false"}
+                            aria-expanded={isMenuOpen}
                         >
                             <span className="sr-only">{isMenuOpen ? "Close menu" : "Open menu"}</span>
                             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -85,7 +78,7 @@ const Navbar = ({ setToken }) => {
                             onClick={toggleDropdown}
                             type="button"
                             className="flex items-center text-sm px-3 py-1.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-colors duration-200"
-                            aria-expanded={isDropdownOpen ? "true" : "false"}
+                            aria-expanded={isDropdownOpen}
                         >
                             <img
                                 className="h-8 w-8 rounded-full border-2 border-teal-400 object-cover"
@@ -93,7 +86,10 @@ const Navbar = ({ setToken }) => {
                                 alt="User avatar"
                             />
                             <span className="ml-2 text-gray-100 font-medium">Admin</span>
-                            <ChevronDown size={16} className={`ml-1 text-gray-300 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown
+                                size={16}
+                                className={`ml-1 text-gray-300 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
+                            />
                         </button>
 
                         {/* Dropdown menu */}
