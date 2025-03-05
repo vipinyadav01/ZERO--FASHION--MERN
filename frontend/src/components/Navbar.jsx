@@ -110,13 +110,46 @@ const Navbar = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
+    // useEffect(() => {
+    //     if (visible) {
+    //         document.body.style.overflow = 'hidden';
+    //     } else {
+    //         document.body.style.overflow = 'unset';
+    //     }
+    //     return () => {
+    //         document.body.style.overflow = 'unset';
+    //     };
+    // }, [visible]);
     useEffect(() => {
-        if (visible) {
-            document.body.classList.add("overflow-hidden");
-        } else {
-            document.body.classList.remove("overflow-hidden");
-        }
-        return () => document.body.classList.remove("overflow-hidden");
+        const handleOverflow = () => {
+            if (visible) {
+                // Prevent scrolling on the body
+                document.body.style.overflow = 'hidden';
+                document.body.style.position = 'fixed';
+                document.body.style.width = '100%';
+                document.body.style.top = `-${window.scrollY}px`;
+            } else {
+                // Restore scrolling
+                const scrollY = document.body.style.top;
+                document.body.style.overflow = '';
+                document.body.style.position = '';
+                document.body.style.width = '';
+                document.body.style.top = '';
+
+                // Scroll back to the previous position
+                window.scrollTo(0, parseInt(scrollY || '0') * -1);
+            }
+        };
+
+        handleOverflow();
+
+        // Cleanup function
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+        };
     }, [visible]);
 
     useEffect(() => {
@@ -316,7 +349,7 @@ const Navbar = () => {
             <AnimatePresence>
                 {visible && (
                     <>
-                        {/* Backdrop to close menu on outside click */}
+                        {/* Backdrop */}
                         <motion.div
                             className="fixed inset-0 bg-black bg-opacity-50 z-40"
                             initial={{ opacity: 0 }}
@@ -336,7 +369,7 @@ const Navbar = () => {
                             initial="hidden"
                             animate="visible"
                             exit="exit"
-                            className="fixed top-0 right-0 w-4/5 max-w-xs h-full bg-white z-50 shadow-lg overflow-y-auto"
+                            className="fixed top-0 right-0 w-4/5 max-w-xs h-full bg-white z-50 shadow-lg overflow-y-auto overscroll-contain"
                         >
                             {/* Menu Container */}
                             <div className="flex flex-col h-full p-4">
@@ -371,7 +404,7 @@ const Navbar = () => {
                                 </div>
 
                                 {/* Navigation Links */}
-                                <div className="flex flex-col space-y-4">
+                                <nav className="flex flex-col space-y-4 flex-grow overflow-y-auto">
                                     {navLinks.map(({ path, label }) => (
                                         <motion.div
                                             key={path}
@@ -392,7 +425,7 @@ const Navbar = () => {
                                             </NavLink>
                                         </motion.div>
                                     ))}
-                                </div>
+                                </nav>
 
                                 {/* Authentication Buttons */}
                                 <div className="mt-auto pb-4">
