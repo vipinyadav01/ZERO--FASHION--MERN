@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
 import { ShopContext } from "../context/ShopContext";
+import SearchBar from "./SearchBar";
 
 const animations = {
     dropdown: {
@@ -63,7 +64,7 @@ const Navbar = () => {
     const [showCartDropdown, setShowCartDropdown] = useState(false);
     const [showSearchBar, setShowSearchBar] = useState(false);
 
-    const { setShowSearch, getCartCount, token, setToken, setCartItems, backendUrl } =
+    const { setShowSearch, getCartCount, token, setToken, setCartItems } =
         useContext(ShopContext);
 
     const navigate = useNavigate();
@@ -109,17 +110,6 @@ const Navbar = () => {
         window.addEventListener("scroll", handleScroll, { passive: true });
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
-
-    // useEffect(() => {
-    //     if (visible) {
-    //         document.body.style.overflow = 'hidden';
-    //     } else {
-    //         document.body.style.overflow = 'unset';
-    //     }
-    //     return () => {
-    //         document.body.style.overflow = 'unset';
-    //     };
-    // }, [visible]);
     useEffect(() => {
         const handleOverflow = () => {
             if (visible) {
@@ -468,17 +458,13 @@ const Navbar = () => {
             <AnimatePresence>
                 {showSearchBar && (
                     <motion.div
-                        className="fixed top-16 left-0 right-0 bg-white z-40 p-4 shadow-lg search-bar"
+                        className="fixed top-16 left-0 right-0 bg-white z-40 shadow-lg search-bar"
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.3 }}
                     >
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                        />
+                        <SearchBar setShowSearchBar={setShowSearchBar} />
                     </motion.div>
                 )}
             </AnimatePresence>
