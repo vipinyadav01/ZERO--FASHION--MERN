@@ -29,7 +29,7 @@ const WishlistItem = memo(({ item, onRemove, onAddToCart }) => {
                 <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-60 md:h-72 object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 {item.discount > 0 && (
                     <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-md text-sm">
@@ -46,7 +46,7 @@ const WishlistItem = memo(({ item, onRemove, onAddToCart }) => {
             <div className="p-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">{item.name}</h3>
                 <div className="flex items-center gap-2 mb-3">
-                    <span className="text-2xl font-bold text-indigo-600">
+                    <span className="text-2xl font-bold text-blue-600">
                         ${item.discountedPrice}
                     </span>
                     {item.discount > 0 && (
@@ -64,7 +64,7 @@ const WishlistItem = memo(({ item, onRemove, onAddToCart }) => {
                         className={`
                             flex-1 mr-4 flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-sm font-medium
                             ${item.inStock
-                                ? 'bg-black text-white hover:bg-gray-700'
+                                ? 'bg-blue-600 text-white hover:bg-blue-700'
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'}
                         `}
                     >
@@ -195,92 +195,93 @@ const Wishlist = () => {
     const sortedItems = getSortedItems();
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-white p-4 mt-24">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-                    <div>
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="flex items-center text-gray-600 hover:text-indigo-600 mb-4"
-                        >
-                            <ChevronLeft size={20} />
-                            <span>Back</span>
-                        </button>
-                        <Title
-                            text1="My"
-                            text2="Wishlist"
-                            size="xl"
-                            accent="gradient"
-                        />
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4">
-                        {/* Category Filter */}
-                        <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                        >
-                            {categories.map(category => (
-                                <option key={category} value={category}>
-                                    {category}
-                                </option>
-                            ))}
-                        </select>
-
-                        {/* Sort Options */}
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                            className="px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                        >
-                            <option value="default">Sort by</option>
-                            <option value="price-low">Price: Low to High</option>
-                            <option value="price-high">Price: High to Low</option>
-                            <option value="discount">Biggest Discount</option>
-                        </select>
-                    </div>
+        <div className="min-h-screen flex flex-col pt-24 pb-8 border-t max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+                <div>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="flex items-center text-gray-600 hover:text-blue-600 mb-4"
+                    >
+                        <ChevronLeft size={20} />
+                        <span>Back</span>
+                    </button>
+                    <Title
+                        text1="My"
+                        text2="WISHLIST"
+                    />
                 </div>
 
-                {/* Rest of the code remains the same */}
-                {sortedItems.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <AnimatePresence>
-                            {sortedItems.map(item => (
-                                <WishlistItem
-                                    key={item.id}
-                                    item={item}
-                                    onRemove={handleRemoveItem}
-                                    onAddToCart={handleAddToCart}
-                                />
-                            ))}
-                        </AnimatePresence>
-                    </div>
-                ) : (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-center py-16"
+                <div className="flex flex-wrap items-center gap-4">
+                    {/* Category Filter */}
+                    <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="border-2 border-gray-300 text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                        <div className="flex flex-col items-center gap-4">
-                            <AlertCircle size={48} className="text-gray-400" />
-                            <h3 className="text-xl font-semibold text-gray-700">
-                                Your wishlist is empty
-                            </h3>
-                            <p className="text-gray-500 mb-4">
-                                Start adding items to your wishlist while shopping
-                            </p>
-                            <Link
-                                to="/collection"
-                                className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-300"
-                            >
-                                Continue Shopping
-                            </Link>
-                        </div>
-                    </motion.div>
-                )}
+                        {categories.map(category => (
+                            <option key={category} value={category}>
+                                {category}
+                            </option>
+                        ))}
+                    </select>
+
+                    {/* Sort Options */}
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="border-2 border-gray-300 text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        <option value="default">Sort by: Relevant</option>
+                        <option value="price-low">Sort by: Low to High</option>
+                        <option value="price-high">Sort by: High to Low</option>
+                        <option value="discount">Sort by: Biggest Discount</option>
+                    </select>
+                </div>
             </div>
+
+            {/* Wishlist Items */}
+            {sortedItems.length > 0 ? (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ staggerChildren: 0.1 }}
+                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+                >
+                    <AnimatePresence>
+                        {sortedItems.map(item => (
+                            <WishlistItem
+                                key={item.id}
+                                item={item}
+                                onRemove={handleRemoveItem}
+                                onAddToCart={handleAddToCart}
+                            />
+                        ))}
+                    </AnimatePresence>
+                </motion.div>
+            ) : (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center py-16"
+                >
+                    <div className="flex flex-col items-center gap-4">
+                        <AlertCircle size={48} className="text-gray-400" />
+                        <h3 className="text-xl font-semibold text-gray-700">
+                            Your wishlist is empty
+                        </h3>
+                        <p className="text-gray-500 mb-4">
+                            Start adding items to your wishlist while shopping
+                        </p>
+                        <Link
+                            to="/collection"
+                            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-300"
+                        >
+                            Continue Shopping
+                        </Link>
+                    </div>
+                </motion.div>
+            )}
         </div>
     );
 };

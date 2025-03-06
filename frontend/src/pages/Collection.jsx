@@ -141,7 +141,7 @@ const Collection = () => {
                     <motion.img
                         animate={{ rotate: showFilter ? 90 : 0 }}
                         transition={{ duration: 0.3 }}
-                        className="h-3"
+                        className="h-3 w-auto"
                         src={assets.dropdown_icon}
                         alt=""
                         aria-hidden="true"
@@ -216,12 +216,14 @@ const Collection = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 whileHover={{ y: -5 }}
                                 transition={{ duration: 0.3 }}
+                                className="product-card-container aspect-[3/4]"
                             >
                                 <ProductItem
                                     name={item.name}
                                     id={item._id}
                                     price={item.price}
                                     image={item.image}
+                                    imageClassName="w-full h-60 md:h-72 object-cover rounded-lg"
                                 />
                             </motion.div>
                         ))}
