@@ -27,7 +27,6 @@ const Dashboard = () => {
         setCurrentUser(sessionStorage.getItem("user") || "Guest");
         setGreeting(getGreeting());
 
-        // Update time every minute instead of every second for better performance
         const timer = setInterval(() => {
             updateDateTime();
             setGreeting(getGreeting());
@@ -59,7 +58,6 @@ const Dashboard = () => {
 
     const fetchAllOrders = async () => {
         const token = sessionStorage.getItem("token");
-
         if (!token) {
             setIsLoading(false);
             return null;
@@ -85,229 +83,167 @@ const Dashboard = () => {
         }
     };
 
-    // Calculate dashboard metrics
     const calculateDashboardMetrics = () => {
         const totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
         const totalOrders = orders.length;
         const activeUsers = Math.floor(orders.length * 1.5);
         const conversionRate = ((orders.length / (orders.length * 2)) * 100).toFixed(1);
-
-        // Calculate recent orders (last 7 days)
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
         const recentOrders = orders.filter(order => new Date(order.orderDate) >= oneWeekAgo).length;
 
-        return {
-            totalRevenue: totalRevenue.toFixed(2),
-            totalOrders,
-            activeUsers,
-            conversionRate,
-            recentOrders
-        };
+        return { totalRevenue: totalRevenue.toFixed(2), totalOrders, activeUsers, conversionRate, recentOrders };
     };
 
     const dashboardMetrics = calculateDashboardMetrics();
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600 mx-auto"></div>
-                    <p className="mt-6 text-gray-600 font-medium">Loading your dashboard...</p>
+            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <div className="text-center space-y-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-600 mx-auto"></div>
+                    <p className="text-gray-600 font-medium text-lg">Loading dashboard...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Top navigation bar with date/time */}
-            <div className="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-800">Zero Fashion</h1>
-                <div className="flex items-center gap-4">
-                    <Clock className="h-5 w-5 text-gray-500" />
-                    <span className="text-gray-600">{currentDateTime}</span>
+        <div className="min-h-screen bg-gray-100 antialiased">
+            {/* Header */}
+            <header className="bg-white shadow-sm px-4 py-4 sticky top-0 top z-10">
+                <div className="max-w-7xl mx-auto flex items-center justify-between">
+                    <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Zero Fashion</h1>
+                    <div className="flex items-center gap-3 text-gray-600">
+                        <Clock className="h-5 w-5 hidden sm:block" />
+                        <span className="text-sm sm:text-base">{currentDateTime}</span>
+                    </div>
                 </div>
-            </div>
+            </header>
 
-            <div className="container mx-auto px-4 py-8 max-w-7xl">
-                {/* Welcome Card */}
-                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-8 mb-8">
-                    <div className="flex flex-col md:flex-row items-center justify-between">
-                        <div className="mb-6 md:mb-0">
-                            <h2 className="text-white text-3xl font-bold mb-2">
+            {/* Main Content */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                {/* Welcome Section */}
+                <section className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-lg p-6 sm:p-8 mb-8 transform hover:scale-[1.01] transition-all duration-300">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div className="text-center sm:text-left">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 animate-fade-in">
                                 {greeting}, {currentUser}!
                             </h2>
-                            <p className="text-indigo-100 text-lg">
-                                Welcome to your fashion management dashboard
+                            <p className="text-indigo-100 text-base sm:text-lg mb-6">
+                                Your fashion management dashboard
                             </p>
-                            <div className="mt-6 flex gap-4">
-                                <a href="/add" className="px-6 py-3 bg-white text-indigo-600 font-medium rounded-lg hover:bg-gray-100 transition-colors shadow-md flex items-center">
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center sm:justify-start">
+                                <a href="/add" className="inline-flex items-center px-4 py-2 bg-white text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 transition-all duration-200 shadow-md">
                                     Add New Items
                                     <Package className="ml-2 h-5 w-5" />
                                 </a>
-                                <a href="/orders" className="px-6 py-3 bg-indigo-800 text-white font-medium rounded-lg hover:bg-indigo-900 transition-colors shadow-md flex items-center">
+                                <a href="/orders" className="inline-flex items-center px-4 py-2 bg-indigo-700 text-white font-medium rounded-lg hover:bg-indigo-800 transition-all duration-200 shadow-md">
                                     View Orders
                                     <ArrowRight className="ml-2 h-5 w-5" />
                                 </a>
                             </div>
                         </div>
-                        <div className="flex-shrink-0">
-                            <div className="p-4 bg-white bg-opacity-20 backdrop-blur-lg rounded-2xl">
-                                <Sparkles className="h-16 w-16 text-white" />
-                            </div>
-                        </div>
+                        <Sparkles className="h-16 w-16 text-white opacity-80 animate-pulse" />
                     </div>
-                </div>
+                </section>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
-                    <StatsCard
-                        title="Total Revenue"
-                        value={`₹${dashboardMetrics.totalRevenue}`}
-                        trend="+12.5%"
-                        isPositive={true}
-                        icon={<DollarSign className="h-6 w-6" />}
-                        color="blue"
-                    />
-                    <StatsCard
-                        title="Total Orders"
-                        value={dashboardMetrics.totalOrders}
-                        trend="+8.2%"
-                        isPositive={true}
-                        icon={<ShoppingCart className="h-6 w-6" />}
-                        color="green"
-                    />
-                    <StatsCard
-                        title="Active Users"
-                        value={dashboardMetrics.activeUsers}
-                        trend="+5.1%"
-                        isPositive={true}
-                        icon={<Users className="h-6 w-6" />}
-                        color="purple"
-                    />
-                    <StatsCard
-                        title="Conversion Rate"
-                        value={`${dashboardMetrics.conversionRate}%`}
-                        trend="-1.5%"
-                        isPositive={false}
-                        icon={<BarChart3 className="h-6 w-6" />}
-                        color="red"
-                    />
-                    <StatsCard
-                        title="Recent Orders"
-                        value={dashboardMetrics.recentOrders}
-                        trend="+3.8%"
-                        isPositive={true}
-                        icon={<Package className="h-6 w-6" />}
-                        color="orange"
-                    />
-                </div>
+                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mb-8">
+                    <StatsCard title="Total Revenue" value={`₹${dashboardMetrics.totalRevenue}`} trend="+12.5%" isPositive={true} icon={<DollarSign />} color="indigo" />
+                    <StatsCard title="Total Orders" value={dashboardMetrics.totalOrders} trend="+8.2%" isPositive={true} icon={<ShoppingCart />} color="emerald" />
+                    <StatsCard title="Active Users" value={dashboardMetrics.activeUsers} trend="+5.1%" isPositive={true} icon={<Users />} color="purple" />
+                    <StatsCard title="Conversion Rate" value={`${dashboardMetrics.conversionRate}%`} trend="-1.5%" isPositive={false} icon={<BarChart3 />} color="rose" />
+                    <StatsCard title="Recent Orders" value={dashboardMetrics.recentOrders} trend="+3.8%" isPositive={true} icon={<Package />} color="amber" />
+                </section>
 
-                {/* Recent Activity & Tips Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Recent Orders Preview */}
-                    <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-bold text-gray-800">Recent Orders</h3>
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                    {/* Recent Orders */}
+                    <section className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4 sm:mb-6">
+                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Recent Orders</h3>
                             <a href="/orders" className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center">
                                 View all <ArrowRight className="ml-1 h-4 w-4" />
                             </a>
                         </div>
-
-                        <div className="overflow-hidden">
+                        <div className="space-y-4">
                             {orders.slice(0, 5).map((order, index) => (
-                                <div key={order.id || index} className="flex items-center py-4 border-b border-gray-100 last:border-b-0">
-                                    <div className="bg-indigo-100 p-3 rounded-lg mr-4">
-                                        <ShoppingCart className="h-5 w-5 text-indigo-600" />
-                                    </div>
-                                    <div className="flex-grow">
-                                        <p className="text-gray-800 font-medium">Order #{order.id || `${index + 1000}`}</p>
-                                        <p className="text-gray-500 text-sm">
+                                <div key={order.id || index} className="flex items-center py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors duration-150">
+                                    <ShoppingCart className="h-5 w-5 text-indigo-600 mr-3 sm:mr-4 flex-shrink-0" />
+                                    <div className="flex-grow min-w-0">
+                                        <p className="text-gray-900 font-medium truncate">Order #{order.id || `${index + 1000}`}</p>
+                                        <p className="text-gray-500 text-xs sm:text-sm truncate">
                                             {new Date(order.orderDate || new Date()).toLocaleDateString()}
                                         </p>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-gray-900 font-bold">₹{Number(order.totalAmount).toFixed(2)}</p>
+                                    <div className="text-right flex-shrink-0 ml-2">
+                                        <p className="text-gray-900 font-semibold text-sm sm:text-base">₹{Number(order.totalAmount).toFixed(2)}</p>
                                         <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">
                                             {order.status || 'Completed'}
                                         </span>
                                     </div>
                                 </div>
                             ))}
-
                             {orders.length === 0 && (
-                                <div className="text-center py-8 text-gray-500">
-                                    <ShoppingCart className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                                    <p>No orders found</p>
-                                    <a href="/add" className="text-indigo-600 font-medium mt-2 inline-block">
+                                <div className="text-center py-8">
+                                    <ShoppingCart className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+                                    <p className="text-gray-500">No orders found</p>
+                                    <a href="/add" className="text-indigo-600 font-medium text-sm mt-2 inline-block hover:underline">
                                         Add items to get started
                                     </a>
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </section>
 
-                    {/* Tips & Quick Actions */}
-                    <div className="bg-white rounded-xl shadow-md p-6">
-                        <h3 className="text-xl font-bold text-gray-800 mb-6">Tips & Quick Actions</h3>
-
+                    {/* Tips Section */}
+                    <section className="bg-white rounded-2xl shadow-sm p-4 sm:p-6">
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Tips & Quick Actions</h3>
                         <div className="space-y-4">
-                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                                <h4 className="font-medium text-blue-800 mb-2">Optimize Your Inventory</h4>
-                                <p className="text-blue-700 text-sm">Check your stock levels regularly to ensure popular items remain available.</p>
-                            </div>
-
-                            <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
-                                <h4 className="font-medium text-purple-800 mb-2">Enhance Product Images</h4>
-                                <p className="text-purple-700 text-sm">High-quality images can increase conversion rates by up to 30%.</p>
-                            </div>
-
-                            <div className="p-4 bg-green-50 rounded-lg border border-green-100">
-                                <h4 className="font-medium text-green-800 mb-2">Run a Flash Sale</h4>
-                                <p className="text-green-700 text-sm">Limited-time offers create urgency and can boost sales.</p>
-                            </div>
+                            {[
+                                { title: "Optimize Inventory", text: "Check stock levels regularly.", color: "indigo" },
+                                { title: "Enhance Images", text: "Quality images boost conversions.", color: "purple" },
+                                { title: "Run Flash Sale", text: "Create urgency to boost sales.", color: "emerald" }
+                            ].map((tip, index) => (
+                                <div key={index} className={`p-3 rounded-lg bg-${tip.color}-50 border border-${tip.color}-100 transform hover:scale-105 transition-all duration-200`}>
+                                    <h4 className={`font-medium text-${tip.color}-800`}>{tip.title}</h4>
+                                    <p className={`text-${tip.color}-700 text-sm`}>{tip.text}</p>
+                                </div>
+                            ))}
                         </div>
-
-                        <div className="mt-6">
-                            <a href="/analytics" className="block w-full text-center py-3 bg-gray-100 text-gray-800 font-medium rounded-lg hover:bg-gray-200 transition-colors">
-                                View Full Analytics
-                            </a>
-                        </div>
-                    </div>
+                        <a href="/analytics" className="block mt-6 w-full text-center py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-all duration-200">
+                            View Analytics
+                        </a>
+                    </section>
                 </div>
-            </div>
+            </main>
         </div>
     );
 };
 
-// Enhanced Stats Card Component
 const StatsCard = ({ title, value, trend, isPositive, icon, color }) => {
     const colors = {
-        blue: 'bg-blue-50 text-blue-600 ring-blue-500/30',
-        green: 'bg-green-50 text-green-600 ring-green-500/30',
-        purple: 'bg-purple-50 text-purple-600 ring-purple-500/30',
-        red: 'bg-red-50 text-red-600 ring-red-500/30',
-        orange: 'bg-orange-50 text-orange-600 ring-orange-500/30'
+        indigo: 'bg-indigo-500/10 text-indigo-600',
+        emerald: 'bg-emerald-500/10 text-emerald-600',
+        purple: 'bg-purple-500/10 text-purple-600',
+        rose: 'bg-rose-500/10 text-rose-600',
+        amber: 'bg-amber-500/10 text-amber-600'
     };
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 group">
-            <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-lg ${colors[color]} ring-1 group-hover:scale-110 transition-transform`}>
-                    {icon}
+        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="flex justify-between items-start mb-3 sm:mb-4">
+                <div className={`p-2.5 rounded-lg ${colors[color]} transform hover:rotate-6 transition-transform duration-200`}>
+                    {React.cloneElement(icon, { className: "h-5 w-5 sm:h-6 sm:w-6" })}
                 </div>
-                <span className={`flex items-center text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`flex items-center text-xs sm:text-sm font-medium ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {trend}
-                    {isPositive ? (
-                        <TrendingUp className="h-4 w-4 ml-1" />
-                    ) : (
-                        <TrendingDown className="h-4 w-4 ml-1" />
-                    )}
+                    {isPositive ? <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 ml-1" /> : <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />}
                 </span>
             </div>
-            <h3 className="text-gray-500 text-sm font-medium mb-1">{title}</h3>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
+            <h3 className="text-gray-500 text-xs sm:text-sm font-medium mb-1">{title}</h3>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{value}</p>
         </div>
     );
 };
