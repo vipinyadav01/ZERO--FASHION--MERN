@@ -15,7 +15,7 @@ import Login from "./pages/Login";
 import PlaceOrder from "./pages/PlaceOrder";
 import Orders from "./pages/Orders";
 import Verify from "./pages/Verify";
-import Profile from "./pages/Profile";
+import Profile from "./pages/profile";
 import TrackOrder from "./pages/TrackOrder";
 import PrivacyPolicy from "./pages/Privacy-Policy";
 import Wishlist from "./pages/Wishlist";
