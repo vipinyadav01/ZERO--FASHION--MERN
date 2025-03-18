@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Heart,
@@ -6,94 +6,146 @@ import {
     Trash2,
     Share2,
     AlertCircle,
-    ChevronLeft
+    ChevronLeft,
+    Filter,
+    SlidersHorizontal,
+    X,
+    ArrowUp,
+    ArrowDown
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Title from '../components/Title';
 
+// Animation variants
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.08
+        }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    exit: { opacity: 0, y: -20, transition: { duration: 0.2 } }
+};
+
+const Badge = ({ children, variant = "primary" }) => {
+    const variantClasses = {
+        primary: "bg-indigo-100 text-indigo-800",
+        discount: "bg-red-100 text-red-800",
+        outOfStock: "bg-gray-800 bg-opacity-80 text-white"
+    };
+
+    return (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium shadow-sm ${variantClasses[variant]}`}>
+            {children}
+        </span>
+    );
+};
+
 const WishlistItem = memo(({ item, onRemove, onAddToCart }) => {
-    const [isHovered, setIsHovered] = useState(false);
+    const handleShare = async () => {
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: item.name,
+                    text: `Check out ${item.name}`,
+                    url: window.location.href
+                });
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                navigator.clipboard.writeText(window.location.href);
+                // Could display a toast notification here
+            }
+        } catch (error) {
+            console.error('Error sharing:', error);
+        }
+    };
 
     return (
         <motion.div
             layout
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white rounded-lg shadow-md overflow-hidden"
-            whileHover={{ y: -5 }}
-            onHoverStart={() => setIsHovered(true)}
-            onHoverEnd={() => setIsHovered(false)}
+            variants={itemVariants}
+            className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300"
         >
             <div className="relative group">
                 <img
                     src={item.image}
                     alt={item.name}
-                    className="w-full h-60 md:h-72 object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-56 md:h-64 object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
                 {item.discount > 0 && (
-                    <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-md text-sm">
-                        {item.discount}% OFF
+                    <div className="absolute top-3 left-3">
+                        <Badge variant="discount">{item.discount}% OFF</Badge>
                     </div>
                 )}
+
                 {!item.inStock && (
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <span className="text-white font-semibold">Out of Stock</span>
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
+                        <Badge variant="outOfStock">Out of Stock</Badge>
                     </div>
                 )}
+
+                <div className="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <Badge variant="primary">{item.category}</Badge>
+                </div>
             </div>
 
-            <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">{item.name}</h3>
-                <div className="flex items-center gap-2 mb-3">
-                    <span className="text-2xl font-bold text-blue-600">
-                        ${item.discountedPrice}
+            <div className="p-5">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2 truncate">{item.name}</h3>
+                <div className="flex items-center gap-2 mb-4">
+                    <span className="text-xl font-bold text-indigo-600">
+                        ${item.discountedPrice.toFixed(2)}
                     </span>
                     {item.discount > 0 && (
                         <span className="text-sm text-gray-500 line-through">
-                            ${item.originalPrice}
+                            ${item.originalPrice.toFixed(2)}
                         </span>
                     )}
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                     <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => onAddToCart(item)}
                         disabled={!item.inStock}
                         className={`
-                            flex-1 mr-4 flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-sm font-medium
+                            flex-1 flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-medium
                             ${item.inStock
-                                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'}
+                                ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-indigo-500/20'
+                                : 'bg-gray-200 text-gray-500 cursor-not-allowed'}
+                            transition-all duration-200
                         `}
                     >
-                        <ShoppingCart size={16} />
-                        Add to Cart
+                        <ShoppingCart className="w-5 h-5" />
+                        <span>Add to Cart</span>
                     </motion.button>
 
                     <div className="flex items-center gap-2">
                         <motion.button
-                            whileHover={{ scale: 1.1 }}
+                            whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => onRemove(item.id)}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-full"
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                            aria-label="Remove from wishlist"
                         >
-                            <Trash2 size={18} />
+                            <Trash2 className="w-5 h-5" />
                         </motion.button>
                         <motion.button
-                            whileHover={{ scale: 1.1 }}
+                            whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            className="p-2 text-gray-500 hover:bg-gray-50 rounded-full"
-                            onClick={() => {
-                                navigator.share({
-                                    title: item.name,
-                                    text: `Check out ${item.name}`,
-                                    url: window.location.href
-                                });
-                            }}
+                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                            onClick={handleShare}
+                            aria-label="Share item"
                         >
-                            <Share2 size={18} />
+                            <Share2 className="w-5 h-5" />
                         </motion.button>
                     </div>
                 </div>
@@ -101,6 +153,35 @@ const WishlistItem = memo(({ item, onRemove, onAddToCart }) => {
         </motion.div>
     );
 });
+
+const SortButton = ({ active, label, onClick, asc = true }) => (
+    <button
+        onClick={onClick}
+        className={`
+            flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
+            ${active
+                ? 'bg-indigo-100 text-indigo-800 shadow-sm'
+                : 'bg-white text-gray-600 hover:bg-gray-100'}
+        `}
+    >
+        {label}
+        {active && (asc ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />)}
+    </button>
+);
+
+const FilterButton = ({ active, label, onClick }) => (
+    <button
+        onClick={onClick}
+        className={`
+            px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
+            ${active
+                ? 'bg-indigo-100 text-indigo-800 shadow-sm'
+                : 'bg-white text-gray-600 hover:bg-gray-100'}
+        `}
+    >
+        {label}
+    </button>
+);
 
 const Wishlist = () => {
     const navigate = useNavigate();
@@ -158,7 +239,9 @@ const Wishlist = () => {
     ]);
 
     const [selectedCategory, setSelectedCategory] = useState('All');
-    const [sortBy, setSortBy] = useState('default');
+    const [sortType, setSortType] = useState('default');
+    const [sortDirection, setSortDirection] = useState('asc');
+    const [showFilters, setShowFilters] = useState(false);
 
     const categories = ['All', 'Clothing', 'Accessories'];
 
@@ -167,122 +250,183 @@ const Wishlist = () => {
     };
 
     const handleAddToCart = (item) => {
-        // Add to cart logic here
         console.log('Added to cart:', item);
+        // Here you would typically call a function from your context or dispatch an action
     };
 
-    const getSortedItems = () => {
+    const handleSortChange = (sortType) => {
+        if (sortType === this.sortType) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortType(sortType);
+            setSortDirection('asc');
+        }
+    };
+
+    const sortedItems = useMemo(() => {
         let items = [...wishlistItems];
 
-        // Filter by category
         if (selectedCategory !== 'All') {
             items = items.filter(item => item.category === selectedCategory);
         }
 
-        // Sort items
-        switch (sortBy) {
-            case 'price-low':
-                return items.sort((a, b) => a.discountedPrice - b.discountedPrice);
-            case 'price-high':
-                return items.sort((a, b) => b.discountedPrice - a.discountedPrice);
+        switch (sortType) {
+            case 'price':
+                return items.sort((a, b) => {
+                    return sortDirection === 'asc'
+                        ? a.discountedPrice - b.discountedPrice
+                        : b.discountedPrice - a.discountedPrice;
+                });
             case 'discount':
-                return items.sort((a, b) => b.discount - a.discount);
+                return items.sort((a, b) => {
+                    return sortDirection === 'asc'
+                        ? a.discount - b.discount
+                        : b.discount - a.discount;
+                });
             default:
                 return items;
         }
-    };
-
-    const sortedItems = getSortedItems();
+    }, [wishlistItems, selectedCategory, sortType, sortDirection]);
 
     return (
-        <div className="min-h-screen flex flex-col pt-24 pb-8 border-t max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-                <div>
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="flex items-center text-gray-600 hover:text-blue-600 mb-4"
-                    >
-                        <ChevronLeft size={20} />
-                        <span>Back</span>
-                    </button>
-                    <Title
-                        text1="My"
-                        text2="WISHLIST"
-                    />
-                </div>
-
-                <div className="flex flex-wrap items-center gap-4">
-                    {/* Category Filter */}
-                    <select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="border-2 border-gray-300 text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                        {categories.map(category => (
-                            <option key={category} value={category}>
-                                {category}
-                            </option>
-                        ))}
-                    </select>
-
-                    {/* Sort Options */}
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="border-2 border-gray-300 text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                        <option value="default">Sort by: Relevant</option>
-                        <option value="price-low">Sort by: Low to High</option>
-                        <option value="price-high">Sort by: High to Low</option>
-                        <option value="discount">Sort by: Biggest Discount</option>
-                    </select>
-                </div>
-            </div>
-
-            {/* Wishlist Items */}
-            {sortedItems.length > 0 ? (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ staggerChildren: 0.1 }}
-                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-                >
-                    <AnimatePresence>
-                        {sortedItems.map(item => (
-                            <WishlistItem
-                                key={item.id}
-                                item={item}
-                                onRemove={handleRemoveItem}
-                                onAddToCart={handleAddToCart}
-                            />
-                        ))}
-                    </AnimatePresence>
-                </motion.div>
-            ) : (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center py-16"
-                >
-                    <div className="flex flex-col items-center gap-4">
-                        <AlertCircle size={48} className="text-gray-400" />
-                        <h3 className="text-xl font-semibold text-gray-700">
-                            Your wishlist is empty
-                        </h3>
-                        <p className="text-gray-500 mb-4">
-                            Start adding items to your wishlist while shopping
-                        </p>
-                        <Link
-                            to="/collection"
-                            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-300"
+        <section className="min-h-screen pt-28 pb-16 bg-gray-50 antialiased">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Header */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8 md:mb-12">
+                    <div className="flex items-center gap-4">
+                        <motion.button
+                            onClick={() => navigate(-1)}
+                            whileHover={{ x: -2 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="flex items-center text-gray-600 hover:text-indigo-600 transition-colors duration-200"
                         >
-                            Continue Shopping
-                        </Link>
+                            <ChevronLeft className="w-6 h-6" />
+                            <span className="text-sm font-medium">Back</span>
+                        </motion.button>
+                        <Title text1="My" text2="Wishlist" />
                     </div>
-                </motion.div>
-            )}
-        </div>
+
+                    <div className="flex items-center gap-3">
+                        <span className="text-gray-500 text-sm">{sortedItems.length} items</span>
+
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setShowFilters(!showFilters)}
+                            className="flex items-center gap-2 ml-auto md:ml-0 px-3 py-2 bg-white rounded-lg shadow-sm hover:shadow text-gray-700 transition-all duration-200"
+                        >
+                            <SlidersHorizontal className="w-4 h-4" />
+                            <span className="text-sm font-medium">Filters</span>
+                        </motion.button>
+                    </div>
+                </div>
+
+                {/* Filters */}
+                <AnimatePresence>
+                    {showFilters && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="bg-white rounded-xl shadow-sm mb-8 overflow-hidden"
+                        >
+                            <div className="p-4 md:p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-semibold text-gray-800">Filters & Sort</h3>
+                                    <button
+                                        onClick={() => setShowFilters(false)}
+                                        className="text-gray-500 hover:text-gray-700"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <h4 className="text-sm font-medium text-gray-500 mb-3">Categories</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {categories.map(category => (
+                                                <FilterButton
+                                                    key={category}
+                                                    label={category}
+                                                    active={selectedCategory === category}
+                                                    onClick={() => setSelectedCategory(category)}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 className="text-sm font-medium text-gray-500 mb-3">Sort By</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            <SortButton
+                                                label="Price"
+                                                active={sortType === 'price'}
+                                                asc={sortDirection === 'asc'}
+                                                onClick={() => handleSortChange('price')}
+                                            />
+                                            <SortButton
+                                                label="Discount"
+                                                active={sortType === 'discount'}
+                                                asc={sortDirection === 'asc'}
+                                                onClick={() => handleSortChange('discount')}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Wishlist Items */}
+                {sortedItems.length > 0 ? (
+                    <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                    >
+                        <AnimatePresence>
+                            {sortedItems.map(item => (
+                                <WishlistItem
+                                    key={item.id}
+                                    item={item}
+                                    onRemove={handleRemoveItem}
+                                    onAddToCart={handleAddToCart}
+                                />
+                            ))}
+                        </AnimatePresence>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="text-center py-16 md:py-24"
+                    >
+                        <div className="max-w-md mx-auto">
+                            <div className="bg-white rounded-2xl shadow-sm p-8 mb-8">
+                                <AlertCircle className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                                    Your Wishlist is Empty
+                                </h3>
+                                <p className="text-gray-600 mb-6">
+                                    Items you add to your wishlist will appear here. Start exploring your favorite products!
+                                </p>
+                                <Link
+                                    to="/collection"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                                >
+                                    <ShoppingCart className="w-5 h-5" />
+                                    Continue Shopping
+                                </Link>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </div>
+        </section>
     );
 };
 

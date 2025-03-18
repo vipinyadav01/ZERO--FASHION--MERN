@@ -6,12 +6,14 @@ import { assets } from "../assets/assets";
 
 const HeroStats = ({ icon: Icon, label, value }) => (
     <motion.div
-        className="flex items-center gap-2"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        whileHover={{ scale: 1.05 }}
+        className="flex items-center gap-3 rounded-full px-4 py-2 bg-white/80 backdrop-blur-sm shadow-sm"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -4, transition: { type: "spring", stiffness: 400 } }}
     >
-        <Icon className="w-4 h-4 text-indigo-600" />
+        <div className="rounded-full bg-indigo-100 p-2">
+            <Icon className="w-4 h-4 text-indigo-600" />
+        </div>
         <div className="text-sm">
             <span className="font-semibold text-gray-900">{value}</span>
             <span className="text-gray-500 ml-1">{label}</span>
@@ -56,67 +58,149 @@ const Hero = () => {
     const currentDate = new Date().toUTCString();
 
     return (
-        <div className="relative w-full">
-            <div className="flex flex-col sm:flex-row border border-gray-200 pt-20">
-                <div className="w-full sm:w-1/2 flex items-center justify-center py-12 px-4 sm:px-8 bg-gradient-to-br from-gray-50 to-indigo-50">
-                    <motion.div className="text-gray-900 max-w-md"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}>
-                        <motion.div className="flex items-center gap-2 mb-4 text-xs sm:text-sm text-gray-500"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.2 }}>
-                            <Clock size={14} />
-                            <span>{currentDate}</span>
-                        </motion.div>
-
-                        <motion.div className="flex items-center gap-3 mb-4 sm:mb-6"
-                            initial={{ width: 0 }}
-                            animate={{ width: "100%" }}
-                            transition={{ duration: 0.8, delay: 0.2 }}>
-                            <div className="h-px bg-indigo-200 flex-grow"></div>
-                            <p className="font-medium text-xs sm:text-sm tracking-wider text-indigo-600">
-                                OUR BESTSELLERS
-                            </p>
+        <div className="relative w-full overflow-hidden pt-20 ">
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-gray-50 to-indigo-50" style={{ zIndex: -1 }} />
+            <div className="flex flex-col lg:flex-row">
+                {/* Left content section */}
+                <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 bg-gradient-to-br from-gray-50 to-indigo-50">
+                    <motion.div
+                        className="text-gray-900 max-w-lg"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <motion.div
+                            className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-xs rounded-full bg-indigo-100 text-indigo-600"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 }}
+                        >
+                            <Clock size={12} />
+                            <span className="tracking-wide font-medium">NEW COLLECTION</span>
                         </motion.div>
 
                         <AnimatePresence mode="wait">
                             <motion.h1
                                 key={currentImageIndex}
-                                className="font-serif text-2xl sm:text-4xl leading-snug sm:leading-tight mb-4 sm:mb-6"
+                                className="font-sans text-4xl lg:text-5xl font-bold leading-tight mb-4"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.6 }}>
+                                transition={{ duration: 0.5 }}
+                            >
                                 {featuredProducts[currentImageIndex].title}
-                                <span className="block text-lg sm:text-2xl text-gray-500 mt-2">
+                                <motion.span
+                                    className="block text-xl lg:text-2xl text-indigo-600 mt-2 font-normal"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                >
                                     {featuredProducts[currentImageIndex].subtitle}
-                                </span>
+                                </motion.span>
                             </motion.h1>
                         </AnimatePresence>
 
-                        <div className="grid grid-cols-2 gap-4 mb-6">
+                        <motion.p
+                            className="text-gray-600 mb-8 max-w-md"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                        >
+                            Discover our curated selection of premium designs that combine style, comfort, and sustainability.
+                        </motion.p>
+
+                        <div className="flex flex-col sm:flex-row gap-4 mb-12">
+                            <motion.button
+                                className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-full font-medium hover:bg-indigo-700 transition-colors"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                Shop Now <ArrowRight size={16} />
+                            </motion.button>
+
+                            <motion.button
+                                className="flex items-center justify-center gap-2 bg-white text-indigo-600 px-6 py-3 rounded-full font-medium border border-indigo-200 hover:bg-indigo-50 transition-colors"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                View Lookbook
+                            </motion.button>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                             <HeroStats icon={ShoppingBag} label="Products" value="2000+" />
                             <HeroStats icon={Heart} label="Happy Customers" value="10k+" />
                         </div>
                     </motion.div>
                 </div>
 
-                <div className="w-full sm:w-1/2 relative overflow-hidden"
+                {/* Right image section */}
+                <div
+                    className="w-full lg:w-1/2 relative overflow-hidden"
                     onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}>
+                    onMouseLeave={() => setIsHovered(false)}
+                >
                     <AnimatePresence mode="wait">
-                        <motion.img
+                        <motion.div
                             key={currentImageIndex}
-                            src={featuredProducts[currentImageIndex].image}
-                            alt={featuredProducts[currentImageIndex].title}
-                            className="w-full h-[350px] sm:h-[450px] md:h-[550px] lg:h-[650px] xl:h-[750px] object-cover"
-                            initial={{ opacity: 0, scale: 1.1 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="relative w-full h-[400px] sm:h-[500px] lg:h-screen max-h-[800px]"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
                             transition={{ duration: 0.6 }}
-                        />
+                        >
+                            <motion.img
+                                src={featuredProducts[currentImageIndex].image}
+                                alt={featuredProducts[currentImageIndex].title}
+                                className="w-full h-full object-cover"
+                                initial={{ scale: 1.1 }}
+                                animate={{ scale: 1 }}
+                                exit={{ scale: 1.1 }}
+                                transition={{ duration: 0.8 }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+
+                            <div className="absolute bottom-8 left-8 right-8">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex gap-2">
+                                        {featuredProducts.map((_, idx) => (
+                                            <motion.button
+                                                key={idx}
+                                                className={`w-12 h-1 rounded-full ${idx === currentImageIndex ? 'bg-white' : 'bg-white/30'}`}
+                                                onClick={() => setCurrentImageIndex(idx)}
+                                                whileHover={{ scaleX: 1.2 }}
+                                                whileTap={{ scale: 0.95 }}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    <motion.div
+                                        className="flex items-center gap-4"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: 0.6 }}
+                                    >
+                                        <motion.button
+                                            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                                            whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.3)" }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => setCurrentImageIndex(prev => prev === 0 ? featuredProducts.length - 1 : prev - 1)}
+                                        >
+                                            <ArrowRight className="w-5 h-5 text-white rotate-180" />
+                                        </motion.button>
+
+                                        <motion.button
+                                            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                                            whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.3)" }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => setCurrentImageIndex(prev => (prev === featuredProducts.length - 1 ? 0 : prev + 1))}
+                                        >
+                                            <ArrowRight className="w-5 h-5 text-white" />
+                                        </motion.button>
+                                    </motion.div>
+                                </div>
+                            </div>
+                        </motion.div>
                     </AnimatePresence>
                 </div>
             </div>

@@ -5,57 +5,48 @@ import { Search, User, ShoppingBag, Menu, X } from "lucide-react";
 import { ShopContext } from "../context/ShopContext";
 import SearchBar from "./SearchBar";
 
+
 const animations = {
     dropdown: {
         hidden: { opacity: 0, y: -10, scale: 0.95 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            transition: { type: "spring", stiffness: 400, damping: 30 },
-        },
-        exit: {
-            opacity: 0,
-            y: -10,
-            scale: 0.95,
-            transition: { duration: 0.2 },
-        },
+        visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2, ease: "easeOut" } },
+        exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.15 } },
     },
     mobileMenu: {
         hidden: { x: "100%" },
-        visible: {
-            x: 0,
-            transition: { type: "spring", stiffness: 300, damping: 30 },
-        },
-        exit: {
-            x: "100%",
-            transition: { duration: 0.3 },
-        },
+        visible: { x: 0, transition: { duration: 0.3, ease: "easeOut" } },
+        exit: { x: "100%", transition: { duration: 0.25, ease: "easeIn" } },
     },
     logoHover: {
         rest: { scale: 1 },
-        hover: { scale: 1.05, transition: { duration: 0.2 } },
+        hover: { scale: 1.05, rotate: 2, transition: { duration: 0.2 } },
     },
 };
 
-const NavbarLink = memo(({ to, children }) => (
-    <NavLink
-        to={to}
-        className={({ isActive }) =>
-            `relative overflow-hidden group px-3 py-2 transition-colors duration-300 ${isActive ? "text-indigo-600" : "text-gray-700 hover:text-indigo-600"
-            }`
-        }
-    >
-        <span className="relative z-10">{children}</span>
-        <motion.div
-            className="absolute inset-0 bg-indigo-100 rounded-md -z-10"
-            initial={false}
-            animate={{ scaleX: 0 }}
-            whileHover={{ scaleX: 1 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        />
-    </NavLink>
-));
+const NavbarLink = memo(({ to, children }) => {
+    return (
+        <NavLink
+            to={to}
+            className={({ isActive }) =>
+                `relative px-3 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? "text-indigo-600" : "text-gray-700 hover:text-indigo-600"
+                }`
+            }
+        >
+            {({ isActive }) => (
+                <>
+                    <span className="relative z-10">{children}</span>
+                    <motion.span
+                        className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 rounded-full"
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: isActive ? 1 : 0 }}
+                        whileHover={{ scaleX: 1 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                    />
+                </>
+            )}
+        </NavLink>
+    );
+});
 
 const Navbar = () => {
     const [visible, setVisible] = useState(false);
@@ -64,9 +55,7 @@ const Navbar = () => {
     const [showCartDropdown, setShowCartDropdown] = useState(false);
     const [showSearchBar, setShowSearchBar] = useState(false);
 
-    const { setShowSearch, getCartCount, token, setToken, setCartItems } =
-        useContext(ShopContext);
-
+    const { setShowSearch, getCartCount, token, setToken, setCartItems } = useContext(ShopContext);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -87,59 +76,24 @@ const Navbar = () => {
     }, [setToken, setCartItems, navigate]);
 
     const handleUserIconClick = () => {
-        if (token) {
-            setShowUserDropdown(!showUserDropdown);
-        } else {
-            navigate("/login");
-        }
+        if (token) setShowUserDropdown(!showUserDropdown);
+        else navigate("/login");
     };
 
     const handleCartIconClick = () => {
-        if (token) {
-            setShowCartDropdown(!showCartDropdown);
-        } else {
-            navigate("/login");
-        }
+        if (token) setShowCartDropdown(!showCartDropdown);
+        else navigate("/login");
     };
 
     useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 20);
-        };
-
+        const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener("scroll", handleScroll, { passive: true });
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
     useEffect(() => {
-        const handleOverflow = () => {
-            if (visible) {
-                // Prevent scrolling on the body
-                document.body.style.overflow = 'hidden';
-                document.body.style.position = 'fixed';
-                document.body.style.width = '100%';
-                document.body.style.top = `-${window.scrollY}px`;
-            } else {
-                // Restore scrolling
-                const scrollY = document.body.style.top;
-                document.body.style.overflow = '';
-                document.body.style.position = '';
-                document.body.style.width = '';
-                document.body.style.top = '';
-
-                // Scroll back to the previous position
-                window.scrollTo(0, parseInt(scrollY || '0') * -1);
-            }
-        };
-
-        handleOverflow();
-
-        // Cleanup function
-        return () => {
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-            document.body.style.top = '';
-        };
+        document.body.style.overflow = visible ? "hidden" : "";
+        return () => (document.body.style.overflow = "");
     }, [visible]);
 
     useEffect(() => {
@@ -148,7 +102,6 @@ const Navbar = () => {
             const searchBar = document.querySelector(".search-bar");
             const userDropdown = document.querySelector(".user-dropdown");
             const cartDropdown = document.querySelector(".cart-dropdown");
-
             if (
                 navbar &&
                 !navbar.contains(event.target) &&
@@ -161,51 +114,46 @@ const Navbar = () => {
                 setShowSearchBar(false);
             }
         };
-
         document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     useEffect(() => {
-        if (location.pathname.includes("/search")) {
-            setShowSearch(true);
-        } else {
-            setShowSearch(false);
-        }
-
+        setShowSearch(location.pathname.includes("/search"));
         return () => setShowSearch(false);
     }, [location.pathname, setShowSearch]);
 
     return (
         <motion.nav
-            className={`fixed top-0 left-0 right-0 bg-white z-50 transition-all duration-300 ${scrolled ? "shadow-lg py-1" : "py-3"
+            className={`fixed top-0 left-0 right-0 bg-white z-50 transition-all duration-300 ${scrolled ? "shadow-md py-2" : "py-4"
                 }`}
-            initial={false}
-            animate={{ y: scrolled ? -10 : 0 }}
+            initial={{ y: -100 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
-                    <Link to="/" className="flex items-center space-x-3">
+                <div className="flex items-center justify-between h-14 sm:h-16">
+                    {/* Logo */}
+                    <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
                         <motion.div
-                            className="w-10 h-10 bg-black rounded-lg flex items-center justify-center"
+                            className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center shadow-md"
                             variants={animations.logoHover}
                             initial="rest"
                             whileHover="hover"
                             whileTap={{ scale: 0.95 }}
                         >
-                            <span className="text-white font-bold text-xl">ZF</span>
+                            <span className="text-white font-bold text-lg sm:text-xl">ZF</span>
                         </motion.div>
                         <div className="hidden sm:flex flex-col">
                             <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
                                 ZERO
                             </span>
-                            <span className="text-sm font-medium text-gray-900">FASHION</span>
+                            <span className="text-xs font-medium text-gray-800">FASHION</span>
                         </div>
                     </Link>
 
-                    <div className="hidden md:flex items-center space-x-4">
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center space-x-6">
                         {navLinks.map(({ path, label }) => (
                             <NavbarLink key={path} to={path}>
                                 {label}
@@ -213,7 +161,8 @@ const Navbar = () => {
                         ))}
                     </div>
 
-                    <div className="flex items-center space-x-4">
+                    {/* Icons */}
+                    <div className="flex items-center space-x-4 sm:space-x-6">
                         <motion.button
                             onClick={() => setShowSearchBar(!showSearchBar)}
                             whileHover={{ scale: 1.1 }}
@@ -221,10 +170,7 @@ const Navbar = () => {
                             className="text-gray-600 hover:text-indigo-600 transition-colors duration-200 relative group"
                             aria-label="Search"
                         >
-                            <Search size={20} />
-                            <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                Search
-                            </span>
+                            <Search className="w-5 h-5 sm:w-6 sm:h-6" />
                         </motion.button>
 
                         <div className="relative user-dropdown">
@@ -232,16 +178,12 @@ const Navbar = () => {
                                 onClick={handleUserIconClick}
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
-                                className="text-gray-600 hover:text-indigo-600 transition-colors duration-200 relative group"
+                                className="text-gray-600 hover:text-indigo-600 transition-colors duration-200"
                                 aria-label="User profile"
                                 aria-expanded={showUserDropdown}
                             >
-                                <User size={20} />
-                                <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    {token ? "Profile" : "Login"}
-                                </span>
+                                <User className="w-5 h-5 sm:w-6 sm:h-6" />
                             </motion.button>
-
                             <AnimatePresence>
                                 {showUserDropdown && token && (
                                     <motion.div
@@ -249,28 +191,26 @@ const Navbar = () => {
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="absolute right-0 mt-2 w-40 bg-white shadow-xl rounded-lg overflow-hidden"
+                                        className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
                                     >
-                                        <div className="py-2">
-                                            <Link
-                                                to="/profile"
-                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50"
-                                            >
-                                                My Profile
-                                            </Link>
-                                            <Link
-                                                to="/order"
-                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50"
-                                            >
-                                                Orders
-                                            </Link>
-                                            <button
-                                                onClick={logout}
-                                                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                            >
-                                                Logout
-                                            </button>
-                                        </div>
+                                        <Link
+                                            to="/profile"
+                                            className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                                        >
+                                            My Profile
+                                        </Link>
+                                        <Link
+                                            to="/order"
+                                            className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                                        >
+                                            Orders
+                                        </Link>
+                                        <button
+                                            onClick={logout}
+                                            className="block w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                        >
+                                            Logout
+                                        </button>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -281,21 +221,17 @@ const Navbar = () => {
                                 onClick={handleCartIconClick}
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
-                                className="text-gray-600 hover:text-indigo-600 transition-colors duration-200 relative group"
+                                className="text-gray-600 hover:text-indigo-600 transition-colors duration-200 relative"
                                 aria-label="Shopping cart"
                                 aria-expanded={showCartDropdown}
                             >
-                                <ShoppingBag size={20} />
+                                <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
                                 {getCartCount() > 0 && (
-                                    <span className="absolute -top-2 -right-1 bg-indigo-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                                    <span className="absolute -top-1 -right-1 bg-indigo-600 text-white rounded-full text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                                         {getCartCount()}
                                     </span>
                                 )}
-                                <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    {token ? "Cart" : "Login to view cart"}
-                                </span>
                             </motion.button>
-
                             <AnimatePresence>
                                 {showCartDropdown && token && (
                                     <motion.div
@@ -303,22 +239,19 @@ const Navbar = () => {
                                         initial="hidden"
                                         animate="visible"
                                         exit="exit"
-                                        className="absolute right-0 mt-2 w-64 bg-white shadow-xl rounded-lg overflow-hidden"
+                                        className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
                                     >
-                                        <div className="py-2">
-                                            <div className="px-4 py-2 border-b border-gray-200">
-                                                <p className="text-sm font-medium text-gray-900">
-                                                    Your Cart ({getCartCount()} items)
-                                                </p>
-                                            </div>
-                                            {/* Add cart items here */}
-                                            <Link
-                                                to="/cart"
-                                                className="block px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 text-center"
-                                            >
-                                                View Full Cart
-                                            </Link>
+                                        <div className="px-4 py-3 border-b border-gray-100">
+                                            <p className="text-sm font-medium text-gray-900">
+                                                Your Cart ({getCartCount()} items)
+                                            </p>
                                         </div>
+                                        <Link
+                                            to="/cart"
+                                            className="block px-4 py-3 text-sm text-indigo-600 hover:bg-indigo-50 text-center transition-colors"
+                                        >
+                                            View Full Cart
+                                        </Link>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -331,99 +264,75 @@ const Navbar = () => {
                             className="md:hidden text-gray-600 hover:text-indigo-600 transition-colors duration-200"
                             aria-label="Menu"
                         >
-                            <Menu size={20} />
+                            <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
                         </motion.button>
                     </div>
                 </div>
             </div>
+
+            {/* Mobile Menu */}
             <AnimatePresence>
                 {visible && (
                     <>
-                        {/* Backdrop */}
                         <motion.div
-                            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+                            className="fixed inset-0 bg-black bg-opacity-60 z-40"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setVisible(false)}
                         />
-
-                        {/* Sidebar Menu */}
                         <motion.div
-                            key="mobile-menu"
-                            variants={{
-                                hidden: { x: "100%" },
-                                visible: { x: 0, transition: { type: "spring", stiffness: 100 } },
-                                exit: { x: "100%", transition: { ease: "easeInOut", duration: 0.3 } },
-                            }}
+                            variants={animations.mobileMenu}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
-                            className="fixed top-0 right-0 w-4/5 max-w-xs h-full bg-white z-50 shadow-lg overflow-y-auto overscroll-contain"
+                            className="fixed top-0 right-0 w-3/4 sm:w-64 h-full bg-white z-50 shadow-2xl"
                         >
-                            {/* Menu Container */}
-                            <div className="flex flex-col h-full p-4">
-                                {/* Header */}
+                            <div className="flex flex-col h-full p-4 sm:p-6">
                                 <div className="flex justify-between items-center mb-6">
-                                    <Link
-                                        to="/"
-                                        className="flex items-center space-x-3"
-                                        onClick={() => setVisible(false)}
-                                    >
-                                        <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
-                                            <span className="text-white font-bold text-xl">ZF</span>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                                                ZERO
-                                            </span>
-                                            <span className="text-sm font-medium text-gray-900">FASHION</span>
+                                    <Link to="/" onClick={() => setVisible(false)}>
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                                                <span className="text-white font-bold text-xl">ZF</span>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                                                    ZERO
+                                                </span>
+                                                <span className="text-sm font-medium text-gray-800">FASHION</span>
+                                            </div>
                                         </div>
                                     </Link>
-
-                                    {/* Close Button */}
                                     <motion.button
                                         onClick={() => setVisible(false)}
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.9 }}
-                                        className="text-gray-600 hover:text-indigo-600 transition-colors duration-200"
-                                        aria-label="Close menu"
+                                        className="text-gray-600 hover:text-indigo-600"
                                     >
-                                        <X size={24} />
+                                        <X className="w-6 h-6" />
                                     </motion.button>
                                 </div>
-
-                                {/* Navigation Links */}
-                                <nav className="flex flex-col space-y-4 flex-grow overflow-y-auto">
+                                <nav className="flex flex-col space-y-4 flex-grow">
                                     {navLinks.map(({ path, label }) => (
-                                        <motion.div
+                                        <NavLink
                                             key={path}
-                                            whileHover={{ x: 10 }}
-                                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                            to={path}
+                                            className={({ isActive }) =>
+                                                `text-lg font-medium ${isActive ? "text-indigo-600" : "text-gray-800 hover:text-indigo-600"
+                                                } transition-colors duration-200`
+                                            }
+                                            onClick={() => setVisible(false)}
                                         >
-                                            <NavLink
-                                                to={path}
-                                                className={({ isActive }) =>
-                                                    `text-xl font-medium ${isActive
-                                                        ? "text-indigo-600"
-                                                        : "text-gray-800 hover:text-indigo-600"
-                                                    } transition-colors duration-200 flex items-center space-x-2`
-                                                }
-                                                onClick={() => setVisible(false)}
-                                            >
-                                                {label}
-                                            </NavLink>
-                                        </motion.div>
+                                            {label}
+                                        </NavLink>
                                     ))}
                                 </nav>
-
-                                {/* Authentication Buttons */}
-                                <div className="mt-auto pb-4">
+                                <div className="mt-auto space-y-3">
                                     {token ? (
                                         <>
                                             <Link
                                                 to="/profile"
-                                                className="block w-full py-3 px-4 bg-indigo-50 text-indigo-600 rounded-lg text-center mb-4"
+                                                className="block w-full py-2.5 px-4 bg-indigo-50 text-indigo-600 rounded-lg text-center text-sm font-medium"
                                                 onClick={() => setVisible(false)}
                                             >
                                                 My Profile
@@ -433,7 +342,7 @@ const Navbar = () => {
                                                     logout();
                                                     setVisible(false);
                                                 }}
-                                                className="w-full py-3 px-4 bg-red-50 text-red-600 rounded-lg text-center"
+                                                className="w-full py-2.5 px-4 bg-red-50 text-red-600 rounded-lg text-center text-sm font-medium"
                                             >
                                                 Logout
                                             </button>
@@ -441,7 +350,7 @@ const Navbar = () => {
                                     ) : (
                                         <Link
                                             to="/login"
-                                            className="block w-full py-3 px-4 bg-indigo-600 text-white rounded-lg text-center"
+                                            className="block w-full py-2.5 px-4 bg-indigo-600 text-white rounded-lg text-center text-sm font-medium"
                                             onClick={() => setVisible(false)}
                                         >
                                             Login
@@ -459,10 +368,10 @@ const Navbar = () => {
                 {showSearchBar && (
                     <motion.div
                         className="fixed top-16 left-0 right-0 bg-white z-40 shadow-lg search-bar"
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
+                        variants={animations.dropdown}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
                     >
                         <SearchBar setShowSearchBar={setShowSearchBar} />
                     </motion.div>

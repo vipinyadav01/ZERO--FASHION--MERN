@@ -101,7 +101,7 @@ const NewsletterBox = () => {
 
     const currentDate = "2025-02-05 17:37:19";
     const currentUser = "vipinyadav01";
-    const saleEndTime = "2025-02-06 17:37:19"; // 24 hours from current time
+    const saleEndTime = "2026-02-06 17:37:19";
 
     const showNotification = (message, type) => {
         setNotification({ message, type });
