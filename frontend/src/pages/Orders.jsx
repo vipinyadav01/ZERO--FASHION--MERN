@@ -1,9 +1,13 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useMemo } from "react";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiPackage, FiTruck, FiCheck, FiX, FiAlertCircle, FiSearch, FiFilter } from "react-icons/fi";
+import {
+  FiPackage, FiTruck, FiCheck, FiX, FiAlertCircle,
+  FiSearch, FiFilter, FiBox, FiShoppingBag, FiCalendar,
+  FiCreditCard, FiArrowUp, FiArrowDown
+} from "react-icons/fi";
 
 const Orders = () => {
     const { backendUrl, token, currency } = useContext(ShopContext);
@@ -14,20 +18,26 @@ const Orders = () => {
     const [filterStatus, setFilterStatus] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+    const [sortBy, setSortBy] = useState("date");
+    const [sortOrder, setSortOrder] = useState("desc");
     const navigate = useNavigate();
 
     const statusColors = {
-        "Processing": "bg-amber-500",
-        "Shipped": "bg-blue-500",
-        "Delivered": "bg-emerald-500",
-        "Cancelled": "bg-rose-500"
+        "Order Placed": "bg-indigo-100 text-indigo-800",
+        "Packing": "bg-amber-100 text-amber-800",
+        "Shipped": "bg-blue-100 text-blue-800",
+        "Out for Delivery": "bg-purple-100 text-purple-800",
+        "Delivered": "bg-emerald-100 text-emerald-800",
+        "Cancelled": "bg-rose-100 text-rose-800",
     };
 
     const statusIcons = {
-        "Processing": <FiPackage className="w-5 h-5" />,
-        "Shipped": <FiTruck className="w-5 h-5" />,
+        "Order Placed": <FiShoppingBag className="w-5 h-5" />,
+        "Packing": <FiBox className="w-5 h-5" />,
+        "Shipped": <FiPackage className="w-5 h-5" />,
+        "Out for Delivery": <FiTruck className="w-5 h-5" />,
         "Delivered": <FiCheck className="w-5 h-5" />,
-        "Cancelled": <FiX className="w-5 h-5" />
+        "Cancelled": <FiX className="w-5 h-5" />,
     };
 
     const handleTrackOrder = (item) => {
@@ -109,7 +119,8 @@ const Orders = () => {
                         date: order.date,
                         payment: order.payment,
                         paymentMethod: order.paymentMethod,
-                        orderId: order._id
+                        orderId: order._id,
+                        totalPrice: item.price * item.quantity
                     }))
                 );
                 setOrderData(allOrders);
@@ -133,13 +144,36 @@ const Orders = () => {
         }
     }, [token, backendUrl]);
 
-    const filteredOrders = orderData
-        .filter(order => filterStatus === "all" || order.status.toLowerCase() === filterStatus)
-        .filter(order =>
-            searchTerm === "" ||
-            order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.orderId.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+    const toggleSort = (field) => {
+        if (sortBy === field) {
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        } else {
+            setSortBy(field);
+            setSortOrder("desc");
+        }
+    };
+
+    const filteredAndSortedOrders = useMemo(() => {
+        let filtered = orderData.filter(order => {
+            const statusMatch = filterStatus === "all" || order.status.toLowerCase() === filterStatus.toLowerCase();
+            const searchMatch = searchTerm === "" ||
+                order.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                order.orderId.toLowerCase().includes(searchTerm.toLowerCase());
+            return statusMatch && searchMatch;
+        });
+
+        return filtered.sort((a, b) => {
+            let comparison = 0;
+            if (sortBy === "date") {
+                comparison = new Date(a.date) - new Date(b.date);
+            } else if (sortBy === "price") {
+                comparison = a.totalPrice - b.totalPrice;
+            } else if (sortBy === "name") {
+                comparison = a.name.localeCompare(b.name);
+            }
+            return sortOrder === "desc" ? -comparison : comparison;
+        });
+    }, [orderData, filterStatus, searchTerm, sortBy, sortOrder]);
 
     if (!token) {
         return (
@@ -171,9 +205,8 @@ const Orders = () => {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className={`fixed top-24 left-1/2 transform -translate-x-1/2 z-50 mb-4 p-4 rounded-xl shadow-lg ${
-                            error.type === 'success' ? 'bg-emerald-50 border-emerald-500' : 'bg-rose-50 border-rose-500'
-                        } border flex items-center justify-between max-w-md w-full`}
+                        className={`fixed top-24 left-1/2 transform -translate-x-1/2 z-50 mb-4 p-4 rounded-xl shadow-lg ${error.type === 'success' ? 'bg-emerald-50 border-emerald-500' : 'bg-rose-50 border-rose-500'
+                            } border flex items-center justify-between max-w-md w-full`}
                     >
                         <div className="flex items-center">
                             {error.type === 'success' ? (
@@ -201,7 +234,7 @@ const Orders = () => {
 
             {/* Search and filter bar */}
             <div className="mb-6 bg-white rounded-xl shadow-md p-4">
-                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
                     <div className="flex-1 relative">
                         <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <input
@@ -213,21 +246,28 @@ const Orders = () => {
                         />
                     </div>
 
-                    {/* Desktop filters */}
-                    <div className="hidden md:flex flex-wrap gap-2">
-                        {["all", "processing", "shipped", "delivered", "cancelled"].map((status) => (
-                            <button
-                                key={status}
-                                onClick={() => setFilterStatus(status)}
-                                className={`px-5 py-3 rounded-xl text-sm font-medium transition-all ${
-                                    filterStatus === status
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                            >
-                                {status.charAt(0).toUpperCase() + status.slice(1)}
-                            </button>
-                        ))}
+                    {/* Sort options */}
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => toggleSort("date")}
+                            className={`px-4 py-3 rounded-xl flex items-center gap-2 text-sm font-medium ${sortBy === "date" ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-700"}`}
+                        >
+                            <FiCalendar className="w-4 h-4" />
+                            Date
+                            {sortBy === "date" && (
+                                sortOrder === "desc" ? <FiArrowDown className="w-4 h-4" /> : <FiArrowUp className="w-4 h-4" />
+                            )}
+                        </button>
+                        <button
+                            onClick={() => toggleSort("price")}
+                            className={`px-4 py-3 rounded-xl flex items-center gap-2 text-sm font-medium ${sortBy === "price" ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-700"}`}
+                        >
+                            <FiCreditCard className="w-4 h-4" />
+                            Price
+                            {sortBy === "price" && (
+                                sortOrder === "desc" ? <FiArrowDown className="w-4 h-4" /> : <FiArrowUp className="w-4 h-4" />
+                            )}
+                        </button>
                     </div>
 
                     {/* Mobile filter toggle */}
@@ -240,6 +280,22 @@ const Orders = () => {
                     </button>
                 </div>
 
+                {/* Desktop filters */}
+                <div className="hidden md:flex flex-wrap gap-2">
+                    {["all", "Order Placed", "Packing", "Shipped", "Out for Delivery", "Delivered", "Cancelled"].map((status) => (
+                        <button
+                            key={status}
+                            onClick={() => setFilterStatus(status)}
+                            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterStatus.toLowerCase() === status.toLowerCase()
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                        >
+                            {status === "all" ? "All Orders" : status}
+                        </button>
+                    ))}
+                </div>
+
                 {/* Mobile filters */}
                 <AnimatePresence>
                     {mobileFiltersOpen && (
@@ -250,20 +306,19 @@ const Orders = () => {
                             className="md:hidden mt-4 overflow-hidden"
                         >
                             <div className="grid grid-cols-2 gap-2">
-                                {["all", "processing", "shipped", "delivered", "cancelled"].map((status) => (
+                                {["all", "Order Placed", "Packing", "Shipped", "Out for Delivery", "Delivered", "Cancelled"].map((status) => (
                                     <button
                                         key={status}
                                         onClick={() => {
                                             setFilterStatus(status);
                                             setMobileFiltersOpen(false);
                                         }}
-                                        className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                                            filterStatus === status
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                        }`}
+                                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${filterStatus.toLowerCase() === status.toLowerCase()
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
                                     >
-                                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                                        {status === "all" ? "All Orders" : status}
                                     </button>
                                 ))}
                             </div>
@@ -280,7 +335,7 @@ const Orders = () => {
                         </div>
                     </div>
                 </div>
-            ) : filteredOrders.length === 0 ? (
+            ) : filteredAndSortedOrders.length === 0 ? (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -294,7 +349,7 @@ const Orders = () => {
                             : "Start shopping to create your first order!"}
                     </p>
                     <button
-                        onClick={() => navigate('/shop')}
+                        onClick={() => navigate('/collection')}
                         className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition duration-300"
                     >
                         Browse Products
@@ -302,7 +357,7 @@ const Orders = () => {
                 </motion.div>
             ) : (
                 <div className="grid gap-6">
-                    {filteredOrders.map((item, index) => (
+                    {filteredAndSortedOrders.map((item, index) => (
                         <motion.div
                             key={`${item.orderId}-${index}`}
                             initial={{ opacity: 0, y: 20 }}
@@ -318,14 +373,9 @@ const Orders = () => {
                                             <span className="font-medium text-gray-500">Order ID:</span>
                                             <span className="font-mono font-semibold">{item.orderId.slice(-8)}</span>
                                         </div>
-                                        <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${statusColors[item.status] || 'bg-gray-500'} bg-opacity-15`}>
+                                        <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${statusColors[item.status] || 'bg-gray-500'}`}>
                                             {statusIcons[item.status] || <FiPackage className="w-5 h-5" />}
-                                            <span className={`text-sm font-medium ${
-                                                item.status === "Cancelled" ? "text-rose-600" :
-                                                item.status === "Delivered" ? "text-emerald-600" :
-                                                item.status === "Shipped" ? "text-blue-600" :
-                                                "text-amber-600"
-                                            }`}>
+                                            <span className="text-sm font-medium">
                                                 {item.status}
                                             </span>
                                         </div>
@@ -338,6 +388,10 @@ const Orders = () => {
                                                 className="w-full sm:w-32 h-32 sm:h-32 object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
                                                 src={item.image?.[0] || "/placeholder.svg"}
                                                 alt={item.name}
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = "/placeholder.svg";
+                                                }}
                                             />
                                             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity duration-300 rounded-xl"></div>
                                         </div>
@@ -346,12 +400,16 @@ const Orders = () => {
                                             <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">{item.name}</h3>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-medium">Price:</span>
-                                                    <span>{currency}{item.price}</span>
+                                                    <span className="font-medium">Unit Price:</span>
+                                                    <span>{currency}{item.price.toFixed(2)}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-medium">Quantity:</span>
                                                     <span>{item.quantity}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium">Total:</span>
+                                                    <span className="font-semibold text-gray-800">{currency}{item.totalPrice.toFixed(2)}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-medium">Size:</span>
@@ -385,11 +443,10 @@ const Orders = () => {
 
                                         {item.status !== "Delivered" && item.status !== "Cancelled" && (
                                             <button
-                                                className={`flex-1 px-4 py-3 rounded-xl flex items-center justify-center gap-2 ${
-                                                    cancellingOrder === item.orderId
-                                                        ? 'bg-gray-300 cursor-not-allowed'
-                                                        : 'bg-rose-600 hover:bg-rose-700 text-white'
-                                                } transition duration-300`}
+                                                className={`flex-1 px-4 py-3 rounded-xl flex items-center justify-center gap-2 ${cancellingOrder === item.orderId
+                                                    ? 'bg-gray-300 cursor-not-allowed'
+                                                    : 'bg-rose-600 hover:bg-rose-700 text-white'
+                                                    } transition duration-300`}
                                                 onClick={() => handleCancelOrder(item.orderId)}
                                                 disabled={cancellingOrder === item.orderId}
                                             >
