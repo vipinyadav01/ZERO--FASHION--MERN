@@ -120,4 +120,88 @@ const adminLogin = async (req, res) => {
   }
 };
 
-export { loginUser, registerUser, adminLogin, userDetails };
+// Route for user profile update
+
+const updateProfile = async (req, res) => {
+  try {
+    const { userId, name, email } = req.body;
+
+    if (!userId) {
+      return res.status(403).json({ success: false });
+    }
+
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      { name, email },
+      { new: true }
+    );
+
+    if (updatedUser) {
+      return res.status(200).json({ success: true, updatedUser });
+    }
+
+    res.status(403).json({ success: false });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
+  }
+};
+
+//Routes for getting all users from the database
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await UserModel.find({}, { password: 0 }); // Exclude passwords from response
+    res.status(200).json({ success: true, users });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
+  }
+};
+// Route for deleting a user from the database
+const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(403).json({ success: false });
+    }
+
+    const deletedUser = await UserModel.findByIdAndDelete(userId);
+    if (deletedUser) {
+      return res.status(200).json({ success: true, deletedUser });
+    }
+
+    res.status(403).json({ success: false });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
+  }
+};
+
+//Routes for cancelling a user's order
+const cancelOrder = async (req, res) => {
+  try {
+    const { userId, orderId } = req.body;
+
+    if (!userId || !orderId) {
+      return res.status(403).json({ success: false });
+    }
+
+    const user = await UserModel.findById(userId);
+    if (user) {
+      const order = user.orders.id(orderId);
+      if (order) {
+        order.status = "cancelled";
+        await user.save();
+        return res.status(200).json({ success: true, order });
+      }
+    }
+
+    res.status(403).json({ success: false });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
+  }
+};
+export { loginUser, registerUser, adminLogin, userDetails, updateProfile, getAllUsers, getUser, deleteUser, cancelOrder };
+

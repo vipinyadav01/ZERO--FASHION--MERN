@@ -1,132 +1,168 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { User, Mail, Phone, MapPin, Calendar, Shield, LogOut, Building, Briefcase } from "lucide-react";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { UserCircle, Mail, Key, Calendar, Loader, Search, RefreshCw, AlertCircle } from "lucide-react";
 
-const UserProfile = () => {
-    const navigate = useNavigate();
-    const userData = {
-        name: "Vipin Yadav",
-        email: "admin@example.com",
-        phone: "+91 9918572513",
-        location: "Varanasi, India",
-        role: "Admin",
-        joinDate: new Date().toISOString().split('T')[0],
-        department: "Technology",
-        position: "System Administrator",
-    };
+const UserDataDisplay = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-    const handleLogout = () => {
-        setIsLoading(true);
-        setTimeout(() => {
-            sessionStorage.removeItem("token");
-            setToken("");
-            setIsLoading(false);
-        }, 1000);
-    };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
-    return (
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 antialiased">
-            <div className="bg-white rounded-3xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
-                {/* Header */}
-                <header className="bg-gradient-to-r from-indigo-600 to-blue-700 p-6 sm:p-8 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.2),transparent_50%)]"></div>
-                    <div className="flex flex-col sm:flex-row justify-between items-center relative z-10 gap-4">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">ZF Admin Profile</h1>
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center space-x-2 bg-white/10 hover:bg-red-500/20 px-4 py-2 rounded-lg
-                                transition-all duration-200 backdrop-blur-sm shadow-md hover:shadow-red-500/20"
-                        >
-                            <LogOut className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                            <span className="text-sm sm:text-base font-medium text-white hidden sm:inline">Logout</span>
-                        </button>
-                    </div>
-                </header>
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-                {/* Profile Content */}
-                <div className="p-6 sm:p-8">
-                    <div className="flex flex-col md:flex-row gap-6 lg:gap-8">
-                        {/* Avatar Section */}
-                        <div className="flex flex-col items-center space-y-4 md:w-1/3">
-                            <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-gray-200 to-gray-300
-                                rounded-full overflow-hidden flex items-center justify-center shadow-lg border-4 border-white
-                                transform hover:scale-105 transition-all duration-300">
-                                <User className="w-12 h-12 sm:w-16 sm:h-16 text-gray-500" />
-                            </div>
-                            <div className="px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded-full font-medium text-sm shadow-sm">
-                                {userData.role}
-                            </div>
-                            <div className="text-center">
-                                <h2 className="text-lg sm:text-xl font-bold text-gray-900">{userData.name}</h2>
-                                <p className="text-gray-600 text-sm">{userData.position}</p>
-                            </div>
-                        </div>
+  const fetchUsers = async () => {
+    setLoading(true);
+    setError(null);
 
-                        {/* User Details */}
-                        <div className="flex-1 md:w-2/3">
-                            <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-6">Profile Information</h3>
-                            <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 shadow-sm">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                                    {[
-                                        { icon: <Mail className="w-5 h-5 text-indigo-600" />, label: "Email", value: userData.email },
-                                        { icon: <Phone className="w-5 h-5 text-indigo-600" />, label: "Phone", value: userData.phone || "Not specified" },
-                                        { icon: <MapPin className="w-5 h-5 text-indigo-600" />, label: "Location", value: userData.location || "Not specified" },
-                                        {
-                                            icon: <Calendar className="w-5 h-5 text-indigo-600" />,
-                                            label: "Join Date",
-                                            value: userData.joinDate
-                                                ? new Date(userData.joinDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-                                                : "Not specified"
-                                        },
-                                        { icon: <Building className="w-5 h-5 text-indigo-600" />, label: "Department", value: userData.department || "Not specified" },
-                                        { icon: <Briefcase className="w-5 h-5 text-indigo-600" />, label: "Position", value: userData.position || "Not specified" },
-                                    ].map((item, index) => (
-                                        <div key={index} className="flex items-start space-x-3 group">
-                                            {item.icon}
-                                            <div className="min-w-0">
-                                                <p className="text-xs sm:text-sm text-gray-500">{item.label}</p>
-                                                <p className="font-medium text-gray-800 text-sm sm:text-base break-words group-hover:text-indigo-600 transition-colors duration-200">
-                                                    {item.value}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    try {
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
-                {/* Admin Privileges */}
-                <footer className="border-t border-gray-100 p-6 sm:p-8 bg-gradient-to-br from-gray-50 to-gray-100">
-                    <div className="flex items-center space-x-2 mb-4 sm:mb-6">
-                        <Shield className="w-5 h-5 text-indigo-600" />
-                        <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Admin Privileges</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                        {[
-                            "User Management",
-                            "Content Management",
-                            "System Settings",
-                            "Analytics Access",
-                            "API Management",
-                            "Billing Access"
-                        ].map((permission, index) => (
-                            <div
-                                key={index}
-                                className="bg-white px-4 py-2.5 sm:py-3 rounded-lg shadow-sm border border-gray-100
-                                    text-sm font-medium text-gray-700 flex items-center space-x-2 hover:shadow-md
-                                    hover:border-indigo-200 transition-all duration-200 transform hover:scale-105"
-                            >
-                                <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></div>
-                                <span className="truncate">{permission}</span>
-                            </div>
-                        ))}
-                    </div>
-                </footer>
+      console.log("Token retrieved:", token); // Debug token
+
+      if (!token) {
+        setError("No authentication token found. Please log in as an admin.");
+        setLoading(false);
+        return;
+      }
+
+      const response = await axios.get(`${backendUrl}/api/user/all`, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("API Response:", response.data); // Debug response
+
+      if (response.data.success && Array.isArray(response.data.users)) {
+        setUsers(response.data.users);
+      } else {
+        setUsers([]);
+        setError("Unexpected response format from server.");
+      }
+    } catch (err) {
+      console.error("Error fetching users:", err);
+
+      if (err.response) {
+        console.error("Full Error Response:", err.response);
+        const message = err.response.data?.message || "Failed to fetch users";
+        if (err.response.status === 401) {
+          setError(`Unauthorized: ${message}`);
+        } else if (err.response.status === 403) {
+          setError("Access denied: Admin privileges required.");
+        } else {
+          setError(`Server Error (${err.response.status}): ${message}`);
+        }
+      } else if (err.request) {
+        setError("No response from server. Check if the backend is running.");
+      } else {
+        setError(`Request error: ${err.message}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const options = { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  const obscurePassword = (password) => (password ? "••••••••••" : "N/A");
+
+  const filteredUsers = users.filter((user) =>
+    (user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  return (
+    <div className="bg-[#131313] min-h-screen p-6 text-white">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-2">User Management</h1>
+            <p className="text-[#939393]">View and manage all registered users</p>
+          </div>
+          <div className="mt-4 md:mt-0 flex w-full md:w-auto space-x-2">
+            <div className="relative flex-grow md:flex-grow-0 md:w-64">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search className="w-4 h-4 text-[#939393]" />
+              </div>
+              <input
+                type="text"
+                className="w-full p-2.5 pl-10 text-sm bg-[#131313] rounded-lg border border-[#939393]/20 focus:ring-2 focus:ring-[#ff6200] text-white placeholder-[#939393] outline-none"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
+            <button
+              onClick={fetchUsers}
+              className="p-2.5 rounded-lg bg-[#131313] border border-[#939393]/20 text-[#939393] hover:text-[#ff6200] hover:border-[#ff6200]/50 transition-colors"
+              title="Refresh user data"
+            >
+              <RefreshCw size={20} />
+            </button>
+          </div>
         </div>
-    );
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader className="h-8 w-8 text-[#ff6200] animate-spin" />
+            <span className="ml-2 text-[#939393]">Loading user data...</span>
+          </div>
+        ) : error ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center p-8 bg-[#ff6200]/10 border border-[#ff6200]/20 rounded-lg max-w-lg">
+              <AlertCircle className="h-8 w-8 text-[#ff6200] mx-auto mb-3" />
+              <p className="text-[#ff6200] mb-4">{error}</p>
+              <button
+                onClick={fetchUsers}
+                className="mt-2 px-4 py-2 bg-[#ff6200] text-white rounded-lg hover:bg-[#ff6200]/80 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="text-center p-12 bg-[#131313] border border-[#939393]/20 rounded-lg">
+            <p className="text-[#939393]">No users found matching your search criteria.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-[#131313] border-b border-[#939393]/20">
+                  <th className="px-6 py-4 text-left text-[#939393] font-medium">User</th>
+                  <th className="px-6 py-4 text-left text-[#939393] font-medium">Email</th>
+                  <th className="px-6 py-4 text-left text-[#939393] font-medium">Password (Hashed)</th>
+                  <th className="px-6 py-4 text-left text-[#939393] font-medium">Account Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user, index) => (
+                  <tr key={user._id || index} className="border-b border-[#939393]/10 hover:bg-[#131313]/90 transition-colors">
+                    <td className="px-6 py-4 flex items-center">
+                      <UserCircle className="w-6 h-6 text-[#ff6200] mr-3" />
+                      <span className="font-medium text-white">{user.name || "Unknown"}</span>
+                    </td>
+                    <td className="px-6 py-4">{user.email}</td>
+                    <td className="px-6 py-4">{obscurePassword(user.password)}</td>
+                    <td className="px-6 py-4">{formatDate(user.createdAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
-export default UserProfile;
+export default UserDataDisplay;

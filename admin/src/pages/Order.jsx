@@ -2,37 +2,48 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { backendUrl } from "../App";
 import { toast } from "react-toastify";
-import { assets } from "../assets/assets";
 import { Truck, Package, Calendar, CreditCard, User, MapPin, Phone } from "lucide-react";
 
 const Order = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null); // Added error state
     const [expandedOrder, setExpandedOrder] = useState(null);
 
     const fetchAllOrders = async () => {
         const token = sessionStorage.getItem("token");
 
         if (!token) {
+            setError("Please log in to view orders.");
             setLoading(false);
-            return null;
+            return;
         }
 
         try {
             setLoading(true);
-            const response = await fetch(backendUrl + "/api/order/list", {
-                method: "POST",
-                headers: { token },
-            });
-            const data = await response.json();
-            if (data.success) {
-                setOrders(data.orders.reverse());
+            setError(null); // Reset error state
+            const response = await axios.post(
+                `${backendUrl}/api/order/list`,
+                {}, // Empty body since no data is needed
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Fixed token header
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            if (response.data.success) {
+                setOrders(response.data.orders.reverse());
             } else {
-                toast.error(data.message);
+                toast.error(response.data.message);
+                setError(response.data.message);
             }
         } catch (error) {
-            console.error(error);
-            toast.error("Failed to fetch orders");
+            console.error("Error fetching orders:", error);
+            const message = error.response?.data?.message || "Failed to fetch orders";
+            toast.error(message);
+            setError(message);
         } finally {
             setLoading(false);
         }
@@ -42,15 +53,23 @@ const Order = () => {
         try {
             const token = sessionStorage.getItem("token");
             const response = await axios.post(
-                backendUrl + "/api/order/status",
+                `${backendUrl}/api/order/status`,
                 { orderId, status: event.target.value },
-                { headers: { token } }
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Consistent token header
+                        "Content-Type": "application/json",
+                    },
+                }
             );
             if (response.data.success) {
-                await fetchAllOrders();
+                await fetchAllOrders(); // Refresh orders after status update
+                toast.success("Order status updated successfully");
+            } else {
+                toast.error(response.data.message);
             }
         } catch (error) {
-            console.error(error);
+            console.error("Error updating status:", error);
             toast.error("Failed to update order status");
         }
     };
@@ -96,7 +115,17 @@ const Order = () => {
                 Order Management
             </h3>
 
-            {orders.length === 0 ? (
+            {error ? (
+                <div className="flex flex-col items-center justify-center p-16 bg-white rounded-lg shadow-sm">
+                    <p className="text-xl text-red-500 mb-4">{error}</p>
+                    <button
+                        onClick={fetchAllOrders}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            ) : orders.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-16 bg-white rounded-lg shadow-sm">
                     <Package size={48} className="text-gray-400 mb-4" />
                     <p className="text-xl text-gray-500">No orders found.</p>
@@ -105,7 +134,7 @@ const Order = () => {
                 <div className="space-y-6">
                     {orders.map((order, index) => (
                         <div
-                            key={index}
+                            key={order._id || index} // Use order._id if available
                             className="bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md"
                         >
                             <div
@@ -113,7 +142,6 @@ const Order = () => {
                                 onClick={() => toggleOrderExpansion(index)}
                             >
                                 <div className="flex flex-col lg:flex-row justify-between gap-6">
-                                    {/* Order summary - always visible */}
                                     <div className="flex items-center gap-4 flex-grow">
                                         <div className={`p-3 rounded-lg ${getStatusColor(order.status)}`}>
                                             <Package className="w-6 h-6" />
@@ -129,7 +157,7 @@ const Order = () => {
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <Package className="w-4 h-4" />
-                                                    {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                                                    {order.items.length} {order.items.length === 1 ? "item" : "items"}
                                                 </span>
                                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
                                                     {order.status}
@@ -147,17 +175,15 @@ const Order = () => {
                                                 toggleOrderExpansion(index);
                                             }}
                                         >
-                                            {expandedOrder === index ? 'Hide Details' : 'View Details'}
+                                            {expandedOrder === index ? "Hide Details" : "View Details"}
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Expanded details */}
                             {expandedOrder === index && (
                                 <div className="px-6 pb-6 pt-2 border-t border-gray-100 mt-2">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        {/* Left column - Order items */}
                                         <div>
                                             <h5 className="font-medium text-gray-700 mb-4 flex items-center gap-2">
                                                 <Package className="w-5 h-5" />
@@ -165,7 +191,10 @@ const Order = () => {
                                             </h5>
                                             <div className="space-y-4">
                                                 {order.items.map((item, idx) => (
-                                                    <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                                    <div
+                                                        key={item._id || idx} // Use item._id if available
+                                                        className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg"
+                                                    >
                                                         <div className="bg-white rounded-md p-2 border border-gray-200">
                                                             <Package className="w-6 h-6 text-gray-500" />
                                                         </div>
@@ -181,9 +210,7 @@ const Order = () => {
                                             </div>
                                         </div>
 
-                                        {/* Right column - Delivery & payment info */}
                                         <div className="space-y-6">
-                                            {/* Delivery address */}
                                             <div>
                                                 <h5 className="font-medium text-gray-700 mb-4 flex items-center gap-2">
                                                     <MapPin className="w-5 h-5" />
@@ -203,7 +230,6 @@ const Order = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Payment info */}
                                             <div>
                                                 <h5 className="font-medium text-gray-700 mb-4 flex items-center gap-2">
                                                     <CreditCard className="w-5 h-5" />
@@ -227,7 +253,6 @@ const Order = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Status control */}
                                             <div>
                                                 <h5 className="font-medium text-gray-700 mb-4 flex items-center gap-2">
                                                     <Truck className="w-5 h-5" />
