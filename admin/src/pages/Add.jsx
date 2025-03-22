@@ -3,6 +3,7 @@ import axios from "axios";
 import { backendUrl } from "../App";
 import { toast } from "react-toastify";
 import { assets } from "../assets/assets";
+import { UploadCloud } from "lucide-react";
 
 const AddProduct = ({ token }) => {
     const [image1, setImage1] = useState(null);
@@ -21,7 +22,7 @@ const AddProduct = ({ token }) => {
     useEffect(() => {
         return () => {
             [image1, image2, image3, image4].forEach((img) => {
-                if (img) URL.revokeObjectURL(img.preview);
+                if (img?.preview) URL.revokeObjectURL(img.preview);
             });
         };
     }, [image1, image2, image3, image4]);
@@ -29,17 +30,14 @@ const AddProduct = ({ token }) => {
     const validateImage = (file) => {
         const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
         const maxSize = 5 * 1024 * 1024;
-
         if (!validTypes.includes(file.type)) {
-            toast.error("Please upload a valid image file (JPEG, PNG, GIF, WEBP)");
+            toast.error("Please upload a valid image (JPEG, PNG, GIF, WEBP)");
             return false;
         }
-
         if (file.size > maxSize) {
             toast.error("Image size should be less than 5MB");
             return false;
         }
-
         return true;
     };
 
@@ -69,30 +67,11 @@ const AddProduct = ({ token }) => {
     const onSubmitHandler = async (e) => {
         e.preventDefault();
 
-        if (!name.trim()) {
-            toast.error("Please enter product name");
-            return;
-        }
-
-        if (!description.trim()) {
-            toast.error("Please enter product description");
-            return;
-        }
-
-        if (!price || price <= 0) {
-            toast.error("Please enter a valid price");
-            return;
-        }
-
-        if (!sizes.length) {
-            toast.error("Please select at least one size");
-            return;
-        }
-
-        if (!image1) {
-            toast.error("Please upload at least one image");
-            return;
-        }
+        if (!name.trim()) return toast.error("Please enter product name");
+        if (!description.trim()) return toast.error("Please enter product description");
+        if (!price || price <= 0) return toast.error("Please enter a valid price");
+        if (!sizes.length) return toast.error("Please select at least one size");
+        if (!image1) return toast.error("Please upload at least one image");
 
         setLoading(true);
 
@@ -117,7 +96,7 @@ const AddProduct = ({ token }) => {
                 {
                     headers: {
                         "Content-Type": "multipart/form-data",
-                        token: token,
+                        Authorization: `Bearer ${token}`,
                     },
                 }
             );
@@ -138,152 +117,170 @@ const AddProduct = ({ token }) => {
 
     const handleSizeToggle = (size) => {
         setSizes((prev) =>
-            prev.includes(size)
-                ? prev.filter((item) => item !== size)
-                : [...prev, size]
+            prev.includes(size) ? prev.filter((item) => item !== size) : [...prev, size]
         );
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 animate-fadeIn">
-            <h2 className="text-4xl font-bold text-center mb-8 text-gray-800 hover:text-blue-600 transition-colors duration-300">
-                Add New Product
-            </h2>
+        <div className="min-h-screen bg-[#131313] p-6">
+            <div className="max-w-4xl mx-auto">
+                <h2 className="text-4xl font-bold text-white text-center mb-8">
+                    Add New Product
+                </h2>
 
-            <form onSubmit={onSubmitHandler} className="flex flex-col w-full items-center gap-8">
-                <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                    <p className="mb-4 text-center text-xl font-semibold text-gray-700">Upload Images</p>
-                    <div className="flex gap-6 justify-center flex-wrap">
-                        {[image1, image2, image3, image4].map((image, index) => (
-                            <label
-                                key={index}
-                                htmlFor={`image${index + 1}`}
-                                className="cursor-pointer transform transition-all duration-300 hover:scale-110 hover:rotate-2"
-                            >
-                                <img
-                                    className="w-28 h-28 object-cover border-2 border-gray-200 rounded-lg hover:border-blue-500"
-                                    src={image ? image.preview : assets.upload_area}
-                                    alt=""
-                                />
-                                <input
-                                    onChange={(e) => handleImageChange(e, [setImage1, setImage2, setImage3, setImage4][index])}
-                                    type="file"
-                                    id={`image${index + 1}`}
-                                    hidden
-                                    accept="image/jpeg,image/png,image/gif,image/webp"
-                                />
-                            </label>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg space-y-8 hover:shadow-2xl transition-shadow duration-300">
-                    <div className="transform transition-all duration-300 hover:translate-x-2">
-                        <label className="block mb-2 font-medium text-gray-700">Product Name</label>
-                        <input
-                            onChange={(e) => setName(e.target.value)}
-                            value={name}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
-                            type="text"
-                            placeholder="Enter product name"
-                            required
-                        />
-                    </div>
-
-                    <div className="transform transition-all duration-300 hover:translate-x-2">
-                        <label className="block mb-2 font-medium text-gray-700">Product Description</label>
-                        <textarea
-                            onChange={(e) => setDescription(e.target.value)}
-                            value={description}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
-                            placeholder="Enter product description"
-                            required
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div className="transform transition-all duration-300 hover:translate-y-[-4px]">
-                            <label className="block mb-2 font-medium text-gray-700">Category</label>
-                            <select
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
-                            >
-                                <option value="Men">Men</option>
-                                <option value="Women">Women</option>
-                                <option value="Kids">Kids</option>
-                            </select>
-                        </div>
-
-                        <div className="transform transition-all duration-300 hover:translate-y-[-4px]">
-                            <label className="block mb-2 font-medium text-gray-700">Sub Category</label>
-                            <select
-                                value={subCategory}
-                                onChange={(e) => setSubCategory(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
-                            >
-                                <option value="Topwear">Topwear</option>
-                                <option value="Bottomwear">Bottomwear</option>
-                                <option value="Winterwear">Winterwear</option>
-                            </select>
-                        </div>
-
-                        <div className="transform transition-all duration-300 hover:translate-y-[-4px]">
-                            <label className="block mb-2 font-medium text-gray-700">Price</label>
-                            <input
-                                onChange={(e) => setPrice(e.target.value)}
-                                value={price}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                placeholder="Enter price"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block mb-2 font-semibold text-gray-700">Available Sizes</label>
-                        <div className="flex flex-wrap gap-6">
-                            {["S", "M", "L", "XL", "XXL"].map((size) => (
-                                <button
-                                    key={size}
-                                    onClick={() => handleSizeToggle(size)}
-                                    type="button"
-                                    className={`px-6 py-3 border-2 rounded-lg transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${sizes.includes(size)
-                                            ? "bg-blue-500 text-white"
-                                            : "bg-white text-gray-700 border-gray-300"
-                                        }`}
+                <form onSubmit={onSubmitHandler} className="space-y-8">
+                    {/* Image Upload Section */}
+                    <div className="bg-gradient-to-br from-[#1a1a1a] to-[#131313] rounded-3xl p-6 border border-[#939393]/20 shadow-lg hover:shadow-[#ff6200]/20 transition-all duration-300">
+                        <p className="text-xl font-semibold text-[#939393] text-center mb-6">Upload Images</p>
+                        <div className="flex flex-wrap gap-6 justify-center">
+                            {[image1, image2, image3, image4].map((image, index) => (
+                                <label
+                                    key={index}
+                                    htmlFor={`image${index + 1}`}
+                                    className="relative cursor-pointer group transition-all duration-300 hover:scale-105"
                                 >
-                                    {size}
-                                </button>
+                                    <img
+                                        className="w-28 h-28 object-cover rounded-xl border-2 border-[#939393]/20 group-hover:border-[#ff6200]/50"
+                                        src={image ? image.preview : assets.upload_area}
+                                        alt={`Upload ${index + 1}`}
+                                    />
+                                    <UploadCloud
+                                        size={24}
+                                        className="absolute inset-0 m-auto text-[#ff6200] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                    />
+                                    <input
+                                        onChange={(e) => handleImageChange(e, [setImage1, setImage2, setImage3, setImage4][index])}
+                                        type="file"
+                                        id={`image${index + 1}`}
+                                        hidden
+                                        accept="image/jpeg,image/png,image/gif,image/webp"
+                                    />
+                                </label>
                             ))}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 mt-4">
-                        <input
-                            onChange={() => setBestseller(!bestseller)}
-                            checked={bestseller}
-                            type="checkbox"
-                            id="bestseller"
-                            className="h-5 w-5 cursor-pointer"
-                        />
-                        <label htmlFor="bestseller" className="font-semibold text-gray-700">Bestseller</label>
-                    </div>
+                    {/* Form Fields Section */}
+                    <div className="bg-gradient-to-br from-[#1a1a1a] to-[#131313] rounded-3xl p-6 border border-[#939393]/20 shadow-lg hover:shadow-[#ff6200]/20 transition-all duration-300 space-y-8">
+                        {/* Product Name */}
+                        <div>
+                            <label className="block mb-2 font-medium text-[#939393]">Product Name</label>
+                            <input
+                                onChange={(e) => setName(e.target.value)}
+                                value={name}
+                                className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-[#939393]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff6200] transition-all duration-300 hover:border-[#ff6200]/50"
+                                type="text"
+                                placeholder="Enter product name"
+                                required
+                            />
+                        </div>
 
-                    <div className="flex justify-center gap-8 mt-6">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="px-8 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300"
-                        >
-                            {loading ? "Adding..." : "Add Product"}
-                        </button>
+                        {/* Description */}
+                        <div>
+                            <label className="block mb-2 font-medium text-[#939393]">Product Description</label>
+                            <textarea
+                                onChange={(e) => setDescription(e.target.value)}
+                                value={description}
+                                className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-[#939393]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff6200] transition-all duration-300 hover:border-[#ff6200]/50"
+                                placeholder="Enter product description"
+                                rows="4"
+                                required
+                            />
+                        </div>
+
+                        {/* Category, Subcategory, Price */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <div>
+                                <label className="block mb-2 font-medium text-[#939393]">Category</label>
+                                <select
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-[#939393]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff6200] transition-all duration-300 hover:border-[#ff6200]/50"
+                                >
+                                    <option value="Men">Men</option>
+                                    <option value="Women">Women</option>
+                                    <option value="Kids">Kids</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block mb-2 font-medium text-[#939393]">Sub Category</label>
+                                <select
+                                    value={subCategory}
+                                    onChange={(e) => setSubCategory(e.target.value)}
+                                    className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-[#939393]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff6200] transition-all duration-300 hover:border-[#ff6200]/50"
+                                >
+                                    <option value="Topwear">Topwear</option>
+                                    <option value="Bottomwear">Bottomwear</option>
+                                    <option value="Winterwear">Winterwear</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block mb-2 font-medium text-[#939393]">Price</label>
+                                <input
+                                    onChange={(e) => setPrice(e.target.value)}
+                                    value={price}
+                                    className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-[#939393]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#ff6200] transition-all duration-300 hover:border-[#ff6200]/50"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="Enter price"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {/* Sizes */}
+                        <div>
+                            <label className="block mb-2 font-medium text-[#939393]">Available Sizes</label>
+                            <div className="flex flex-wrap gap-4">
+                                {["S", "M", "L", "XL", "XXL"].map((size) => (
+                                    <button
+                                        key={size}
+                                        onClick={() => handleSizeToggle(size)}
+                                        type="button"
+                                        className={`px-6 py-3 rounded-xl border border-[#939393]/20 text-white transition-all duration-300 hover:border-[#ff6200] hover:bg-[#ff6200]/10 ${sizes.includes(size) ? "bg-[#ff6200] border-[#ff6200]" : "bg-[#1a1a1a]"}`}
+                                    >
+                                        {size}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Bestseller */}
+                        <div className="flex items-center gap-4">
+                            <input
+                                onChange={() => setBestseller(!bestseller)}
+                                checked={bestseller}
+                                type="checkbox"
+                                id="bestseller"
+                                className="h-5 w-5 text-[#ff6200] bg-[#1a1a1a] border-[#939393]/20 rounded focus:ring-[#ff6200] cursor-pointer"
+                            />
+                            <label htmlFor="bestseller" className="font-medium text-[#939393]">Bestseller</label>
+                        </div>
+
+                        {/* Submit Button */}
+                        <div className="flex justify-center">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className={`px-8 py-3 bg-[#ff6200] text-white font-bold rounded-xl transition-all duration-300 ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#ff4500] hover:shadow-[#ff6200]/50 hover:-translate-y-1"}`}
+                            >
+                                {loading ? (
+                                    <span className="flex items-center">
+                                        <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h-8z" />
+                                        </svg>
+                                        Adding...
+                                    </span>
+                                ) : (
+                                    "Add Product"
+                                )}
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     );
 };
