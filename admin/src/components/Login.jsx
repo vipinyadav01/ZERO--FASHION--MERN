@@ -10,7 +10,7 @@ const useTokenExpiration = (setToken) => {
         const token = sessionStorage.getItem("token");
         if (token) {
             // Optional: Add token expiration check if token includes expiry (e.g., JWT decode)
-            setToken(token); // Preserve token if valid
+            setToken(token); 
         }
     }, [setToken]);
 
