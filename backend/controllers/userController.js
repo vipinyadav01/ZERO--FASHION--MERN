@@ -193,13 +193,4 @@ const cancelOrder = async (req, res) => {
     }
 };
 
-export {
-    loginUser,
-    registerUser,
-    adminLogin,
-    userDetails,
-    updateProfile,
-    getAllUsers,
-    deleteUser,
-    cancelOrder,
-};
+export { loginUser, registerUser, adminLogin, userDetails, updateProfile, getAllUsers,  deleteUser, cancelOrder };

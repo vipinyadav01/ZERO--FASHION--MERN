@@ -11,12 +11,25 @@ import orderRouter from "./routes/orderRoute.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
-connectDB();
-connectCloudinary();
+// Async connection wrapper to catch errors
+const startServer = async () => {
+    try {
+        await connectDB();
+        console.log("MongoDB connected successfully");
+        await connectCloudinary();
+        console.log("Cloudinary connected successfully");
+    } catch (error) {
+        console.error("Startup error:", error);
+        process.exit(1); // Exit locally, log on Vercel
+    }
+};
+
+// Run connections
+startServer().catch((error) => console.error("Failed to start server:", error));
 
 app.use(express.json());
 
-// Explicit CORS configuration
+// CORS configuration
 app.use(
     cors({
         origin: "https://zeroadmin.vercel.app",
@@ -26,7 +39,7 @@ app.use(
     })
 );
 
-// Request logging middleware
+// Request logging
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     console.log("Headers:", req.headers);
@@ -45,10 +58,11 @@ app.get("/", (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    console.error("Error stack:", err.stack);
     res.status(500).json({ success: false, message: "Internal Server Error" });
 });
 
+// Local development
 if (process.env.NODE_ENV !== "production") {
     app.listen(port, () => console.log(`Server Started on PORT: ${port}`));
 }
