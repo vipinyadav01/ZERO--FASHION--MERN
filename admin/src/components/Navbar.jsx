@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { LogOut, Menu, X, ChevronDown, Bell, Search,  } from "lucide-react";
+import { LogOut, Menu, X, ChevronDown, Bell, Search, } from "lucide-react";
 import { assets } from "../assets/assets";
 
 const Navbar = ({ setToken }) => {
