@@ -80,6 +80,8 @@ const registerUser = async (req, res) => {
   }
 };
 
+// Route for user details
+
 const userDetails = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -101,23 +103,32 @@ const userDetails = async (req, res) => {
 };
 
 // Route for admin login
-const adminLogin = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+const cors = require("cors");
+const corsMiddleware = cors({ origin: "https://zeroadmin.vercel.app" });
 
-    if (
-      email === process.env.ADMIN_EMAIL &&
-      password === process.env.ADMIN_PASSWORD
-    ) {
-      const token = jwt.sign(email + password, process.env.JWT_SECRET);
-      res.status(200).json({ success: true, token });
-    } else {
-      res.status(401).json({ success: false, message: "Invalid credentials" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Something went wrong" });
-  }
+module.exports = (req, res) => {
+    corsMiddleware(req, res, () => {
+        if (req.method === "OPTIONS") {
+            return res.status(200).end();
+        }
+
+        if (req.method !== "POST") {
+            return res.status(405).json({ success: false, message: "Method not allowed" });
+        }
+
+        const { email, password } = req.body;
+
+        // Replace with your actual admin credentials logic
+        const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@zerofashion.com";
+        const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "ZeroFashion@9918";
+
+        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+            const token = "example-jwt-token"; // Replace with real JWT generation
+            return res.status(200).json({ success: true, token });
+        }
+
+        return res.status(401).json({ success: false, message: "Invalid credentials" });
+    });
 };
 
 // Route for user profile update
