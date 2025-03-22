@@ -3,14 +3,14 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { backendUrl } from "../App";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, LogIn, Mail, Lock, Shield, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle,Shield } from "lucide-react";
 
 const useTokenExpiration = (setToken) => {
     useEffect(() => {
-        const existingToken = sessionStorage.getItem("token");
-        if (existingToken) {
-            sessionStorage.removeItem("token");
-            setToken(null);
+        const token = sessionStorage.getItem("token");
+        if (token) {
+            // Optional: Add token expiration check if token includes expiry (e.g., JWT decode)
+            setToken(token); // Preserve token if valid
         }
     }, [setToken]);
 
@@ -39,7 +39,8 @@ const Login = ({ setToken }) => {
 
     useEffect(() => {
         const handleBeforeUnload = () => {
-            sessionStorage.removeItem("token");
+            // Optional: Only clear token on explicit logout, not refresh
+            // sessionStorage.removeItem("token");
         };
 
         window.addEventListener("beforeunload", handleBeforeUnload);
@@ -85,6 +86,12 @@ const Login = ({ setToken }) => {
             return;
         }
 
+        if (formData.password.length < 6) {
+            setError("Password must be at least 6 characters");
+            setIsLoading(false);
+            return;
+        }
+
         try {
             const response = await axios.post(
                 `${backendUrl}/api/user/admin/login`,
@@ -96,7 +103,7 @@ const Login = ({ setToken }) => {
                 }
             );
 
-            if (response && response.data && response.data.success) {
+            if (response?.data?.success) {
                 setTokenWithExpiry(response.data.token);
                 toast.success("Welcome back! Login successful!");
                 navigate("/dashboard");
@@ -108,7 +115,6 @@ const Login = ({ setToken }) => {
                 error.response?.data?.message ||
                 error.message ||
                 "Something went wrong. Please try again.";
-
             setError(errorMessage);
             toast.error(errorMessage);
         } finally {
@@ -119,47 +125,45 @@ const Login = ({ setToken }) => {
     const getInputErrorClass = (field) => {
         if (touched[field]) {
             if (field === "email" && !validateEmail(formData.email)) {
-                return "border-red-500 focus:ring-red-500 focus:border-red-500";
+                return "border-[#ff6200]/50 focus:ring-[#ff6200] focus:border-[#ff6200]";
             }
             if (field === "password" && formData.password.length < 6) {
-                return "border-red-500 focus:ring-red-500 focus:border-red-500";
+                return "border-[#ff6200]/50 focus:ring-[#ff6200] focus:border-[#ff6200]";
             }
         }
-        return "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500";
+        return "border-[#939393]/20 focus:ring-[#ff6200] focus:border-[#ff6200]";
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center w-full bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 px-4">
-            <div className="flex overflow-hidden rounded-2xl shadow-2xl max-w-4xl w-full">
+        <div className="min-h-screen flex items-center justify-center w-full bg-[#131313] px-4">
+            <div className="flex overflow-hidden rounded-3xl shadow-2xl max-w-4xl w-full bg-gradient-to-br from-[#1a1a1a] to-[#131313] border border-[#939393]/20">
                 {/* Left Panel - Decorative */}
-                <div className="hidden lg:block lg:w-1/2 bg-indigo-600 text-white p-12 relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700 opacity-90"></div>
+                <div className="hidden lg:block lg:w-1/2 text-white p-12 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#ff6200]/10 to-[#131313] opacity-90"></div>
                     <div className="relative z-10 h-full flex flex-col justify-between">
                         <div>
                             <h2 className="text-3xl font-bold mb-6">ZeroFashion Admin</h2>
-                            <p className="text-indigo-100 mb-8">
+                            <p className="text-[#939393] mb-8">
                                 Manage your inventory, track orders, and boost your sales with our powerful admin dashboard.
                             </p>
                         </div>
-
                         <div className="space-y-6">
                             <div className="flex items-center space-x-4">
-                                <div className="bg-white/20 p-2 rounded-full">
-                                    <Shield className="h-6 w-6" />
+                                <div className="bg-[#ff6200]/20 p-2 rounded-full">
+                                    <Shield className="h-6 w-6 text-[#ff6200]" />
                                 </div>
                                 <div>
                                     <h3 className="font-medium text-white">Secure Access</h3>
-                                    <p className="text-indigo-100 text-sm">End-to-end encrypted connection</p>
+                                    <p className="text-[#939393] text-sm">End-to-end encrypted connection</p>
                                 </div>
                             </div>
-
                             <div className="flex items-center space-x-4">
-                                <div className="bg-white/20 p-2 rounded-full">
-                                    <LogIn className="h-6 w-6" />
+                                <div className="bg-[#ff6200]/20 p-2 rounded-full">
+                                    <LogIn className="h-6 w-6 text-[#ff6200]" />
                                 </div>
                                 <div>
                                     <h3 className="font-medium text-white">Easy Management</h3>
-                                    <p className="text-indigo-100 text-sm">Control your store from anywhere</p>
+                                    <p className="text-[#939393] text-sm">Control your store from anywhere</p>
                                 </div>
                             </div>
                         </div>
@@ -167,27 +171,24 @@ const Login = ({ setToken }) => {
                 </div>
 
                 {/* Right Panel - Login Form */}
-                <div className="w-full lg:w-1/2 bg-white p-8 lg:p-12">
+                <div className="w-full lg:w-1/2 p-8 lg:p-12">
                     <div className="max-w-md mx-auto">
                         <div className="text-center mb-8">
-                            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                            <h1 className="text-3xl font-bold text-white mb-2">
                                 Welcome Back
                             </h1>
-                            <p className="text-gray-600">
+                            <p className="text-[#939393]">
                                 Please enter your credentials to continue
                             </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <label
-                                    className="block text-sm font-medium text-gray-700"
-                                    htmlFor="email"
-                                >
+                                <label className="block text-sm font-medium text-[#939393]" htmlFor="email">
                                     Email Address
                                 </label>
                                 <div className="relative">
-                                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#ff6200]">
                                         <Mail className="h-5 w-5" />
                                     </div>
                                     <input
@@ -197,16 +198,14 @@ const Login = ({ setToken }) => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         onBlur={() => handleBlur("email")}
-                                        className={`w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm focus:outline-none text-gray-700 ${getInputErrorClass(
-                                            "email"
-                                        )}`}
+                                        className={`w-full pl-10 pr-3 py-3 bg-[#1a1a1a] text-white border rounded-xl shadow-sm focus:outline-none transition-all duration-300 hover:border-[#ff6200]/50 ${getInputErrorClass("email")}`}
                                         placeholder="admin@example.com"
                                         required
                                         disabled={isLoading}
                                     />
                                 </div>
                                 {touched.email && !validateEmail(formData.email) && (
-                                    <p className="text-red-500 text-sm mt-1 flex items-center">
+                                    <p className="text-[#ff6200] text-sm mt-1 flex items-center">
                                         <AlertCircle className="h-4 w-4 mr-1" />
                                         Please enter a valid email address
                                     </p>
@@ -215,24 +214,19 @@ const Login = ({ setToken }) => {
 
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center">
-                                    <label
-                                        className="block text-sm font-medium text-gray-700"
-                                        htmlFor="password"
-                                    >
+                                    <label className="block text-sm font-medium text-[#939393]" htmlFor="password">
                                         Password
                                     </label>
                                     <button
                                         type="button"
-                                        className="text-sm text-indigo-600 hover:text-indigo-800 font-medium focus:outline-none"
-                                        onClick={() =>
-                                            toast.info("Contact your administrator to reset your password.")
-                                        }
+                                        className="text-sm text-[#ff6200] hover:text-[#ff4500] font-medium focus:outline-none transition-colors duration-300"
+                                        onClick={() => toast.info("Contact your administrator to reset your password.")}
                                     >
                                         Forgot password?
                                     </button>
                                 </div>
                                 <div className="relative">
-                                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#ff6200]">
                                         <Lock className="h-5 w-5" />
                                     </div>
                                     <input
@@ -242,9 +236,7 @@ const Login = ({ setToken }) => {
                                         value={formData.password}
                                         onChange={handleChange}
                                         onBlur={() => handleBlur("password")}
-                                        className={`w-full pl-10 pr-10 py-3 border rounded-lg shadow-sm focus:outline-none text-gray-700 ${getInputErrorClass(
-                                            "password"
-                                        )}`}
+                                        className={`w-full pl-10 pr-10 py-3 bg-[#1a1a1a] text-white border rounded-xl shadow-sm focus:outline-none transition-all duration-300 hover:border-[#ff6200]/50 ${getInputErrorClass("password")}`}
                                         placeholder="••••••••"
                                         required
                                         disabled={isLoading}
@@ -252,18 +244,14 @@ const Login = ({ setToken }) => {
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#939393] hover:text-[#ff6200] focus:outline-none transition-colors duration-300"
                                         aria-label={showPassword ? "Hide password" : "Show password"}
                                     >
-                                        {showPassword ? (
-                                            <EyeOff className="h-5 w-5" />
-                                        ) : (
-                                            <Eye className="h-5 w-5" />
-                                        )}
+                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                     </button>
                                 </div>
                                 {touched.password && formData.password.length < 6 && (
-                                    <p className="text-red-500 text-sm mt-1 flex items-center">
+                                    <p className="text-[#ff6200] text-sm mt-1 flex items-center">
                                         <AlertCircle className="h-4 w-4 mr-1" />
                                         Password must be at least 6 characters
                                     </p>
@@ -271,15 +259,14 @@ const Login = ({ setToken }) => {
                             </div>
 
                             {error && (
-                                <div className="text-sm text-red-600 bg-red-50 rounded-lg p-4 flex items-start">
+                                <div className="text-sm text-[#ff6200] bg-[#ff6200]/10 rounded-xl p-4 flex items-start">
                                     <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
                                     <span>{error}</span>
                                 </div>
                             )}
 
                             <button
-                                className={`w-full py-3 px-4 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all transform active:scale-[0.98] flex items-center justify-center space-x-2 ${isLoading ? "opacity-75 cursor-not-allowed" : ""
-                                    }`}
+                                className={`w-full py-3 px-4 rounded-xl text-white bg-[#ff6200] flex items-center justify-center space-x-2 transition-all duration-300 ${isLoading ? "opacity-75 cursor-not-allowed" : "hover:bg-[#ff4500] hover:shadow-[#ff6200]/50 hover:-translate-y-1 active:scale-[0.98]"}`}
                                 type="submit"
                                 disabled={isLoading}
                             >
@@ -297,14 +284,12 @@ const Login = ({ setToken }) => {
                             </button>
 
                             <div className="text-center">
-                                <p className="text-sm text-gray-600 mt-6">
+                                <p className="text-sm text-[#939393] mt-6">
                                     Having trouble logging in?{" "}
                                     <button
                                         type="button"
-                                        className="text-indigo-600 hover:text-indigo-700 font-medium focus:outline-none"
-                                        onClick={() =>
-                                            toast.info("Please contact your administrator for assistance.")
-                                        }
+                                        className="text-[#ff6200] hover:text-[#ff4500] font-medium focus:outline-none transition-colors duration-300"
+                                        onClick={() => toast.info("Please contact your administrator for assistance.")}
                                     >
                                         Get Help
                                     </button>
