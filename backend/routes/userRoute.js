@@ -1,13 +1,16 @@
 import express from "express";
 import {
-  loginUser,
-  registerUser,
-  adminLogin,
-  userDetails,
-  getAllUsers, // New controller function
+    loginUser,
+    registerUser,
+    adminLogin,
+    userDetails,
+    getAllUsers,
+    updateProfile,
+    deleteUser,
+    cancelOrder,
 } from "../controllers/userController.js";
 import authUser from "../middleware/auth.js";
-import adminAuth from "../middleware/adminAuth.js"; // Import adminAuth
+import adminAuth from "../middleware/adminAuth.js";
 
 const userRouter = express.Router();
 
@@ -15,6 +18,9 @@ userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
 userRouter.post("/admin/login", adminLogin);
 userRouter.get("/user", authUser, userDetails);
-userRouter.get("/all", adminAuth, getAllUsers); // New route for all users
+userRouter.get("/all", adminAuth, getAllUsers); 
+userRouter.post("/update", authUser, updateProfile);
+userRouter.post("/delete", adminAuth, deleteUser);
+userRouter.post("/cancel-order", authUser, cancelOrder);
 
 export default userRouter;
