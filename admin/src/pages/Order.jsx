@@ -103,7 +103,7 @@ const Order = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#131313] p-6">
+        <div className="min-h-screen py-16 bg-[#131313] p-6">
             <div className="max-w-7xl mx-auto">
                 <h3 className="text-3xl font-bold text-white text-center mb-8">
                     Order Management

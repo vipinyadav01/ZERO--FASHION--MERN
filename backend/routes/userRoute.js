@@ -18,7 +18,7 @@ userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
 userRouter.post("/admin/login", adminLogin);
 userRouter.get("/user", authUser, userDetails);
-userRouter.get("/all", adminAuth, getAllUsers); 
+userRouter.get("/all", adminAuth, getAllUsers);
 userRouter.post("/update", authUser, updateProfile);
 userRouter.post("/delete", adminAuth, deleteUser);
 userRouter.post("/cancel-order", authUser, cancelOrder);

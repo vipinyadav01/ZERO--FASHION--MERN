@@ -1,31 +1,37 @@
-import { useState, useEffect, useContext } from "react"
-import { ShopContext } from "../context/ShopContext"
+import { useState, useEffect, useContext } from "react";
+import { ShopContext } from "../context/ShopContext";
 
 const ProfileInfo = () => {
-    const { backendUrl } = useContext(ShopContext)
-    const [user, setUser] = useState(null)
+    const { backendUrl } = useContext(ShopContext);
+    const [user, setUser] = useState(null);
 
     const getUserDetails = async (authToken) => {
-        if (!authToken) return
+        if (!authToken) return;
         try {
             const res = await fetch(`${backendUrl}/api/user/user`, {
+                method: 'GET',
                 headers: {
-                    token: authToken,
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
                 },
-            })
-            const result = await res.json()
-            setUser(result.user)
+            });
+            if (!res.ok) throw new Error('Failed to fetch user details');
+            const result = await res.json();
+            if (result.success) {
+                setUser(result.user);
+            }
         } catch (error) {
-            console.error("Error fetching user details:", error)
+            console.error("Error fetching user details:", error);
+            setUser(null);
         }
-    }
+    };
 
     useEffect(() => {
-        const token = localStorage.getItem("token")
+        const token = localStorage.getItem("token");
         if (token && backendUrl) {
-            getUserDetails(token)
+            getUserDetails(token);
         }
-    }, [backendUrl])
+    }, [backendUrl]);
 
     if (!user) {
         return (
@@ -45,28 +51,19 @@ const ProfileInfo = () => {
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-white p-4 mt-2">
             <div className="relative">
-                {/* Lanyard */}
                 <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-16 flex flex-col items-center">
-                    {/* Lanyard Clip */}
                     <div className="w-8 h-4 bg-gradient-to-b from-zinc-600 to-zinc-800 rounded-t-lg flex items-center justify-center shadow-md">
                         <div className="w-4 h-2 bg-gradient-to-b from-zinc-700 to-zinc-900 rounded-sm border border-zinc-500/40 shadow-inner"></div>
                     </div>
-
-                    {/* Main Lanyard */}
                     <div className="relative w-12 h-24 mt-1 rounded-lg overflow-hidden shadow-lg border border-neutral-700">
-                        {/* Side Shadows */}
                         <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20 pointer-events-none"></div>
-
-                        {/* Texture Overlay */}
                         <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,rgba(255,255,255,0.04)_2px,rgba(255,255,255,0.05)_4px)] opacity-50 pointer-events-none"></div>
-
-                        {/* Main Strip */}
                         <div className="w-full h-full bg-gradient-to-b from-neutral-700 via-neutral-800 to-neutral-900 flex items-center justify-center">
                             <span className="text-white/80 text-[10px] rotate-90 whitespace-nowrap tracking-widest font-semibold select-none">
                                 ZERO FASHION
@@ -74,11 +71,8 @@ const ProfileInfo = () => {
                         </div>
                     </div>
                 </div>
-                {/* Card */}
                 <div className="w-[320px] h-[480px] bg-gradient-to-br from-black via-gray-900 to-black rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
                     <div className="relative w-full h-full flex flex-col items-center p-8">
-
-                        {  /* ZERO Text */}
                         <div className="mb-12 mt-8">
                             <div className="relative h-32 w-32">
                                 <span className="absolute top-0 left-0 text-7xl font-extrabold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Z</span>
@@ -86,7 +80,6 @@ const ProfileInfo = () => {
                                 <span className="absolute top-12 left-16 text-7xl font-extrabold bg-gradient-to-r from-gray-400 to-gray-500 bg-clip-text text-transparent">R</span>
                                 <span className="absolute top-16 left-20 text-7xl font-extrabold bg-gradient-to-r from-gray-500 to-gray-600 bg-clip-text text-transparent">O</span>
                             </div>
-                            {/* Top Triangle */}
                             <div
                                 className="absolute left-1/2 -translate-x-1/2 w-0 h-0
                                     border-l-[12px] border-l-transparent
@@ -94,8 +87,6 @@ const ProfileInfo = () => {
                                     border-b-[12px] border-b-white/20"
                             ></div>
                         </div>
-
-                        {/* Profile Image */}
                         <div className="relative w-28 h-28 rounded-full border-4 border-gradient-to-r from-white/40 to-white/20 overflow-hidden mb-6 shadow-lg">
                             {user.avatar ? (
                                 <img src={user.avatar || "/placeholder.svg"} alt={user.name} className="w-full h-full object-cover" />
@@ -105,15 +96,11 @@ const ProfileInfo = () => {
                                 </div>
                             )}
                         </div>
-
-                        {/* User Info */}
                         <div className="text-center space-y-2">
                             <h1 className="text-xl font-medium bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent tracking-wide">{user.name}</h1>
                             <p className="text-sm text-white/60 tracking-wider">{user.role || "MEMBER"}</p>
                             <p className="text-xs text-white/40 mt-4">{user.email}</p>
                         </div>
-
-                        {/* Bottom Branding */}
                         <div className="absolute bottom-4 left-0 w-full text-center">
                             <p className="text-sm bg-gradient-to-r from-white/40 to-white/20 bg-clip-text text-transparent tracking-widest">Zero Fashion</p>
                         </div>
@@ -121,7 +108,7 @@ const ProfileInfo = () => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default ProfileInfo
+export default ProfileInfo;

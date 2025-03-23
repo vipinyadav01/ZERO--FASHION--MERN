@@ -83,7 +83,7 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="min-h-screen antialiased py-6 px-4 sm:px-6" style={{ backgroundColor: primaryColor }}>
+        <div className="min-h-screen antialiased py-20 px-4 sm:px-6" style={{ backgroundColor: primaryColor }}>
             {/* Main Content */}
             <main className="max-w-7xl mx-auto">
                 {/* Welcome Bento Box */}

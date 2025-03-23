@@ -7,7 +7,6 @@ import {
     ShoppingCart,
     ChevronLeft,
     LayoutDashboard,
-    Settings,
     Users,
     LogOut
 } from "lucide-react";
@@ -60,7 +59,6 @@ const Sidebar = () => {
         { to: "/list", icon: <ListTodo className="w-5 h-5" />, text: "Inventory" },
         { to: "/orders", icon: <ShoppingCart className="w-5 h-5" />, text: "Orders" },
         { to: "/UserProfile", icon: <Users className="w-5 h-5" />, text: "Users" },
-        { to: "/setting", icon: <Settings className="w-5 h-5" />, text: "Settings" },
     ];
 
     const isExpanded = !isCollapsed || isHovered;

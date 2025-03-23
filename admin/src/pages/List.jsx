@@ -114,7 +114,7 @@ const List = ({ token }) => {
     }
 
     return (
-        <div className="min-h-screen py-8 px-4" style={{ backgroundColor: primaryColor }}>
+        <div className="min-h-screen py-16 px-4" style={{ backgroundColor: primaryColor }}>
             <div className="rounded-3xl shadow-lg max-w-6xl mx-auto overflow-hidden" style={{ backgroundColor: '#1a1a1a', borderWidth: '1px', borderColor: '#2a2a2a' }}>
                 {/* Header */}
                 <div className="border-b px-6 py-5" style={{ borderColor: '#2a2a2a' }}>

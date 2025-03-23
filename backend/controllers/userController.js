@@ -1,17 +1,16 @@
 import validator from "validator";
-import UserModel from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import UserModel from "../models/userModel.js";
 
-const createToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+const createToken = (id, role = "user") => {
+    return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
 
-// Route for user login
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-
+        
         const user = await UserModel.findOne({ email });
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
@@ -22,7 +21,7 @@ const loginUser = async (req, res) => {
             return res.status(401).json({ success: false, message: "Invalid credentials" });
         }
 
-        const token = createToken(user._id);
+        const token = createToken(user._id, user.role);
         res.status(200).json({ success: true, token });
     } catch (error) {
         console.error(error);
@@ -30,7 +29,6 @@ const loginUser = async (req, res) => {
     }
 };
 
-// Route for user registration
 const registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -44,10 +42,7 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ success: false, message: "Please enter a valid email" });
         }
         if (password.length < 8) {
-            return res.status(400).json({
-                success: false,
-                message: "Password should be at least 8 characters long",
-            });
+            return res.status(400).json({ success: false, message: "Password should be at least 8 characters long" });
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -57,11 +52,11 @@ const registerUser = async (req, res) => {
             name,
             email,
             password: hashedPassword,
+            role: "user"
         });
 
         const user = await newUser.save();
-        const token = createToken(user._id);
-
+        const token = createToken(user._id, user.role);
         res.status(201).json({ success: true, token });
     } catch (error) {
         console.error(error);
@@ -69,51 +64,47 @@ const registerUser = async (req, res) => {
     }
 };
 
-// Route for user details (GET instead of POST)
 const userDetails = async (req, res) => {
     try {
-        const userId = req.userId; // Assuming authUser middleware sets this
-
+        const userId = req.user?.id;
         if (!userId) {
-            return res.status(403).json({ success: false, message: "User ID required" });
+            return res.status(401).json({ success: false, message: "Unauthorized access" });
         }
 
         const user = await UserModel.findById(userId).select("-password");
-        if (user) {
-            return res.status(200).json({ success: true, user });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
         }
 
-        res.status(403).json({ success: false, message: "User not found" });
+        res.status(200).json({ success: true, user });
+    } catch (error) {
+        console.error("User Details Error:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+const adminLogin = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+            const token = createToken("admin", "admin");
+            res.status(200).json({ success: true, token });
+        } else {
+            res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: "Something went wrong" });
     }
 };
 
-// Route for admin login
-const adminLogin = async (req, res) => {
-  try {
-      const { email, password } = req.body;
-      const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@zerofashion.com";
-      const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "ZeroFashion@9918";
-      if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
-          return res.status(401).json({ success: false, message: "Invalid credentials" });
-      }
-      const token = "vipinstack"; // Hardcoded token for admin
-      res.status(200).json({ success: true, token });
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, message: "Something went wrong" });
-  }
-};
-
-// Route for user profile update
 const updateProfile = async (req, res) => {
     try {
         const { userId, name, email } = req.body;
 
         if (!userId) {
-            return res.status(403).json({ success: false, message: "User ID required" });
+            return res.status(400).json({ success: false, message: "User ID required" });
         }
 
         const updatedUser = await UserModel.findByIdAndUpdate(
@@ -122,75 +113,82 @@ const updateProfile = async (req, res) => {
             { new: true }
         ).select("-password");
 
-        if (updatedUser) {
-            return res.status(200).json({ success: true, updatedUser });
+        if (!updatedUser) {
+            return res.status(404).json({ success: false, message: "User not found" });
         }
 
-        res.status(403).json({ success: false, message: "User not found" });
+        res.status(200).json({ success: true, updatedUser });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Something went wrong" });
+        console.error("Profile Update Error:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
 
-// Route for getting all users
 const getAllUsers = async (req, res) => {
     try {
         const users = await UserModel.find({}, { password: 0 });
         res.status(200).json({ success: true, users });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Something went wrong" });
+        console.error("Get All Users Error:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
 
-// Route for deleting a user
 const deleteUser = async (req, res) => {
     try {
         const { userId } = req.body;
 
         if (!userId) {
-            return res.status(403).json({ success: false, message: "User ID required" });
+            return res.status(400).json({ success: false, message: "User ID required" });
         }
 
         const deletedUser = await UserModel.findByIdAndDelete(userId);
-        if (deletedUser) {
-            return res.status(200).json({ success: true, deletedUser });
+        if (!deletedUser) {
+            return res.status(404).json({ success: false, message: "User not found" });
         }
 
-        res.status(403).json({ success: false, message: "User not found" });
+        res.status(200).json({ success: true, deletedUser });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Something went wrong" });
+        console.error("Delete User Error:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
 
-// Route for cancelling a user's order
 const cancelOrder = async (req, res) => {
     try {
         const { userId, orderId } = req.body;
 
         if (!userId || !orderId) {
-            return res.status(403).json({ success: false, message: "User ID and Order ID required" });
+            return res.status(400).json({ success: false, message: "User ID and Order ID required" });
         }
 
         const user = await UserModel.findById(userId);
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
+        if (!user || !user.orders) {
+            return res.status(404).json({ success: false, message: "User or orders not found" });
         }
 
-        const order = user.orders?.id(orderId);
-        if (order) {
-            order.status = "cancelled";
-            await user.save();
-            return res.status(200).json({ success: true, order });
+        const order = user.orders.id(orderId);
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found" });
         }
 
-        res.status(404).json({ success: false, message: "Order not found" });
+        order.status = "cancelled";
+        await user.save();
+
+        res.status(200).json({ success: true, order });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Something went wrong" });
+        console.error("Cancel Order Error:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
 
-export { loginUser, registerUser, adminLogin, userDetails, updateProfile, getAllUsers,  deleteUser, cancelOrder };
+export {
+    loginUser,
+    registerUser,
+    adminLogin,
+    userDetails,
+    updateProfile,
+    getAllUsers,
+    deleteUser,
+    cancelOrder
+};

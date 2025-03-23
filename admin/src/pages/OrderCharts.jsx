@@ -168,7 +168,7 @@ const OrderDashboard = () => {
     const revenueData = generateRevenueData(orders);
 
     return (
-        <div className="min-h-screen bg-[#131313] p-6 text-[#939393]">
+        <div className="min-h-screen bg-[#131313] p-6 py-20 text-[#939393]">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
