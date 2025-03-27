@@ -1,8 +1,8 @@
-import React, { useContext, useState, useEffect } from "react";
+import  { useContext, useState, useEffect } from "react";
 import { ShopContext } from "../context/ShopContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Eye, EyeOff, LogIn, UserPlus, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Eye, EyeOff,  Mail, Lock, User, ArrowRight } from "lucide-react";
 
 const LoadingSkeleton = () => (
     <div className="animate-pulse">
@@ -42,13 +42,11 @@ const Login = () => {
             navigate("/");
         }
 
-        // Check for stored token
         const storedToken = localStorage.getItem("token");
         if (!token && storedToken) {
             setToken(storedToken);
         }
 
-        // Simulate initial loading
         setTimeout(() => setIsPageLoading(false), 600);
     }, [token, setToken, navigate]);
 
@@ -56,13 +54,11 @@ const Login = () => {
         let isValid = true;
         const newErrors = { name: "", email: "", password: "" };
 
-        // Name validation (only for signup)
         if (!isLoginMode && !formData.name.trim()) {
             newErrors.name = "Name is required";
             isValid = false;
         }
 
-        // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!formData.email) {
             newErrors.email = "Email is required";
@@ -72,7 +68,6 @@ const Login = () => {
             isValid = false;
         }
 
-        // Password validation
         if (!formData.password) {
             newErrors.password = "Password is required";
             isValid = false;
@@ -87,8 +82,8 @@ const Login = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-        setErrors(prev => ({ ...prev, [name]: "" }));
+        setFormData((prev) => ({ ...prev, [name]: value }));
+        setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
     const handleSubmit = async (e) => {
@@ -106,7 +101,7 @@ const Login = () => {
                 : formData;
 
             const { data } = await axios.post(endpoint, payload, {
-                headers: { 'Content-Type': 'application/json' }
+                headers: { "Content-Type": "application/json" },
             });
 
             if (data.success) {
@@ -115,13 +110,15 @@ const Login = () => {
                 toast.success(isLoginMode ? "Welcome back!" : "Account created successfully!");
                 navigate("/");
             } else {
-                throw new Error(data.message);
+                throw new Error(data.message || "Operation failed");
             }
         } catch (error) {
             let message = "Something went wrong. Please try again.";
 
             if (error.response) {
-                if (error.response.status === 409) {
+                if (error.response.status === 500) {
+                    message = "Server error. Please try again later.";
+                } else if (error.response.status === 409) {
                     message = "Email already exists. Please use a different email.";
                 } else if (error.response.status === 401) {
                     message = "Invalid email or password.";
@@ -133,13 +130,14 @@ const Login = () => {
             }
 
             toast.error(message);
+            console.error("Error details:", error.response || error);
         } finally {
             setIsLoading(false);
         }
     };
 
     const toggleAuthMode = () => {
-        setAuthMode(prev => prev === "login" ? "signup" : "login");
+        setAuthMode((prev) => (prev === "login" ? "signup" : "login"));
         setFormData({ name: "", email: "", password: "" });
         setErrors({ name: "", email: "", password: "" });
     };
@@ -180,9 +178,11 @@ const Login = () => {
                                         name="name"
                                         value={formData.name}
                                         onChange={handleChange}
-                                        className={`w-full pl-10 pr-3 py-3 border ${errors.name ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'
-                                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+                                        className={`w-full pl-10 pr-3 py-3 border ${
+                                            errors.name ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+                                        } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                                         placeholder="John Doe"
+                                        autoComplete="name"
                                     />
                                     {errors.name && (
                                         <p className="text-red-500 text-sm mt-1">{errors.name}</p>
@@ -202,9 +202,11 @@ const Login = () => {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className={`w-full pl-10 pr-3 py-3 border ${errors.email ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'
-                                        } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+                                    className={`w-full pl-10 pr-3 py-3 border ${
+                                        errors.email ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+                                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                                     placeholder="your@email.com"
+                                    autoComplete="email"
                                 />
                                 {errors.email && (
                                     <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -233,9 +235,11 @@ const Login = () => {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className={`w-full pl-10 pr-10 py-3 border ${errors.password ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'
-                                        } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+                                    className={`w-full pl-10 pr-10 py-3 border ${
+                                        errors.password ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"
+                                    } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                                     placeholder="••••••••"
+                                    autoComplete={isLoginMode ? "current-password" : "new-password"}
                                 />
                                 <button
                                     type="button"
@@ -275,8 +279,7 @@ const Login = () => {
 
                     <div className="mt-8 text-center">
                         <p className="text-sm text-gray-600">
-                            {isLoginMode ? "Don't have an account?" : "Already have an account?"}
-                            {" "}
+                            {isLoginMode ? "Don't have an account?" : "Already have an account?"}{" "}
                             <button
                                 type="button"
                                 onClick={toggleAuthMode}

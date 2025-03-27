@@ -57,14 +57,6 @@ const CartTotal = () => {
             <p className="text-xs text-gray-300">Including Shipping Fee</p>
           </div>
         </motion.div>
-
-        {/* <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full mt-6 bg-gray-800 hover:bg-gray-700 text-white font-bold py-4 rounded-lg transition-colors duration-200"
-        >
-          Proceed to Checkout
-        </motion.button> */}
       </div>
     </motion.div>
   );
