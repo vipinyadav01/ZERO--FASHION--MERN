@@ -2,7 +2,7 @@ import OrderModel from "../models/orderModel.js";
 import UserModel from "../models/userModel.js";
 import ProductModel from "../models/productModel.js";
 import Stripe from "stripe";
-import razorpay from "razorpay";
+import Razorpay from "razorpay";
 
 // Global variables
 const currency = "inr";
@@ -12,7 +12,7 @@ const deliveryFee = 10;
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2022-08-01",
 });
-const razorpayInstance = new razorpay({
+const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
@@ -33,9 +33,7 @@ const placeOrder = async (req, res) => {
     const newOrder = new OrderModel(orderData);
     await newOrder.save();
     await UserModel.findByIdAndUpdate(userId, { cartData: {} });
-    res
-      .status(200)
-      .json({ success: true, message: "Order placed successfully" });
+    res.status(200).json({ success: true, message: "Order placed successfully" });
   } catch (error) {
     console.error("Error in placeOrder:", error);
     res.status(500).json({ success: false, message: "Something went wrong" });
@@ -102,9 +100,7 @@ const verifyStripe = async (req, res) => {
       await order.save();
     } else {
       await OrderModel.findByIdAndDelete(orderId);
-      return res
-        .status(200)
-        .json({ success: false, message: "Payment Failed" });
+      return res.status(200).json({ success: false, message: "Payment Failed" });
     }
     res.status(200).json({ success: true });
   } catch (error) {
@@ -145,14 +141,14 @@ const placeOrderRazorPay = async (req, res) => {
 // Verify RazorPay Payment
 const verifyRazorPay = async (req, res) => {
   try {
-    const { userId, razorpay_order_id } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
     if (orderInfo.status === "paid") {
       await OrderModel.findOneAndUpdate(
         { _id: orderInfo.receipt },
         { payment: true }
       );
-      await UserModel.findByIdAndUpdate(userId, { cartData: {} });
+      await UserModel.findByIdAndUpdate(orderInfo.userId, { cartData: {} });
       res.status(200).json({ success: true, message: "Payment successful" });
     } else {
       res.status(400).json({ success: false, message: "Payment failed" });
@@ -190,9 +186,7 @@ const updateStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;
     await OrderModel.findByIdAndUpdate(orderId, { status });
-    res
-      .status(200)
-      .json({ success: true, message: "Status updated successfully" });
+    res.status(200).json({ success: true, message: "Status updated successfully" });
   } catch (error) {
     console.error("Error in updateStatus:", error);
     res.status(500).json({ success: false, message: "Something went wrong" });
@@ -207,15 +201,11 @@ const cancelOrder = async (req, res) => {
 
     const order = await OrderModel.findOne({ _id: orderId, userId });
     if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
     if (order.status === "Delivered" || order.status === "Cancelled") {
-      return res
-        .status(400)
-        .json({ success: false, message: "This order cannot be cancelled" });
+      return res.status(400).json({ success: false, message: "This order cannot be cancelled" });
     }
 
     const orderDate = new Date(order.date);
@@ -240,13 +230,10 @@ const cancelOrder = async (req, res) => {
 
     if (order.payment) {
       if (order.paymentMethod === "Stripe") await processStripeRefund(order);
-      if (order.paymentMethod === "RazorPay")
-        await processRazorPayRefund(order);
+      if (order.paymentMethod === "RazorPay") await processRazorPayRefund(order);
     }
 
-    res
-      .status(200)
-      .json({ success: true, message: "Order cancelled successfully" });
+    res.status(200).json({ success: true, message: "Order cancelled successfully" });
   } catch (error) {
     console.error("Order cancellation error:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
