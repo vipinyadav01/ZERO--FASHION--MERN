@@ -94,46 +94,48 @@ const Orders = () => {
         setError({ type, message });
         setTimeout(() => setError(null), 5000);
     };
-
+    
     const loadOrders = async () => {
-        setLoading(true);
         try {
             if (!token) {
-                setLoading(false);
-                return;
+                return null;
             }
-            const response = await fetch(`${backendUrl}/api/order/userorders`, {
-                method: "POST",
-                headers: {
-                    token,
-                    "Content-Type": "application/json",
-                },
-            });
+            const response = await fetch(
+                backendUrl + "/api/order/userorders",
+                {
+                    method: "POST",
+                    headers: {
+                        token
+                    }
+                }
+            );
             const data = await response.json();
-
             if (data.success) {
-                const allOrders = data.orders.flatMap(order =>
-                    order.items.map(item => ({
-                        ...item,
-                        status: order.status,
-                        date: order.date,
-                        payment: order.payment,
-                        paymentMethod: order.paymentMethod,
-                        orderId: order._id,
-                        totalPrice: item.price * item.quantity
-                    }))
-                );
+                let allOrders = [];
+                data.orders.map((order) => {
+                    console.log(order);
+                    order.items.map((item) => {
+                        item["status"] = order.status;
+                        item["date"] = order.date;
+                        item["payment"] = order.payment;
+                        item["paymentMethod"] = order.paymentMethod;
+                        allOrders.push(item);
+                    });
+                });
                 setOrderData(allOrders);
-            } else {
-                showNotification("error", "Failed to fetch orders");
+                setLoading(false);
             }
         } catch (error) {
-            console.error("Error loading orders:", error);
-            showNotification("error", "Failed to load orders");
-        } finally {
+            console.log(error);
             setLoading(false);
         }
     };
+      
+    useEffect(() => {
+        if (token) {
+            loadOrders();
+        }
+    }, [token]);
 
     useEffect(() => {
         if (token) {
@@ -465,4 +467,4 @@ const Orders = () => {
     );
 };
 
-export default Orders;
+export default Orders; 

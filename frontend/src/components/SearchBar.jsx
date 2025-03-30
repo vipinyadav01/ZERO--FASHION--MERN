@@ -1,81 +1,43 @@
-import { useState, useContext, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import PropTypes from 'prop-types';
-import { ShopContext } from '../context/ShopContext';
-
-const SearchBar = ({ setShowSearchBar }) => {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [debouncedQuery, setDebouncedQuery] = useState('');
-    const navigate = useNavigate();
-    const { setShowSearch } = useContext(ShopContext);
-
-    // Debounce effect for search input to optimize performance
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedQuery(searchQuery);
-        }, 300); // 300ms debounce time
-        return () => clearTimeout(handler);
-    }, [searchQuery]);
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (debouncedQuery.trim()) {
-            navigate(`/search?query=${encodeURIComponent(debouncedQuery)}`);
-            handleClose();
-        }
-    };
-
-    const handleClose = () => {
-        setShowSearchBar(false);
-        setShowSearch(false);
-        setSearchQuery(''); // Clear the search input when closing
-    };
-
-    return (
-        <div className="w-full max-w-4xl mx-auto px-4 py-2">
-            <form onSubmit={handleSearch} className="relative flex items-center">
-                {/* Search Icon */}
-                <Search className="absolute left-4 text-gray-400" size={18} aria-hidden="true" />
-
-                {/* Search Input */}
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search for products, brands, and more..."
-                    className="w-full pl-10 pr-16 py-3 text-sm rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    aria-label="Search"
-                />
-
-                {/* Clear Search Button */}
-                {searchQuery && (
-                    <button
-                        type="button"
-                        onClick={() => setSearchQuery('')}
-                        className="absolute right-12 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                        aria-label="Clear search"
-                    >
-                        <X size={16} />
-                    </button>
-                )}
-
-                {/* Close Button */}
-                <button
-                    type="button"
-                    onClick={handleClose}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    aria-label="Close search"
-                >
-                    <X size={18} />
-                </button>
-            </form>
-        </div>
-    );
-};
-
-SearchBar.propTypes = {
-    setShowSearchBar: PropTypes.func.isRequired,
-};
-
-export default SearchBar;
+import React, { useEffect, useState } from "react";
+ import { useContext } from "react";
+ import { ShopContext } from "../context/ShopContext";
+ import { assets } from "../assets/assets";
+ import { useLocation } from "react-router-dom";
+ 
+ const SearchBar = () => {
+   const { search, setSearch, showSearch, setShowSearch } =
+     useContext(ShopContext);
+   const [visible, setVisible] = useState(false);
+   const location = useLocation();
+ 
+   useEffect(() => {
+     if (location.pathname.includes("collection")) {
+       setVisible(true);
+     } else {
+       setVisible(false);
+     }
+   }, [location]);
+ 
+   return showSearch && visible ? (
+     <div className="border-t border-b bg-gray-50 text-center">
+       <div className="inline-flex items-center justify-center border border-gray-400 px-5 py-2 my-5 mx-3 rounded-full w-3/4 sm:w-1/2">
+         <input
+           value={search}
+           onChange={(e) => setSearch(e.target.value)}
+           className="flex-1 outline-none bg-inherit text-sm"
+           type="text"
+           placeholder="Search"
+         />
+         <img onClick={() => setShowSearch(true)} className="w-4 cursor-pointer" src={assets.search_icon} alt="icon" />
+       </div>
+       <img
+         onClick={() => setShowSearch(false)}
+         className="inline w-3 cursor-pointer"
+         src={assets.cross_icon}
+         alt="icon"
+       />
+     </div>
+   ) : null;
+ };
+ 
+ export default SearchBar;

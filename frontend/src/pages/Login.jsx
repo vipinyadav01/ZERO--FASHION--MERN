@@ -1,8 +1,9 @@
-import  { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Eye, EyeOff,  Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
 
 const LoadingSkeleton = () => (
     <div className="animate-pulse">
@@ -18,7 +19,8 @@ const LoadingSkeleton = () => (
 
 const Login = () => {
     const [authMode, setAuthMode] = useState("login");
-    const { token, setToken, navigate, backendUrl } = useContext(ShopContext);
+    const { token, setToken, backendUrl } = useContext(ShopContext);
+    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [isPageLoading, setIsPageLoading] = useState(true);
@@ -37,16 +39,20 @@ const Login = () => {
 
     const isLoginMode = authMode === "login";
 
+    // Check token in localStorage when the component mounts
     useEffect(() => {
+        const storedToken = localStorage.getItem("token");
+
+        // If there's a token in localStorage, set it in the context
+        if (storedToken && !token) {
+            setToken(storedToken);
+        }
+
         if (token) {
             navigate("/");
         }
 
-        const storedToken = localStorage.getItem("token");
-        if (!token && storedToken) {
-            setToken(storedToken);
-        }
-
+        // Hide loading skeleton after some time
         setTimeout(() => setIsPageLoading(false), 600);
     }, [token, setToken, navigate]);
 
@@ -105,8 +111,21 @@ const Login = () => {
             });
 
             if (data.success) {
+                // Store token in context and localStorage
                 setToken(data.token);
                 localStorage.setItem("token", data.token);
+                
+                // Store user data in localStorage
+                if (isLoginMode) {
+                    // For login, we need to save the user name from the response
+                    if (data.user && data.user.name) {
+                        localStorage.setItem("userName", data.user.name);
+                    }
+                } else {
+                    // For signup, we already have the name from the form
+                    localStorage.setItem("userName", formData.name);
+                }
+                
                 toast.success(isLoginMode ? "Welcome back!" : "Account created successfully!");
                 navigate("/");
             } else {
@@ -153,7 +172,7 @@ const Login = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+        <div className="min-h-screen flex items-center justify-center bg-white px-4 py-12">
             <div className="w-full max-w-md">
                 <div className="bg-white rounded-2xl shadow-xl p-8 transition-all duration-300 hover:shadow-2xl">
                     <div className="text-center mb-8">
