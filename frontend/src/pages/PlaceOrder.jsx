@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
@@ -17,7 +17,16 @@ function PlaceOrder() {
     getCartAmount,
     delivery_fee,
     products,
-  } = useContext(ShopContext);
+  } = useContext(ShopContext) || {
+    navigate: () => {},
+    backendUrl: "",
+    token: null,
+    cartItems: {},
+    setCartItems: () => {},
+    getCartAmount: () => 0,
+    delivery_fee: 0,
+    products: [],
+  };
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -41,8 +50,8 @@ function PlaceOrder() {
         const parsedData = JSON.parse(userData);
         setFormData(prevData => ({
           ...prevData,
-          firstName: parsedData.firstName || prevData.firstName,
-          lastName: parsedData.lastName || prevData.lastName,
+          firstName: parsedData.firstName || parsedData.name?.split(' ')?.[0] || prevData.firstName,
+          lastName: parsedData.lastName || (parsedData.name?.split(' ')?.[1] || '') || prevData.lastName,
           email: parsedData.email || prevData.email,
           phone: parsedData.phone || prevData.phone,
         }));
@@ -60,7 +69,9 @@ function PlaceOrder() {
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, []);
 
@@ -103,6 +114,13 @@ function PlaceOrder() {
       setIsValidating(false);
       return;
     }
+
+    // Early return if cart is empty
+    if (!cartItems || Object.keys(cartItems).length === 0) {
+      setCartError("Your cart is empty");
+      setIsValidating(false);
+      return;
+    }
     
     try {
       const validItems = [];
@@ -120,35 +138,50 @@ function PlaceOrder() {
               return;
             }
             
-            // Process each size for this item
-            for (const size in cartItems[itemId]) {
-              const quantity = cartItems[itemId][size];
-              
-              if (quantity > 0) {
-                // Check if size is valid (assuming product has sizes array)
-                if (productData.sizes && !productData.sizes.includes(size)) {
-                  setCartError(`Size ${size} for ${productData.name} is not available`);
-                  setIsValidating(false);
-                  return;
-                }
+            // Check if cartItems has nested size structure
+            if (typeof cartItems[itemId] === 'object') {
+              // Process each size for this item
+              for (const size in cartItems[itemId]) {
+                const quantity = cartItems[itemId][size];
                 
-                validItems.push({
-                  id: itemId,
-                  _id: itemId, // Adding both formats for compatibility
-                  size,
-                  quantity,
-                  name: productData.name,
-                  price: productData.price,
-                  image: productData.image
-                });
+                if (quantity > 0) {
+                  // Check if size is valid (assuming product has sizes array)
+                  if (productData.sizes && !productData.sizes.includes(size)) {
+                    setCartError(`Size ${size} for ${productData.name} is not available`);
+                    setIsValidating(false);
+                    return;
+                  }
+                  
+                  validItems.push({
+                    id: itemId,
+                    _id: itemId, // Adding both formats for compatibility
+                    size: size,
+                    quantity: quantity,
+                    name: productData.name,
+                    price: productData.price,
+                    image: productData.image || []
+                  });
+                }
               }
+            } else if (typeof cartItems[itemId] === 'number' && cartItems[itemId] > 0) {
+              // Direct quantity without size
+              validItems.push({
+                id: itemId,
+                _id: itemId,
+                size: "Default",
+                quantity: cartItems[itemId],
+                name: productData.name,
+                price: productData.price,
+                image: productData.image || []
+              });
             }
           }
         }
       } else if (Array.isArray(cartItems)) {
         // Handle if cartItems is already an array
-        cartItems.forEach(item => {
-          const productData = products.find(product => product && product._id === item.id);
+        for (const item of cartItems) {
+          const productData = products.find(product => product && 
+            (product._id === item.id || product._id === item._id));
           
           if (!productData) {
             setCartError("Some products in your cart are no longer available");
@@ -158,11 +191,13 @@ function PlaceOrder() {
           
           validItems.push({
             ...item,
+            id: item.id || item._id,
+            _id: item._id || item.id,
             name: productData.name,
             price: productData.price,
-            image: productData.image
+            image: productData.image || []
           });
-        });
+        }
       }
       
       if (validItems.length === 0) {
@@ -190,10 +225,16 @@ function PlaceOrder() {
       return;
     }
 
+    // Ensure order object has the required fields
+    if (!order || !order.id || !order.amount || !order.currency) {
+      toast.error("Invalid order data for payment");
+      return;
+    }
+
     const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID || "",
       amount: order.amount,
-      currency: order.currency,
+      currency: order.currency || "INR",
       name: "Order Payment",
       description: "Payment for order",
       order_id: order.id,
@@ -217,13 +258,13 @@ function PlaceOrder() {
             toast.success("Payment successful");
           }
         } catch (error) {
-          console.error(error);
-          toast.error("Payment verification failed");
+          console.error("Payment verification error:", error);
+          toast.error(error.response?.data?.message || "Payment verification failed");
         }
       },
       prefill: {
-        email: formData.email,
-        contact: formData.phone
+        email: formData.email || "",
+        contact: formData.phone || ""
       },
       notes: {
         address: `${formData.street}, ${formData.city}, ${formData.state}, ${formData.country}`
@@ -232,8 +273,17 @@ function PlaceOrder() {
         color: "#000000"
       }
     };
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+    
+    try {
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        toast.error(response.error?.description || "Payment failed");
+      });
+      rzp.open();
+    } catch (error) {
+      console.error("Razorpay initialization error:", error);
+      toast.error("Failed to initialize payment");
+    }
   };
 
   const onSubmitHandler = async (event) => {
@@ -270,64 +320,70 @@ function PlaceOrder() {
     }
 
     // Check if cart is empty
-    if (validatedCartItems.length === 0) {
+    if (!validatedCartItems || validatedCartItems.length === 0) {
       toast.error("Your cart is empty");
       return;
     }
 
     try {
+      const cartTotal = typeof getCartAmount === 'function' ? getCartAmount() : 0;
+      const deliveryFee = delivery_fee || 0;
+
       let orderData = {
         address: formData,
         items: validatedCartItems,
-        amount: getCartAmount() + delivery_fee,
+        amount: cartTotal + deliveryFee,
         paymentMethod: method
       };
 
       console.log("Placing order with token:", authToken);
 
       switch (method) {
-        case "cod":
+        case "cod": {
           const response = await axios.post(
             `${backendUrl}/api/order/place`,
             orderData,
             { headers: { token: authToken } }
           );
-          if (response.status === 200) {
+          if (response.data && response.data.success) {
             toast.success("Order placed successfully");
             setCartItems([]);
             navigate("/orders");
           } else {
-            toast.error("Order placement failed");
+            toast.error(response.data?.message || "Order placement failed");
           }
           break;
+        }
 
-        case "stripe":
+        case "stripe": {
           const stripeResponse = await axios.post(
             `${backendUrl}/api/order/stripe`,
             orderData,
             { headers: { token: authToken } }
           );
-          if (stripeResponse.status === 200) {
+          if (stripeResponse.data && stripeResponse.data.success) {
             toast.success("Order placed successfully");
             setCartItems([]);
             navigate("/orders");
           } else {
-            toast.error("Order placement failed");
+            toast.error(stripeResponse.data?.message || "Order placement failed");
           }
           break;
+        }
 
-        case "razorpay":
+        case "razorpay": {
           const razorpayResponse = await axios.post(
             `${backendUrl}/api/order/razorpay`,
             orderData,
             { headers: { token: authToken } }
           );
-          if (razorpayResponse.status === 200) {
+          if (razorpayResponse.data && razorpayResponse.data.order) {
             initpay(razorpayResponse.data.order);
           } else {
-            toast.error("Order placement failed");
+            toast.error(razorpayResponse.data?.message || "Failed to create payment order");
           }
           break;
+        }
 
         default:
           toast.error("Invalid payment method");
@@ -365,14 +421,14 @@ function PlaceOrder() {
           <p className="text-red-600 mb-4">{cartError}</p>
           <div className="flex gap-4">
             <button
-              onClick={() => navigate("/cart")}
+              onClick={() => navigate && navigate("/cart")}
               className="bg-black text-white px-6 py-2 hover:bg-gray-800 transition-colors"
             >
               Return to Cart
             </button>
             {cartError.includes("logged in") && (
               <button
-                onClick={() => navigate("/login")}
+                onClick={() => navigate && navigate("/login")}
                 className="bg-gray-800 text-white px-6 py-2 hover:bg-black transition-colors"
               >
                 Login
@@ -392,19 +448,19 @@ function PlaceOrder() {
         {validatedCartItems.map((item, index) => (
           <div key={`${item._id}-${item.size}-${index}`} className="flex items-center gap-3 py-2 border-b">
             <img 
-              src={item.image?.[0] || assets?.placeholder_image} 
-              alt={item.name} 
+              src={(item.image && item.image[0]) || (assets && assets.placeholder_image) || ""} 
+              alt={item.name || "Product"} 
               className="w-12 h-12 object-cover"
               onError={(e) => {
-                e.target.src = assets?.placeholder_image || "";
+                e.target.src = (assets && assets.placeholder_image) || "";
                 e.target.onerror = null;
               }}
             />
             <div className="flex-1">
-              <p className="text-sm font-medium">{item.name}</p>
+              <p className="text-sm font-medium">{item.name || "Unknown Product"}</p>
               <div className="flex justify-between text-sm text-gray-500">
-                <span>Size: {item.size}</span>
-                <span>Qty: {item.quantity}</span>
+                <span>Size: {item.size || "N/A"}</span>
+                <span>Qty: {item.quantity || 0}</span>
               </div>
             </div>
           </div>
@@ -512,7 +568,7 @@ function PlaceOrder() {
               id="zipcode"
               value={formData.zipcode}
               className="input-field"
-              type="number"
+              type="text"
               placeholder="Zipcode"
             />
           </div>
@@ -566,7 +622,16 @@ function PlaceOrder() {
                 >
                   {method === "stripe" && <div className="w-3 h-3 rounded-full bg-green-500"></div>}
                 </div>
-                <img className="h-6 mx-4" src={assets.stripe_logo} alt="Stripe Logo" />
+                <img 
+                  className="h-6 mx-4" 
+                  src={(assets && assets.stripe_logo) || ""} 
+                  alt="Stripe Logo"
+                  onError={(e) => {
+                    e.target.src = "";
+                    e.target.alt = "Stripe";
+                    e.target.onerror = null;
+                  }}
+                />
               </div>
               <div
                 onClick={() => setMethod("razorpay")}
@@ -577,7 +642,16 @@ function PlaceOrder() {
                 >
                   {method === "razorpay" && <div className="w-3 h-3 rounded-full bg-green-500"></div>}
                 </div>
-                <img className="h-6 mx-4" src={assets.razorpay_logo} alt="Razorpay Logo" />
+                <img 
+                  className="h-6 mx-4" 
+                  src={(assets && assets.razorpay_logo) || ""} 
+                  alt="Razorpay Logo"
+                  onError={(e) => {
+                    e.target.src = "";
+                    e.target.alt = "Razorpay";
+                    e.target.onerror = null;
+                  }}
+                />
               </div>
               <div
                 onClick={() => setMethod("cod")}
@@ -602,7 +676,7 @@ function PlaceOrder() {
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/cart")}
+                onClick={() => navigate && navigate("/cart")}
                 className="border border-black text-black text-sm px-8 py-3 w-full hover:bg-gray-100 transition-colors rounded"
               >
                 RETURN TO CART

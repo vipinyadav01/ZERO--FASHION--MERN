@@ -12,7 +12,15 @@ function Cart() {
     updateQuantity,
     isLoading,
     token
-  } = useContext(ShopContext);
+  } = useContext(ShopContext) || {
+    products: [],
+    currency: "$",
+    cartItems: {},
+    navigate: () => {},
+    updateQuantity: () => {},
+    isLoading: false,
+    token: null
+  };
   
   const [cartData, setCartData] = useState([]);
 
@@ -32,14 +40,24 @@ function Cart() {
       // Extract cart items from nested structure
       for (const itemId in cartItems) {
         if (cartItems[itemId]) {
-          for (const size in cartItems[itemId]) {
-            if (cartItems[itemId][size] > 0) {
-              tempData.push({
-                _id: itemId,
-                size: size,
-                quantity: cartItems[itemId][size],
-              });
+          // Check if cartItems[itemId] is an object with size keys
+          if (typeof cartItems[itemId] === 'object') {
+            for (const size in cartItems[itemId]) {
+              if (cartItems[itemId][size] > 0) {
+                tempData.push({
+                  _id: itemId,
+                  size: size,
+                  quantity: cartItems[itemId][size],
+                });
+              }
             }
+          } else if (typeof cartItems[itemId] === 'number' && cartItems[itemId] > 0) {
+            // Handle case where cartItems structure doesn't have sizes
+            tempData.push({
+              _id: itemId,
+              size: "Default",
+              quantity: cartItems[itemId],
+            });
           }
         }
       }
@@ -50,6 +68,11 @@ function Cart() {
 
   // Handle quantity updates
   const handleQuantityUpdate = (itemId, size, newQuantity) => {
+    if (!updateQuantity) {
+      console.error("updateQuantity function is not available");
+      return;
+    }
+    
     console.log(
       `Updating item ${itemId}, size ${size} to quantity ${newQuantity}`
     );
@@ -71,7 +94,7 @@ function Cart() {
         <h2 className="font-medium">YOUR CART</h2>
       </div>
       <div>
-        {cartData.length === 0 ? (
+        {!cartData || cartData.length === 0 ? (
           <div className="py-12 text-center text-gray-500 flex flex-col items-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 16 16" className="mb-4 text-gray-400">
               <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .49.598l-1 5a.5.5 0 0 1-.465.401l-9.397.472L4.415 11H13a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l.84 4.479 9.144-.459L13.89 4H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
@@ -79,7 +102,7 @@ function Cart() {
             <p className="text-lg mb-2">Your cart is empty</p>
             <p className="mb-4">Add some products to see them here.</p>
             <button 
-              onClick={() => navigate("/shop")} 
+              onClick={() => navigate && navigate("/shop")} 
               className="bg-black text-white px-8 py-2 hover:bg-gray-800 transition-colors"
             >
               Continue Shopping
@@ -88,7 +111,7 @@ function Cart() {
         ) : (
           <div className="flex flex-col gap-1">
             {cartData.map((item, index) => {
-              const productData = products.find(
+              const productData = products && products.find(
                 (product) => product && product._id === item._id
               );
 
@@ -104,10 +127,10 @@ function Cart() {
                   <div className="flex items-start gap-6">
                     <img
                       className="w-16 sm:w-20 h-16 sm:h-20 object-cover"
-                      src={productData?.image?.[0] || ""}
+                      src={(productData?.image && productData.image[0]) || ""}
                       alt={productData?.name || "Product Image"}
                       onError={(e) => {
-                        e.target.src = assets?.placeholder_image || "";
+                        e.target.src = (assets && assets.placeholder_image) || "";
                         e.target.onerror = null;
                       }}
                     />
@@ -117,7 +140,7 @@ function Cart() {
                       </p>
                       <div className="flex items-center gap-5 mt-2">
                         <p className="font-semibold">
-                          {currency}
+                          {currency || "$"}
                           {productData?.price || "N/A"}
                         </p>
                         <p className="px-2 sm:px-3 sm:py-1 border bg-slate-50 text-sm">
@@ -145,7 +168,7 @@ function Cart() {
                   >
                     <img
                       className="w-4 sm:w-5 cursor-pointer"
-                      src={assets?.bin_icon || ""}
+                      src={(assets && assets.bin_icon) || ""}
                       alt="Delete Item"
                     />
                   </button>
@@ -155,19 +178,19 @@ function Cart() {
           </div>
         )}
       </div>
-      {cartData.length > 0 && (
+      {cartData && cartData.length > 0 && (
         <div className="flex justify-end my-10">
           <div className="w-full sm:w-[450px] border p-6 rounded shadow-sm">
             <CartTotal />
             <div className="flex flex-col gap-3 mt-6">
               <button
-                onClick={() => navigate("/place-order")}
+                onClick={() => navigate && navigate("/place-order")}
                 className="bg-black text-white text-sm px-8 py-3 w-full hover:bg-gray-800 transition-colors"
               >
                 PROCEED TO CHECKOUT
               </button>
               <button
-                onClick={() => navigate("/shop")}
+                onClick={() => navigate && navigate("/shop")}
                 className="border border-black text-black text-sm px-8 py-3 w-full hover:bg-gray-100 transition-colors"
               >
                 CONTINUE SHOPPING
