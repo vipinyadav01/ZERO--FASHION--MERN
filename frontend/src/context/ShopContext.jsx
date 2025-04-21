@@ -37,6 +37,17 @@ const ShopContextProvider = ({ children }) => {
       : JSON.parse(JSON.stringify(items));
   };
 
+  // Helper function to clean token (remove 'Bearer ' prefix if present)
+  const cleanToken = (rawToken) => {
+    if (!rawToken) return null;
+    return rawToken.replace(/^Bearer\s+/i, '');
+  };
+
+  // Helper function to get auth header
+  const getAuthHeader = () => {
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   // Cart management functions
   const addToCart = useCallback(
     async (itemId, size) => {
@@ -72,7 +83,7 @@ const ShopContextProvider = ({ children }) => {
           await axios.post(
             `${backendUrl}/api/cart/add`,
             { itemId, size },
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: getAuthHeader() }
           );
         }
       } catch (error) {
@@ -145,7 +156,7 @@ const ShopContextProvider = ({ children }) => {
           await axios.post(
             `${backendUrl}/api/cart/update`,
             { itemId, size, quantity },
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: getAuthHeader() }
           );
         }
       } catch (error) {
@@ -204,7 +215,7 @@ const ShopContextProvider = ({ children }) => {
         await axios.post(
           `${backendUrl}/api/cart/clear`,
           {},
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: getAuthHeader() }
         );
       }
     } catch (error) {
@@ -268,7 +279,7 @@ const ShopContextProvider = ({ children }) => {
       const response = await axios.post(
         `${backendUrl}/api/cart/get`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeader() }
       );
       if (response?.data?.success) {
         const serverCartData = response.data.cartData || {};
@@ -286,6 +297,31 @@ const ShopContextProvider = ({ children }) => {
   }, [token, backendUrl]);
 
   // Auth functions
+  const login = useCallback(async (credentials) => {
+    try {
+      setIsLoading(true);
+      const response = await axios.post(`${backendUrl}/api/auth/login`, credentials);
+      const { token: authToken, user: userData } = response.data;
+      
+      // Store the raw token without "Bearer " prefix
+      localStorage.setItem("token", authToken);
+      localStorage.setItem("userData", JSON.stringify(userData));
+      
+      setToken(authToken);
+      setUser(userData);
+      toast.success("Login successful");
+      navigate("/");
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error(
+        error?.response?.data?.message || "Login failed. Please try again."
+      );
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [backendUrl, navigate]);
+
   const logout = useCallback(() => {
     try {
       setToken(null);
@@ -315,8 +351,10 @@ const ShopContextProvider = ({ children }) => {
       try {
         setIsLoading(true);
         const storedToken = localStorage.getItem("token");
-        if (storedToken) {
-          setToken(storedToken);
+        const cleanedToken = cleanToken(storedToken);
+        
+        if (cleanedToken) {
+          setToken(cleanedToken);
           const userData = localStorage.getItem("userData");
           if (userData) {
             setUser(JSON.parse(userData));
@@ -390,6 +428,7 @@ const ShopContextProvider = ({ children }) => {
     toggleWishlistItem,
 
     // Auth functions
+    login,
     logout,
 
     // Navigation
