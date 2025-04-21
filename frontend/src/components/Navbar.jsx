@@ -399,7 +399,7 @@ const Navbar = () => {
             </div>
           </div>
         </div>
-        <div className="flex justify-around py-2 bg-gray-100 text-gray-700">
+        <div className="flex justify-around py-2 bg-white text-black">
           <Link
             to={isAuthenticated() ? "/profile" : "/login"}
             className="flex flex-col items-center border border-black px-3 py-2 rounded-md hover:text-black transition-colors"

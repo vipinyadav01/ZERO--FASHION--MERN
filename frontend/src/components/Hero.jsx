@@ -11,11 +11,11 @@ const HeroStats = ({ icon: Icon, label, value }) => (
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -4, transition: { type: "spring", stiffness: 400 } }}
     >
-        <div className="rounded-full bg-indigo-100 p-2">
-            <Icon className="w-4 h-4 text-indigo-600" />
+        <div className="rounded-full bg-gray-100 p-2">
+            <Icon className="w-4 h-4 text-black" />
         </div>
         <div className="text-sm">
-            <span className="font-semibold text-gray-900">{value}</span>
+            <span className="font-semibold text-black">{value}</span>
             <span className="text-gray-500 ml-1">{label}</span>
         </div>
     </motion.div>
@@ -58,19 +58,19 @@ const Hero = () => {
     const currentDate = new Date().toUTCString();
 
     return (
-        <div className="relative w-full overflow-hidden pt-20 ">
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-gray-50 to-indigo-50" style={{ zIndex: -1 }} />
+        <div className="relative w-full overflow-hidden lg:pt-20  sm:pt-12">
+            <div className="absolute top-0 left-0 w-full h-full bg-white" style={{ zIndex: -1 }} />
             <div className="flex flex-col lg:flex-row">
                 {/* Left content section */}
-                <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 bg-gradient-to-br from-gray-50 to-indigo-50">
+                <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 bg-white">
                     <motion.div
-                        className="text-gray-900 max-w-lg"
+                        className="text-black max-w-lg"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.8 }}
                     >
                         <motion.div
-                            className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-xs rounded-full bg-indigo-100 text-indigo-600"
+                            className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-xs rounded-full bg-gray-200 text-black"
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
@@ -90,7 +90,7 @@ const Hero = () => {
                             >
                                 {featuredProducts[currentImageIndex].title}
                                 <motion.span
-                                    className="block text-xl lg:text-2xl text-indigo-600 mt-2 font-normal"
+                                    className="block text-xl lg:text-2xl text-gray-700 mt-2 font-normal"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: 0.2 }}
@@ -111,20 +111,13 @@ const Hero = () => {
 
                         <div className="flex flex-col sm:flex-row gap-4 mb-12">
                             <motion.button
-                                className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-full font-medium hover:bg-indigo-700 transition-colors"
+                                className="flex items-center justify-center gap-2 bg-black text-white px-6 py-3 rounded-full font-medium hover:bg-gray-900 transition-colors"
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                             >
                                 Shop Now <ArrowRight size={16} />
                             </motion.button>
 
-                            <motion.button
-                                className="flex items-center justify-center gap-2 bg-white text-indigo-600 px-6 py-3 rounded-full font-medium border border-indigo-200 hover:bg-indigo-50 transition-colors"
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                            >
-                                View Lookbook
-                            </motion.button>
                         </div>
 
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -143,7 +136,7 @@ const Hero = () => {
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentImageIndex}
-                            className="relative w-full h-[400px] sm:h-[500px] lg:h-screen max-h-[800px]"
+                            className="relative w-full h-[350px] sm:h-[400px] lg:h-screen max-h-[600px]"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
