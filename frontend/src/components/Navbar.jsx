@@ -14,7 +14,6 @@ import {
   UserCircle,
   Contact,
   Bell,
-  Headset,
   LogOut,
   ChevronRight,
   Camera,
