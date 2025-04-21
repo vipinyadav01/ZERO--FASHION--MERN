@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useCallback } from "react";
+import { createContext, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -382,14 +382,12 @@ const ShopContextProvider = ({ children }) => {
     initializeState();
   }, []);
 
-  // Refresh cart when token changes
   useEffect(() => {
     if (token) {
       getUserCart();
     }
   }, [token, getUserCart]);
 
-  // Combine all values and functions to be provided by context
   const contextValue = {
     // Config
     currency,

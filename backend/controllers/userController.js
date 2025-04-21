@@ -232,16 +232,12 @@ const userDetails = async (req, res) => {
 const adminLogin = async (req, res) => {
     try {
         const { email, password } = req.body;
-
-        // Use environment variables securely
         if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) {
             return res.status(500).json({ 
                 success: false, 
                 message: "Admin credentials not configured" 
             });
         }
-
-        // Use constant-time comparison for credentials
         const isEmailMatch = email === process.env.ADMIN_EMAIL;
         const isPasswordMatch = password === process.env.ADMIN_PASSWORD;
 

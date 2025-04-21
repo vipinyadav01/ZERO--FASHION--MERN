@@ -601,7 +601,6 @@ const Navbar = () => {
           </div>
         </div>
       </motion.nav>
-
       <AnimatePresence>
         {showSearchBar && (
           <motion.div
@@ -622,5 +621,4 @@ const Navbar = () => {
     </>
   )
 }
-
 export default memo(Navbar)

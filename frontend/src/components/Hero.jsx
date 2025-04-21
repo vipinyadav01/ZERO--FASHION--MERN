@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ShoppingBag, Heart, Clock } from "lucide-react";
-import { Link } from "react-router-dom";
 import { assets } from "../assets/assets";
 
 const HeroStats = ({ icon: Icon, label, value }) => (

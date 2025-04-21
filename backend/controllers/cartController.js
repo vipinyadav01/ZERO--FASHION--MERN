@@ -264,10 +264,8 @@ const removeFromCart = async (req, res) => {
   }
 };
 
-// Clear user's cart
 const clearCart = async (req, res) => {
   try {
-    // Get user ID from token instead of request body
     const userId = extractUserFromToken(req);
     
     if (!userId) {
@@ -291,7 +289,6 @@ const clearCart = async (req, res) => {
     });
   }
 };
-
 export { 
   addToCart, 
   updateCart, 

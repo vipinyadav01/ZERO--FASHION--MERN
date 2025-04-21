@@ -24,7 +24,6 @@ const LoadingSkeleton = () => (
     <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
   </div>
 );
-
 const Login = () => {
   const [authMode, setAuthMode] = useState("login");
   const { token, setToken, setUser, backendUrl } = useContext(ShopContext);
@@ -331,7 +330,6 @@ const Login = () => {
                 )}
               </button>
             </form>
-
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
