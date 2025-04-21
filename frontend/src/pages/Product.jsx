@@ -10,9 +10,9 @@ import { motion, AnimatePresence } from "framer-motion"
 const Product = () => {
   const { productId } = useParams()
   const { products, currency, addToCart } = useContext(ShopContext)
-  const [productData, setProductData] = useState(null) // Initialize as null to handle loading state
+  const [productData, setProductData] = useState(null) 
   const [image, setImage] = useState("")
-  const [size, setSize] = useState("") // Updated naming for setter function
+  const [size, setSize] = useState("")
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("description")
 
@@ -227,7 +227,6 @@ const Product = () => {
               </p>
             </motion.div>
           )}
-
           {activeTab === "reviews" && (
             <motion.div
               key="reviews"
@@ -250,5 +249,4 @@ const Product = () => {
     </motion.div>
   )
 }
-
 export default Product
