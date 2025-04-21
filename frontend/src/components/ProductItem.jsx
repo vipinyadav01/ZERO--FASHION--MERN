@@ -7,16 +7,18 @@ const ProductItem = ({ id, image, name, price, category, isNew, rating }) => {
   const { currency } = useContext(ShopContext);
 
   return (
-    <Link to={`/product/${id}`} className="block">
+    <Link to={`/product/${id}`} className="block h-full">
       <motion.div
-        className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-        whileHover={{ scale: 1.02 }}
-        transition={{ duration: 0.3 }}
+        className="group flex flex-col h-full overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:shadow-xl"
+        whileHover={{ y: -5, transition: { duration: 0.3 } }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
       >
         {/* Image Container */}
         <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
           <img
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             src={image?.[0] ?? "https://via.placeholder.com/300"}
             alt={name}
             loading="lazy"
@@ -59,7 +61,7 @@ const ProductItem = ({ id, image, name, price, category, isNew, rating }) => {
           <div className="mt-auto flex items-center justify-between">
             <p className="text-base sm:text-lg font-bold text-gray-900">
               {currency}
-              {price.toLocaleString()}
+              {typeof price === 'number' ? price.toLocaleString() : price}
             </p>
             <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
               In Stock

@@ -15,7 +15,7 @@ const ShopContextProvider = ({ children }) => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
   // Auth-related state
-  const [token, setToken] = useState(null); // Initialize as null for clarity
+  const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -40,185 +40,200 @@ const ShopContextProvider = ({ children }) => {
   // Cart management functions
   const addToCart = useCallback(
     async (itemId, size) => {
-      if (!itemId) {
-        toast.error("Invalid product");
-        return;
-      }
-
-      if (!size) {
-        toast.error("Please select a size");
-        return;
-      }
-
-      let cartData = cloneCartItems(cartItems);
-
-      if (cartData[itemId]) {
-        if (cartData[itemId][size]) {
-          cartData[itemId][size] += 1;
-        } else {
-          cartData[itemId][size] = 1;
+      try {
+        if (!itemId) {
+          toast.error("Invalid product");
+          return;
         }
-      } else {
-        cartData[itemId] = { [size]: 1 };
-      }
 
-      setCartItems(cartData);
-      localStorage.setItem("cartItems", JSON.stringify(cartData));
-      toast.success("Item added to cart");
+        if (!size) {
+          toast.error("Please select a size");
+          return;
+        }
 
-      if (token) {
-        try {
+        let cartData = cloneCartItems(cartItems);
+
+        if (cartData[itemId]) {
+          if (cartData[itemId][size]) {
+            cartData[itemId][size] += 1;
+          } else {
+            cartData[itemId][size] = 1;
+          }
+        } else {
+          cartData[itemId] = { [size]: 1 };
+        }
+
+        setCartItems(cartData);
+        localStorage.setItem("cartItems", JSON.stringify(cartData));
+        toast.success("Item added to cart");
+
+        if (token) {
           setIsLoading(true);
           await axios.post(
             `${backendUrl}/api/cart/add`,
             { itemId, size },
             { headers: { Authorization: `Bearer ${token}` } }
           );
-        } catch (error) {
-          console.error("Error adding item to cart:", error);
-          toast.error(
-            error?.response?.data?.message || "Error adding item to cart"
-          );
-          // Revert local cart on failure
-          const storedCart = JSON.parse(localStorage.getItem("cartItems") || "{}");
-          setCartItems(storedCart);
-        } finally {
-          setIsLoading(false);
         }
+      } catch (error) {
+        console.error("Error adding item to cart:", error);
+        toast.error(
+          error?.response?.data?.message || "Error adding item to cart"
+        );
+        // Revert local cart on failure
+        const storedCart = JSON.parse(localStorage.getItem("cartItems") || "{}");
+        setCartItems(storedCart);
+      } finally {
+        setIsLoading(false);
       }
     },
     [cartItems, token, backendUrl]
   );
 
   const getCartCount = useCallback(() => {
-    if (!cartItems || Object.keys(cartItems).length === 0) {
-      return 0;
-    }
+    try {
+      if (!cartItems || Object.keys(cartItems).length === 0) {
+        return 0;
+      }
 
-    let totalCount = 0;
-    for (const itemId in cartItems) {
-      const itemSizes = cartItems[itemId];
-      if (!itemSizes) continue;
+      let totalCount = 0;
+      for (const itemId in cartItems) {
+        const itemSizes = cartItems[itemId];
+        if (!itemSizes) continue;
 
-      for (const size in itemSizes) {
-        const quantity = Number(itemSizes[size]);
-        if (!isNaN(quantity) && quantity > 0) {
-          totalCount += quantity;
+        for (const size in itemSizes) {
+          const quantity = Number(itemSizes[size]);
+          if (!isNaN(quantity) && quantity > 0) {
+            totalCount += quantity;
+          }
         }
       }
+      return totalCount;
+    } catch (error) {
+      console.error("Error calculating cart count:", error);
+      return 0;
     }
-    return totalCount;
   }, [cartItems]);
 
   const updateQuantity = useCallback(
     async (itemId, size, quantity) => {
-      if (!itemId || !size || quantity === undefined || quantity < 0) {
-        toast.error("Invalid update parameters");
-        return;
-      }
-
-      let cartData = cloneCartItems(cartItems);
-
-      if (!cartData[itemId]) {
-        cartData[itemId] = {};
-      }
-
-      cartData[itemId][size] = quantity;
-      if (quantity === 0) {
-        delete cartData[itemId][size];
-        if (Object.keys(cartData[itemId]).length === 0) {
-          delete cartData[itemId];
+      try {
+        if (!itemId || !size || quantity === undefined || quantity < 0) {
+          toast.error("Invalid update parameters");
+          return;
         }
-      }
 
-      setCartItems(cartData);
-      localStorage.setItem("cartItems", JSON.stringify(cartData));
+        let cartData = cloneCartItems(cartItems);
 
-      if (token) {
-        try {
+        if (!cartData[itemId]) {
+          cartData[itemId] = {};
+        }
+
+        cartData[itemId][size] = quantity;
+        if (quantity === 0) {
+          delete cartData[itemId][size];
+          if (Object.keys(cartData[itemId]).length === 0) {
+            delete cartData[itemId];
+          }
+        }
+
+        setCartItems(cartData);
+        localStorage.setItem("cartItems", JSON.stringify(cartData));
+
+        if (token) {
           setIsLoading(true);
           await axios.post(
             `${backendUrl}/api/cart/update`,
             { itemId, size, quantity },
             { headers: { Authorization: `Bearer ${token}` } }
           );
-        } catch (error) {
-          console.error("Error updating item quantity:", error);
-          toast.error(
-            error?.response?.data?.message || "Error updating item quantity"
-          );
-          // Revert local cart on failure
-          const storedCart = JSON.parse(localStorage.getItem("cartItems") || "{}");
-          setCartItems(storedCart);
-        } finally {
-          setIsLoading(false);
         }
+      } catch (error) {
+        console.error("Error updating item quantity:", error);
+        toast.error(
+          error?.response?.data?.message || "Error updating item quantity"
+        );
+        // Revert local cart on failure
+        const storedCart = JSON.parse(localStorage.getItem("cartItems") || "{}");
+        setCartItems(storedCart);
+      } finally {
+        setIsLoading(false);
       }
     },
     [cartItems, token, backendUrl]
   );
 
   const getCartAmount = useCallback(() => {
-    if (
-      !cartItems ||
-      Object.keys(cartItems).length === 0 ||
-      !products ||
-      products.length === 0
-    ) {
-      return 0;
-    }
+    try {
+      if (
+        !cartItems ||
+        Object.keys(cartItems).length === 0 ||
+        !products ||
+        products.length === 0
+      ) {
+        return 0;
+      }
 
-    let totalAmount = 0;
-    for (const itemId in cartItems) {
-      const productInfo = products.find((product) => product?._id === itemId);
-      const itemSizes = cartItems[itemId];
+      let totalAmount = 0;
+      for (const itemId in cartItems) {
+        const productInfo = products.find((product) => product?._id === itemId);
+        const itemSizes = cartItems[itemId];
 
-      if (productInfo && itemSizes) {
-        for (const size in itemSizes) {
-          const quantity = Number(itemSizes[size]);
-          if (!isNaN(quantity) && quantity > 0 && productInfo.price) {
-            totalAmount += productInfo.price * quantity;
+        if (productInfo && itemSizes) {
+          for (const size in itemSizes) {
+            const quantity = Number(itemSizes[size]);
+            if (!isNaN(quantity) && quantity > 0 && productInfo.price) {
+              totalAmount += productInfo.price * quantity;
+            }
           }
         }
       }
+      return totalAmount;
+    } catch (error) {
+      console.error("Error calculating cart amount:", error);
+      return 0;
     }
-    return totalAmount;
   }, [cartItems, products]);
 
   const clearCart = useCallback(async () => {
-    setCartItems({});
-    localStorage.removeItem("cartItems");
+    try {
+      setCartItems({});
+      localStorage.removeItem("cartItems");
 
-    if (token) {
-      try {
+      if (token) {
         await axios.post(
           `${backendUrl}/api/cart/clear`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
-      } catch (error) {
-        console.error("Error clearing cart on server:", error);
-        toast.error(
-          error?.response?.data?.message || "Error clearing cart on server"
-        );
       }
+    } catch (error) {
+      console.error("Error clearing cart on server:", error);
+      toast.error(
+        error?.response?.data?.message || "Error clearing cart on server"
+      );
     }
   }, [token, backendUrl]);
 
   // Wishlist management functions
   const toggleWishlistItem = useCallback(
     (itemId) => {
-      if (!itemId) {
-        toast.error("Invalid item ID");
-        return;
+      try {
+        if (!itemId) {
+          toast.error("Invalid item ID");
+          return;
+        }
+
+        const updatedWishlist = wishlistItems.includes(itemId)
+          ? wishlistItems.filter((id) => id !== itemId)
+          : [...wishlistItems, itemId];
+
+        setWishlistItems(updatedWishlist);
+        localStorage.setItem("wishlistItems", JSON.stringify(updatedWishlist));
+      } catch (error) {
+        console.error("Error toggling wishlist item:", error);
+        toast.error("Failed to update wishlist");
       }
-
-      const updatedWishlist = wishlistItems.includes(itemId)
-        ? wishlistItems.filter((id) => id !== itemId)
-        : [...wishlistItems, itemId];
-
-      setWishlistItems(updatedWishlist);
-      localStorage.setItem("wishlistItems", JSON.stringify(updatedWishlist));
     },
     [wishlistItems]
   );
@@ -272,16 +287,21 @@ const ShopContextProvider = ({ children }) => {
 
   // Auth functions
   const logout = useCallback(() => {
-    setToken(null);
-    setUser(null);
-    setCartItems({});
-    setWishlistItems([]);
-    localStorage.removeItem("token");
-    localStorage.removeItem("userData");
-    localStorage.removeItem("cartItems");
-    localStorage.removeItem("wishlistItems");
-    toast.success("Logged out successfully");
-    navigate("/login");
+    try {
+      setToken(null);
+      setUser(null);
+      setCartItems({});
+      setWishlistItems([]);
+      localStorage.removeItem("token");
+      localStorage.removeItem("userData");
+      localStorage.removeItem("cartItems");
+      localStorage.removeItem("wishlistItems");
+      toast.success("Logged out successfully");
+      navigate("/login");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast.error("Failed to logout properly");
+    }
   }, [navigate]);
 
   // Load products on initial render
