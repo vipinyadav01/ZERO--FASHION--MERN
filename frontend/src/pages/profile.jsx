@@ -30,7 +30,6 @@ const ProfileInfo = () => {
             setLoading(false);
         }
     };
-
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (token && backendUrl) {
@@ -39,7 +38,6 @@ const ProfileInfo = () => {
             setLoading(false);
         }
     }, [backendUrl]);
-
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen bg-black">
@@ -60,7 +58,6 @@ const ProfileInfo = () => {
             </div>
         );
     }
-
     if (!user) {
         return (
             <motion.div 
@@ -84,7 +81,6 @@ const ProfileInfo = () => {
             </motion.div>
         );
     }
-
     return (
         <motion.div 
             className="flex justify-center items-center min-h-screen bg-white p-4 mt-2"
@@ -205,5 +201,4 @@ const ProfileInfo = () => {
         </motion.div>
     );
 };
-
 export default ProfileInfo;
