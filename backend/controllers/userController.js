@@ -3,8 +3,36 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import UserModel from "../models/userModel.js";
 
+// Create JWT token with user ID and role
 const createToken = (id, role = "user") => {
+    if (!process.env.JWT_SECRET) {
+        throw new Error("JWT_SECRET is not configured");
+    }
     return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+};
+
+// Extract token from Authorization header
+const extractToken = (req) => {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return null;
+    }
+    
+    return authHeader.split(' ')[1];
+};
+
+// Verify and decode JWT token
+const verifyToken = (token) => {
+    if (!process.env.JWT_SECRET) {
+        throw new Error("JWT_SECRET is not configured");
+    }
+    
+    try {
+        return jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+        return null;
+    }
 };
 
 const loginUser = async (req, res) => {
@@ -54,17 +82,25 @@ const loginUser = async (req, res) => {
             });
         }
 
-        // Generate token
-        const token = createToken(user._id, user.role);
-        
-        // Exclude sensitive information in response
-        const { password: omit, ...userResponse } = user.toObject();
-        
-        res.status(200).json({ 
-            success: true, 
-            token,
-            user: userResponse 
-        });
+        try {
+            // Generate token
+            const token = createToken(user._id, user.role);
+            
+            // Exclude sensitive information in response
+            const { password: omit, ...userResponse } = user.toObject();
+            
+            res.status(200).json({ 
+                success: true, 
+                token,
+                user: userResponse 
+            });
+        } catch (tokenError) {
+            console.error("Token generation error:", tokenError);
+            return res.status(500).json({
+                success: false,
+                message: "Error generating authentication token",
+            });
+        }
     } catch (error) {
         console.error("Login error:", error);
         res.status(500).json({
@@ -124,16 +160,25 @@ const registerUser = async (req, res) => {
         });
 
         const user = await newUser.save();
-        const token = createToken(user._id, user.role);
-        
-        // Exclude sensitive information in response
-        const { password: omit, ...userResponse } = user.toObject();
-        
-        res.status(201).json({ 
-            success: true, 
-            token,
-            user: userResponse 
-        });
+
+        try {
+            const token = createToken(user._id, user.role);
+            
+            // Exclude sensitive information in response
+            const { password: omit, ...userResponse } = user.toObject();
+            
+            res.status(201).json({ 
+                success: true, 
+                token,
+                user: userResponse 
+            });
+        } catch (tokenError) {
+            console.error("Token generation error:", tokenError);
+            return res.status(500).json({
+                success: false,
+                message: "Error generating authentication token",
+            });
+        }
     } catch (error) {
         console.error("Register error:", error);
         res.status(500).json({ 
@@ -145,15 +190,25 @@ const registerUser = async (req, res) => {
 
 const userDetails = async (req, res) => {
     try {
-        const userId = req.user?.id;
-        if (!userId) {
+        const token = extractToken(req);
+        
+        if (!token) {
             return res.status(401).json({ 
                 success: false, 
-                message: "Unauthorized access" 
+                message: "Authentication token required" 
+            });
+        }
+        
+        const decoded = verifyToken(token);
+        
+        if (!decoded || !decoded.id) {
+            return res.status(401).json({ 
+                success: false, 
+                message: "Invalid or expired token" 
             });
         }
 
-        const user = await UserModel.findById(userId).select("-password");
+        const user = await UserModel.findById(decoded.id).select("-password");
         if (!user) {
             return res.status(404).json({ 
                 success: false, 
@@ -191,8 +246,16 @@ const adminLogin = async (req, res) => {
         const isPasswordMatch = password === process.env.ADMIN_PASSWORD;
 
         if (isEmailMatch && isPasswordMatch) {
-            const token = createToken("admin", "admin");
-            res.status(200).json({ success: true, token });
+            try {
+                const token = createToken("admin", "admin");
+                res.status(200).json({ success: true, token });
+            } catch (tokenError) {
+                console.error("Admin token generation error:", tokenError);
+                return res.status(500).json({
+                    success: false,
+                    message: "Error generating admin token",
+                });
+            }
         } else {
             res.status(401).json({ 
                 success: false, 
@@ -210,14 +273,25 @@ const adminLogin = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const { userId, name, email } = req.body;
-
-        if (!userId) {
-            return res.status(400).json({ 
+        const token = extractToken(req);
+        
+        if (!token) {
+            return res.status(401).json({ 
                 success: false, 
-                message: "User ID required" 
+                message: "Authentication token required" 
             });
         }
+        
+        const decoded = verifyToken(token);
+        
+        if (!decoded || !decoded.id) {
+            return res.status(401).json({ 
+                success: false, 
+                message: "Invalid or expired token" 
+            });
+        }
+
+        const { name, email } = req.body;
 
         // Validate email if provided
         if (email && !validator.isEmail(email)) {
@@ -228,11 +302,11 @@ const updateProfile = async (req, res) => {
         }
 
         const updatedUser = await UserModel.findByIdAndUpdate(
-            userId,
+            decoded.id,
             { name, email },
             { 
-                new: true,  // Return updated document
-                runValidators: true  // Run model validation
+                new: true,
+                runValidators: true  
             }
         ).select("-password");
 
@@ -258,6 +332,24 @@ const updateProfile = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
     try {
+        const token = extractToken(req);
+        
+        if (!token) {
+            return res.status(401).json({ 
+                success: false, 
+                message: "Authentication token required" 
+            });
+        }
+        
+        const decoded = verifyToken(token);
+        
+        if (!decoded || !decoded.role !== "admin") {
+            return res.status(403).json({ 
+                success: false, 
+                message: "Access denied. Admin privileges required" 
+            });
+        }
+
         const users = await UserModel.find({}, { password: 0 });
         res.status(200).json({ 
             success: true, 
@@ -275,6 +367,24 @@ const getAllUsers = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     try {
+        const token = extractToken(req);
+        
+        if (!token) {
+            return res.status(401).json({ 
+                success: false, 
+                message: "Authentication token required" 
+            });
+        }
+        
+        const decoded = verifyToken(token);
+        
+        if (!decoded || decoded.role !== "admin") {
+            return res.status(403).json({ 
+                success: false, 
+                message: "Access denied. Admin privileges required" 
+            });
+        }
+
         const { userId } = req.body;
 
         if (!userId) {
@@ -311,16 +421,34 @@ const deleteUser = async (req, res) => {
 
 const cancelOrder = async (req, res) => {
     try {
-        const { userId, orderId } = req.body;
-
-        if (!userId || !orderId) {
-            return res.status(400).json({ 
+        const token = extractToken(req);
+        
+        if (!token) {
+            return res.status(401).json({ 
                 success: false, 
-                message: "User ID and Order ID required" 
+                message: "Authentication token required" 
+            });
+        }
+        
+        const decoded = verifyToken(token);
+        
+        if (!decoded || !decoded.id) {
+            return res.status(401).json({ 
+                success: false, 
+                message: "Invalid or expired token" 
             });
         }
 
-        const user = await UserModel.findById(userId);
+        const { orderId } = req.body;
+
+        if (!orderId) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Order ID required" 
+            });
+        }
+
+        const user = await UserModel.findById(decoded.id);
         if (!user || !user.orders) {
             return res.status(404).json({ 
                 success: false, 

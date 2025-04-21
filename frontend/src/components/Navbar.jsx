@@ -152,7 +152,6 @@ const BottomNavigation = () => {
     { icon: Home, label: "Home", path: "/" },
     { icon: Play, label: "Collection", path: "/collection" },
     { icon: Grid, label: "Wishlist", path: "/wishlist" },
-    { icon: Headset, label: "Support", path: token ? "/support" : "/login" },
     { icon: ListOrdered, label: "Order", path: token ? "/order" : "/login" },
   ]
 
