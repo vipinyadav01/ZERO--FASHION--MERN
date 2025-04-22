@@ -57,6 +57,14 @@ const placeOrderStripe = async (req, res) => {
     const userId = req.user._id;
     const { origin } = req.headers;
 
+    // Validate required fields
+    if (!items?.length || !amount || !address) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Missing required order information" 
+      });
+    }
+
     const orderData = {
       userId,
       items,
@@ -64,26 +72,32 @@ const placeOrderStripe = async (req, res) => {
       amount,
       paymentMethod: "Stripe",
       payment: false,
-      status: "Pending", // Initial status
+      status: "Pending",
       date: Date.now(),
     };
 
     const newOrder = new OrderModel(orderData);
     await newOrder.save();
 
+    // Create line items for Stripe checkout
     const line_items = items.map((item) => ({
       price_data: {
-        currency: "inr",
-        product_data: { name: item.name, images: [item.image] },
-        unit_amount: item.price * 100,
+        currency: currency, 
+        product_data: { 
+          name: item.name,
+          images: item.image ? [item.image] : [] 
+        },
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
     }));
+
+    // Add delivery fee as separate line item
     line_items.push({
       price_data: {
-        currency: "inr",
+        currency: currency,
         product_data: { name: "Delivery Fee" },
-        unit_amount: 10 * 100,
+        unit_amount: deliveryFee * 100, 
       },
       quantity: 1,
     });
@@ -93,12 +107,15 @@ const placeOrderStripe = async (req, res) => {
       cancel_url: `${origin}/verify?success=false&orderId=${newOrder._id}`,
       line_items,
       mode: "payment",
+      metadata: {
+        orderId: newOrder._id.toString(),
+        userId: userId.toString()
+      }
     });
 
     newOrder.stripeSessionId = session.id;
     await newOrder.save();
 
-    // Update user's orders
     await UserModel.findByIdAndUpdate(userId, {
       $push: { orders: newOrder._id },
     });
@@ -114,47 +131,89 @@ const placeOrderStripe = async (req, res) => {
 const verifyStripe = async (req, res) => {
   try {
     const { orderId, success } = req.query;
+
+    // Check if user token exists
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "No token provided"
+      });
+    }
+
     const userId = req.user._id;
 
-    // Find the order and verify ownership
+    if (!orderId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Order ID is required" 
+      });
+    }
+
     const order = await OrderModel.findOne({ _id: orderId, userId });
     if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found or unauthorized" });
+      return res.status(404).json({ 
+        success: false, 
+        message: "Order not found or unauthorized" 
+      });
     }
 
     if (success === "true") {
       try {
-        const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
+        const session = await stripe.checkout.sessions.retrieve(
+          order.stripeSessionId,
+          {
+            expand: ['payment_intent']
+          }
+        );
 
         if (session.payment_status === "paid") {
           order.payment = true;
-          order.status = "Order Placed"; 
-          order.stripePaymentIntentId = session.payment_intent;
+          order.status = "Order Placed";
+          order.stripePaymentIntentId = session.payment_intent.id;
           await order.save();
 
-          // Clear user's cart
-          await UserModel.findByIdAndUpdate(userId, { cartData: {} });
+          await UserModel.findByIdAndUpdate(userId, { 
+            cartData: {},
+            $set: { 'orders.$[elem].payment': true }
+          }, {
+            arrayFilters: [{ 'elem._id': orderId }]
+          });
 
-          return res.status(200).json({ success: true, message: "Payment successful" });
+          return res.status(200).json({ 
+            success: true, 
+            message: "Payment successful" 
+          });
         } else {
           order.status = "Payment Failed";
           await order.save();
-          return res.status(400).json({ success: false, message: "Payment incomplete" });
+          return res.status(400).json({ 
+            success: false, 
+            message: "Payment incomplete" 
+          });
         }
       } catch (stripeError) {
         console.error("Stripe session retrieval error:", stripeError);
         order.status = "Payment Failed";
         await order.save();
-        return res.status(400).json({ success: false, message: "Payment verification failed" });
+        return res.status(400).json({ 
+          success: false, 
+          message: "Payment verification failed" 
+        });
       }
     } else {
       order.status = "Cancelled";
       await order.save();
-      return res.status(200).json({ success: false, message: "Payment cancelled" });
+      return res.status(200).json({ 
+        success: false, 
+        message: "Payment cancelled" 
+      });
     }
   } catch (error) {
     console.error("Error in verifyStripe:", error);
-    res.status(500).json({ success: false, message: "Something went wrong" });
+    res.status(500).json({ 
+      success: false, 
+      message: "Something went wrong" 
+    });
   }
 };
 
@@ -162,7 +221,7 @@ const verifyStripe = async (req, res) => {
 const placeOrderRazorPay = async (req, res) => {
   try {
     const { items, amount, address } = req.body;
-    const userId = req.user._id; // From authUser middleware
+    const userId = req.user._id;
 
     const orderData = {
       userId,
@@ -276,50 +335,25 @@ const updateStatus = async (req, res) => {
 // Cancel Order
 const cancelOrder = async (req, res) => {
   try {
-    const { orderId } = req.params;
     const userId = req.user._id;
+    const { orderId } = req.params;
 
     const order = await OrderModel.findOne({ _id: orderId, userId });
     if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
+      return res.status(404).json({ success: false, message: "Order not found or unauthorized" });
     }
 
-    if (order.status === "Delivered" || order.status === "Cancelled") {
-      return res.status(400).json({ success: false, message: "This order cannot be cancelled" });
-    }
-
-    const orderDate = new Date(order.date);
-    const currentDate = new Date();
-    const hoursSinceOrder = (currentDate - orderDate) / (1000 * 60 * 60);
-
-    if (hoursSinceOrder > 24) {
-      return res.status(400).json({
-        success: false,
-        message: "Order cannot be cancelled after 24 hours",
-      });
+    if (["Delivered", "Cancelled"].includes(order.status)) {
+      return res.status(400).json({ success: false, message: "Cannot cancel delivered or already cancelled order" });
     }
 
     order.status = "Cancelled";
     await order.save();
 
-    for (let item of order.items) {
-      await ProductModel.findByIdAndUpdate(item.productId, {
-        $inc: { stock: item.quantity },
-      });
-    }
-
-    if (order.payment) {
-      if (order.paymentMethod === "Stripe") {
-        await processStripeRefund(order);
-      } else if (order.paymentMethod === "RazorPay") {
-        await processRazorPayRefund(order);
-      }
-    }
-
     res.status(200).json({ success: true, message: "Order cancelled successfully" });
   } catch (error) {
-    console.error("Order cancellation error:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Error in cancelOrder:", error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
 
@@ -350,6 +384,17 @@ async function processRazorPayRefund(order) {
     throw new Error(`RazorPay refund failed: ${error.message}`);
   }
 }
+const listOrders = async (req, res) => {
+  try {
+    const orders = await OrderModel.find()
+      .populate("userId", "name email")
+      .sort({ date: -1 });
+    res.status(200).json({ success: true, orders });
+  } catch (error) {
+    console.error("Error in listOrders:", error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
+  }
+};
 
 export {
   placeOrder,
@@ -361,4 +406,5 @@ export {
   verifyStripe,
   verifyRazorPay,
   cancelOrder,
+  listOrders,
 };

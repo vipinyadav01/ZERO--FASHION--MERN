@@ -339,16 +339,21 @@ function PlaceOrder() {
         }
 
         case "stripe": {
-          const response = await axios.post(
-            `${backendUrl}/api/order/stripe`,
-            orderData,
-            { headers: { Authorization: `Bearer ${authToken}` } }
-          );
-          if (response.data.success) {
-            const { session_url } = response.data;
-            window.location.href = session_url;
-          } else {
-            toast.error(response.data.message || "Order placement failed");
+          try {
+            const response = await axios.post(
+              `${backendUrl}/api/order/stripe`,
+              orderData,
+              { headers: { Authorization: `Bearer ${authToken}` } }
+            );
+            
+            if (response.data.success && response.data.session_url) {
+              window.location.href = response.data.session_url;
+            } else {
+              throw new Error(response.data.message || "Failed to create Stripe session");
+            }
+          } catch (error) {
+            console.error("Stripe payment error:", error);
+            toast.error(error.message || "Payment initialization failed");
           }
           break;
         }

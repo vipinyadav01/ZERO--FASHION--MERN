@@ -22,9 +22,8 @@ const Order = () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await axios.post(
+            const response = await axios.get(
                 `${backendUrl}/api/order/list`,
-                {},
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -52,9 +51,9 @@ const Order = () => {
     const statusHandler = async (event, orderId) => {
         try {
             const token = sessionStorage.getItem("token");
-            const response = await axios.post(
-                `${backendUrl}/api/order/status`,
-                { orderId, status: event.target.value },
+            const response = await axios.put(
+                `${backendUrl}/api/order/status/${orderId}`,
+                { status: event.target.value },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

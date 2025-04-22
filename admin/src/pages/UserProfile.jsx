@@ -1,52 +1,54 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import { UserCircle, Search, RefreshCw, AlertCircle, Loader2, Edit, Trash2 } from "lucide-react";
+import { backendUrl } from "../App";
 
 const UserDataDisplay = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [ concentrations, setConcentrations] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalAction, setModalAction] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [editForm, setEditForm] = useState({ name: "", email: "", isAdmin: false });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+  const navigate = useNavigate();
   const isMounted = useRef(true);
   const isFetching = useRef(false);
   const debounceTimeout = useRef(null);
 
   useEffect(() => {
-    console.log("Backend URL:", backendUrl);
     fetchUsers();
 
     return () => {
       isMounted.current = false;
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
     };
   }, []);
 
   const validateToken = () => {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    console.log("Retrieved token:", token || "No token found");
     if (!token) {
-      throw new Error("No authentication token found. Please log in as admin.");
+      throw new Error("Please log in as admin to access this page.");
     }
     return token;
   };
 
   const fetchUsers = async () => {
-    if (isFetching.current) {
-      console.log("Skipping fetch: already in progress");
-      return;
-    }
+    if (isFetching.current) return;
+
     isFetching.current = true;
     setLoading(true);
     setError(null);
+
     try {
       const token = validateToken();
-      console.log("Fetching users from:", `${backendUrl}/api/user/all`, "Token:", token);
       const response = await axios.get(`${backendUrl}/api/user/all`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -54,72 +56,66 @@ const UserDataDisplay = () => {
         },
       });
 
+      if (!isMounted.current) return;
+
       if (response.data.success && Array.isArray(response.data.users)) {
-        if (isMounted.current) {
-          setUsers(response.data.users);
-        }
+        setUsers(response.data.users);
       } else {
         throw new Error("Unexpected response format from server.");
       }
     } catch (err) {
-      console.error("Fetch users error:", err.response?.data || err.message);
-      if (isMounted.current) {
-        handleError(err);
+      if (!isMounted.current) return;
+      const status = err.response?.status;
+      const message = err.response?.data?.message || err.message;
+      setError(
+        status === 403
+          ? "Access denied: Admin privileges required."
+          : status === 401
+          ? "Unauthorized: Please log in as admin."
+          : message
+      );
+      toast.error(message);
+      if (status === 401 || status === 403) {
+        if (logout) logout();
+        navigate("/admin/login");
       }
     } finally {
-      if (isMounted.current) {
-        setLoading(false);
-      }
+      if (isMounted.current) setLoading(false);
       isFetching.current = false;
     }
   };
 
-  const handleError = (err) => {
-    const status = err.response?.status;
-    const message = err.response?.data?.message || err.message;
-    setError(
-      status === 403
-        ? "Access denied: Admin privileges required. Please log in as admin."
-        : status === 401
-        ? "Unauthorized: Please log in as admin."
-        : message
-    );
-  };
-
-  const formatDate = (dateString) => {
-    return dateString
-      ? new Date(dateString).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : "N/A";
-  };
-
-  const openModal = (action, user) => {
-    setModalAction(action);
-    setSelectedUser(user);
-    if (action === "edit") {
-      setEditForm({ name: user.name || "", email: user.email || "", isAdmin: user.role === "admin" });
-    }
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setModalAction(null);
-    setSelectedUser(null);
-    setEditForm({ name: "", email: "", isAdmin: false });
+  const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   const handleEdit = async () => {
+    if (!selectedUser?._id) {
+      toast.error("Invalid user selected.");
+      return;
+    }
+
+    if (!editForm.name.trim()) {
+      toast.error("Name is required.");
+      return;
+    }
+
+    if (!validateEmail(editForm.email)) {
+      toast.error("Invalid email format.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const token = validateToken();
       const response = await axios.post(
         `${backendUrl}/api/user/update`,
-        { name: editForm.name, email: editForm.email },
+        {
+          userId: selectedUser._id,
+          name: editForm.name.trim(),
+          email: editForm.email.trim(),
+          role: editForm.isAdmin ? "admin" : "user",
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -127,19 +123,34 @@ const UserDataDisplay = () => {
           },
         }
       );
-      if (response.data.success && isMounted.current) {
+
+      if (!isMounted.current) return;
+
+      if (response.data.success) {
         setUsers(users.map((u) => (u._id === selectedUser._id ? response.data.user : u)));
+        toast.success("User updated successfully.");
         closeModal();
       }
     } catch (err) {
-      console.error("Edit user error:", err.response?.data || err.message);
-      if (isMounted.current) {
-        handleError(err);
+      if (!isMounted.current) return;
+      const message = err.response?.data?.message || "Failed to update user.";
+      toast.error(message);
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        if (logout) logout();
+        navigate("/admin/login");
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
+    if (!selectedUser?._id) {
+      toast.error("Invalid user selected.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const token = validateToken();
       const response = await axios.post(
@@ -152,25 +163,54 @@ const UserDataDisplay = () => {
           },
         }
       );
-      if (response.data.success && isMounted.current) {
+
+      if (!isMounted.current) return;
+
+      if (response.data.success) {
         setUsers(users.filter((u) => u._id !== selectedUser._id));
+        toast.success("User deleted successfully.");
         closeModal();
       }
     } catch (err) {
-      console.error("Delete user error:", err.response?.data || err.message);
-      if (isMounted.current) {
-        handleError(err);
+      if (!isMounted.current) return;
+      const message = err.response?.data?.message || "Failed to delete user.";
+      toast.error(message);
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        if (logout) logout();
+        navigate("/admin/login");
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleSearchChange = (value) => {
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current);
-    }
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     debounceTimeout.current = setTimeout(() => {
       setSearchTerm(value);
     }, 300);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalAction(null);
+    setSelectedUser(null);
+    setEditForm({ name: "", email: "", isAdmin: false });
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "Invalid Date";
+    }
   };
 
   const filteredUsers = users.filter(
@@ -201,9 +241,10 @@ const UserDataDisplay = () => {
               </div>
               <button
                 onClick={fetchUsers}
-                className="p-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-400 hover:text-orange-500 hover:border-orange-500 transition-all"
+                disabled={loading}
+                className="p-2 bg-gray-900 border border-gray-700 rounded-lg text-gray-400 hover:text-orange-500 hover:border-orange-500 transition-all disabled:opacity-50"
               >
-                <RefreshCw className="w-5 h-5" />
+                <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
               </button>
             </div>
           </div>
@@ -221,7 +262,7 @@ const UserDataDisplay = () => {
               <AlertCircle className="w-10 h-10 text-orange-500" />
               <p className="mt-3 text-orange-500 text-lg font-medium">{error}</p>
               <button
-                onClick={() => window.location.href = "/admin/login"}
+                onClick={() => navigate("/admin/login")}
                 className="mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
               >
                 Log In as Admin
@@ -275,13 +316,26 @@ const UserDataDisplay = () => {
                       <td className="px-4 py-4">
                         <div className="flex gap-2">
                           <button
-                            onClick={() => openModal("edit", user)}
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setEditForm({
+                                name: user.name || "",
+                                email: user.email || "",
+                                isAdmin: user.role === "admin",
+                              });
+                              setModalAction("edit");
+                              setIsModalOpen(true);
+                            }}
                             className="p-2 bg-gray-900 border border-gray-700 rounded-md text-gray-400 hover:text-orange-500 hover:border-orange-500 transition-colors"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => openModal("delete", user)}
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setModalAction("delete");
+                              setIsModalOpen(true);
+                            }}
                             className="p-2 bg-gray-900 border border-gray-700 rounded-md text-gray-400 hover:text-orange-500 hover:border-orange-500 transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -312,6 +366,7 @@ const UserDataDisplay = () => {
                       value={editForm.name}
                       onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                       className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500"
+                      disabled={isSubmitting}
                     />
                   </div>
                   <div>
@@ -321,6 +376,7 @@ const UserDataDisplay = () => {
                       value={editForm.email}
                       onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                       className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500"
+                      disabled={isSubmitting}
                     />
                   </div>
                   <div>
@@ -330,6 +386,7 @@ const UserDataDisplay = () => {
                         checked={editForm.isAdmin}
                         onChange={(e) => setEditForm({ ...editForm, isAdmin: e.target.checked })}
                         className="h-4 w-4 text-orange-500 focus:ring-orange-500 border-gray-700 rounded"
+                        disabled={isSubmitting}
                       />
                       Admin Role
                     </label>
@@ -338,14 +395,17 @@ const UserDataDisplay = () => {
                 <div className="flex justify-end gap-3 mt-6">
                   <button
                     onClick={closeModal}
-                    className="px-4 py-2 bg-gray-700 text-gray-400 rounded-lg hover:bg-gray-600 transition-colors"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 bg-gray-700 text-gray-400 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleEdit}
-                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center gap-2"
                   >
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                     Save
                   </button>
                 </div>
@@ -355,20 +415,22 @@ const UserDataDisplay = () => {
               <>
                 <h2 className="text-xl font-bold text-white mb-4">Delete User</h2>
                 <p className="text-gray-400 mb-6">
-                  Are you sure you want to delete {selectedUser?.name || "this user"}? This action
-                  cannot be undone.
+                  Are you sure you want to delete {selectedUser?.name || "this user"}? This action cannot be undone.
                 </p>
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={closeModal}
-                    className="px-4 py-2 bg-gray-700 text-gray-400 rounded-lg hover:bg-gray-600 transition-colors"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 bg-gray-700 text-gray-400 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                   >
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                     Delete
                   </button>
                 </div>
