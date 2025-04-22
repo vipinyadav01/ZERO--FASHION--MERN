@@ -18,8 +18,7 @@ const adminAuth = async (req, res, next) => {
       return res.status(403).json({ success: false, message: "Admin access required" });
     }
 
-    // Use the role confirmed from the database
-    req.user = { _id: user._id, role: user.role };
+    req.user = { _id: user._id, role: decoded.role };
     next();
   } catch (error) {
     console.error("Admin Auth Error:", error);
