@@ -3,15 +3,16 @@ import UserModel from "../models/userModel.js";
 import ProductModel from "../models/productModel.js";
 import Stripe from "stripe";
 import Razorpay from "razorpay";
+import crypto from "crypto";
 
 // Global variables
 const currency = "inr";
 const deliveryFee = 10;
 
-// Payment Gateway Initialization
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2022-08-01",
-});
+// Stripe instance
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+// Razorpay instance
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -20,7 +21,9 @@ const razorpayInstance = new Razorpay({
 // Place order using Cash on Delivery Method
 const placeOrder = async (req, res) => {
   try {
-    const { userId, items, amount, address } = req.body;
+    const { items, amount, address } = req.body;
+    const userId = req.user._id; 
+
     const orderData = {
       userId,
       items,
@@ -30,9 +33,16 @@ const placeOrder = async (req, res) => {
       payment: false,
       date: Date.now(),
     };
+
     const newOrder = new OrderModel(orderData);
     await newOrder.save();
-    await UserModel.findByIdAndUpdate(userId, { cartData: {} });
+
+    // Update user's orders and clear cart
+    await UserModel.findByIdAndUpdate(userId, {
+      $push: { orders: newOrder._id },
+      cartData: {},
+    });
+
     res.status(200).json({ success: true, message: "Order placed successfully" });
   } catch (error) {
     console.error("Error in placeOrder:", error);
@@ -43,8 +53,10 @@ const placeOrder = async (req, res) => {
 // Place order using Stripe Method
 const placeOrderStripe = async (req, res) => {
   try {
-    const { userId, items, amount, address } = req.body;
+    const { items, amount, address } = req.body;
+    const userId = req.user._id;
     const { origin } = req.headers;
+
     const orderData = {
       userId,
       items,
@@ -52,14 +64,16 @@ const placeOrderStripe = async (req, res) => {
       amount,
       paymentMethod: "Stripe",
       payment: false,
+      status: "Pending", // Initial status
       date: Date.now(),
     };
+
     const newOrder = new OrderModel(orderData);
     await newOrder.save();
 
     const line_items = items.map((item) => ({
       price_data: {
-        currency,
+        currency: "inr",
         product_data: { name: item.name, images: [item.image] },
         unit_amount: item.price * 100,
       },
@@ -67,9 +81,9 @@ const placeOrderStripe = async (req, res) => {
     }));
     line_items.push({
       price_data: {
-        currency,
+        currency: "inr",
         product_data: { name: "Delivery Fee" },
-        unit_amount: deliveryFee * 100,
+        unit_amount: 10 * 100,
       },
       quantity: 1,
     });
@@ -79,6 +93,14 @@ const placeOrderStripe = async (req, res) => {
       cancel_url: `${origin}/verify?success=false&orderId=${newOrder._id}`,
       line_items,
       mode: "payment",
+    });
+
+    newOrder.stripeSessionId = session.id;
+    await newOrder.save();
+
+    // Update user's orders
+    await UserModel.findByIdAndUpdate(userId, {
+      $push: { orders: newOrder._id },
     });
 
     res.status(200).json({ success: true, session_url: session.url });
@@ -91,18 +113,45 @@ const placeOrderStripe = async (req, res) => {
 // Verify Stripe Payment
 const verifyStripe = async (req, res) => {
   try {
-    const { orderId } = req.query;
-    const { success } = req.query;
-    const order = await OrderModel.findById(orderId);
-    if (success === "true") {
-      order.paymentStatus = "paid";
-      order.payment = true;
-      await order.save();
-    } else {
-      await OrderModel.findByIdAndDelete(orderId);
-      return res.status(200).json({ success: false, message: "Payment Failed" });
+    const { orderId, success } = req.query;
+    const userId = req.user._id;
+
+    // Find the order and verify ownership
+    const order = await OrderModel.findOne({ _id: orderId, userId });
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found or unauthorized" });
     }
-    res.status(200).json({ success: true });
+
+    if (success === "true") {
+      try {
+        const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
+
+        if (session.payment_status === "paid") {
+          order.payment = true;
+          order.status = "Order Placed"; 
+          order.stripePaymentIntentId = session.payment_intent;
+          await order.save();
+
+          // Clear user's cart
+          await UserModel.findByIdAndUpdate(userId, { cartData: {} });
+
+          return res.status(200).json({ success: true, message: "Payment successful" });
+        } else {
+          order.status = "Payment Failed";
+          await order.save();
+          return res.status(400).json({ success: false, message: "Payment incomplete" });
+        }
+      } catch (stripeError) {
+        console.error("Stripe session retrieval error:", stripeError);
+        order.status = "Payment Failed";
+        await order.save();
+        return res.status(400).json({ success: false, message: "Payment verification failed" });
+      }
+    } else {
+      order.status = "Cancelled";
+      await order.save();
+      return res.status(200).json({ success: false, message: "Payment cancelled" });
+    }
   } catch (error) {
     console.error("Error in verifyStripe:", error);
     res.status(500).json({ success: false, message: "Something went wrong" });
@@ -112,7 +161,9 @@ const verifyStripe = async (req, res) => {
 // Place order using RazorPay Method
 const placeOrderRazorPay = async (req, res) => {
   try {
-    const { userId, items, amount, address } = req.body;
+    const { items, amount, address } = req.body;
+    const userId = req.user._id; // From authUser middleware
+
     const orderData = {
       userId,
       items,
@@ -122,6 +173,7 @@ const placeOrderRazorPay = async (req, res) => {
       payment: false,
       date: Date.now(),
     };
+
     const newOrder = new OrderModel(orderData);
     await newOrder.save();
 
@@ -130,7 +182,16 @@ const placeOrderRazorPay = async (req, res) => {
       currency: currency.toUpperCase(),
       receipt: newOrder._id.toString(),
     };
+
     const order = await razorpayInstance.orders.create(options);
+    newOrder.razorpayOrderId = order.id;
+    await newOrder.save();
+
+    // Update user's orders
+    await UserModel.findByIdAndUpdate(userId, {
+      $push: { orders: newOrder._id },
+    });
+
     res.status(200).json({ success: true, order });
   } catch (error) {
     console.error("Error in placeOrderRazorPay:", error);
@@ -142,13 +203,27 @@ const placeOrderRazorPay = async (req, res) => {
 const verifyRazorPay = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-    const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
-    if (orderInfo.status === "paid") {
-      await OrderModel.findOneAndUpdate(
-        { _id: orderInfo.receipt },
-        { payment: true }
-      );
-      await UserModel.findByIdAndUpdate(orderInfo.userId, { cartData: {} });
+    const order = await OrderModel.findOne({ razorpayOrderId: razorpay_order_id });
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    const generatedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest("hex");
+
+    if (generatedSignature !== razorpay_signature) {
+      return res.status(400).json({ success: false, message: "Invalid signature" });
+    }
+
+    const payment = await razorpayInstance.payments.fetch(razorpay_payment_id);
+    if (payment.status === "captured") {
+      order.payment = true;
+      order.paymentStatus = "paid";
+      order.razorpayPaymentId = razorpay_payment_id;
+      await order.save();
+      await UserModel.findByIdAndUpdate(order.userId, { cartData: {} });
       res.status(200).json({ success: true, message: "Payment successful" });
     } else {
       res.status(400).json({ success: false, message: "Payment failed" });
@@ -172,9 +247,14 @@ const allOrders = async (req, res) => {
 // Fetch user orders
 const userOrders = async (req, res) => {
   try {
-    const { userId } = req.body;
-    const orders = await OrderModel.find({ userId });
-    res.status(200).json({ success: true, orders });
+    const user = await UserModel.findById(req.user._id).populate({
+      path: "orders",
+      select: "-stripeSessionId -stripePaymentIntentId -razorpayOrderId -razorpayPaymentId",
+    });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    res.status(200).json({ success: true, orders: user.orders });
   } catch (error) {
     console.error("Error in userOrders:", error);
     res.status(500).json({ success: false, message: "Something went wrong" });
@@ -197,7 +277,7 @@ const updateStatus = async (req, res) => {
 const cancelOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { userId } = req.body;
+    const userId = req.user._id;
 
     const order = await OrderModel.findOne({ _id: orderId, userId });
     if (!order) {
@@ -229,8 +309,11 @@ const cancelOrder = async (req, res) => {
     }
 
     if (order.payment) {
-      if (order.paymentMethod === "Stripe") await processStripeRefund(order);
-      if (order.paymentMethod === "RazorPay") await processRazorPayRefund(order);
+      if (order.paymentMethod === "Stripe") {
+        await processStripeRefund(order);
+      } else if (order.paymentMethod === "RazorPay") {
+        await processRazorPayRefund(order);
+      }
     }
 
     res.status(200).json({ success: true, message: "Order cancelled successfully" });
@@ -247,9 +330,9 @@ async function processStripeRefund(order) {
       payment_intent: order.stripePaymentIntentId,
       amount: Math.round(order.amount * 100),
     });
-    console.log("Stripe Refund:", refund);
+    return refund;
   } catch (error) {
-    console.error("Stripe Refund Error:", error);
+    throw new Error(`Stripe refund failed: ${error.message}`);
   }
 }
 
@@ -262,9 +345,9 @@ async function processRazorPayRefund(order) {
         speed: "optimum",
       }
     );
-    console.log("RazorPay Refund:", refund);
+    return refund;
   } catch (error) {
-    console.error("RazorPay Refund Error:", error);
+    throw new Error(`RazorPay refund failed: ${error.message}`);
   }
 }
 

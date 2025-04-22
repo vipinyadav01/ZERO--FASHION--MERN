@@ -1,13 +1,14 @@
 import express from "express";
 import {
-    loginUser,
-    registerUser,
-    adminLogin,
-    userDetails,
-    getAllUsers,
-    updateProfile,
-    deleteUser,
-    cancelOrder,
+  loginUser,
+  registerUser,
+  adminLogin,
+  userDetails,
+  getAllUsers,
+  updateProfile,
+  deleteUser,
+  cancelOrder,
+  getUserProfile, // New controller function
 } from "../controllers/userController.js";
 import authUser from "../middleware/auth.js";
 import adminAuth from "../middleware/adminAuth.js";
@@ -18,6 +19,7 @@ userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
 userRouter.post("/admin/login", adminLogin);
 userRouter.get("/user", authUser, userDetails);
+userRouter.get("/profile", authUser, getUserProfile); // New route
 userRouter.get("/all", adminAuth, getAllUsers);
 userRouter.post("/update", authUser, updateProfile);
 userRouter.post("/delete", adminAuth, deleteUser);

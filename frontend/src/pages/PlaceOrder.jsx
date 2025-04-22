@@ -8,25 +8,7 @@ import axios from "axios";
 
 function PlaceOrder() {
   const [method, setMethod] = useState("cod");
-  const {
-    navigate,
-    backendUrl,
-    token,
-    cartItems,
-    setCartItems,
-    getCartAmount,
-    delivery_fee,
-    products,
-  } = useContext(ShopContext) || {
-    navigate: () => {},
-    backendUrl: "",
-    token: null,
-    cartItems: {},
-    setCartItems: () => {},
-    getCartAmount: () => 0,
-    delivery_fee: 0,
-    products: [],
-  };
+  const { navigate, backendUrl, token, cartItems, setCartItems, getCartAmount, delivery_fee, products, logout } = useContext(ShopContext);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -42,16 +24,16 @@ function PlaceOrder() {
   const [isValidating, setIsValidating] = useState(true);
   const [cartError, setCartError] = useState(null);
 
-  // Load user data from localStorage on component mount if available
+  // Load user data from localStorage
   useEffect(() => {
-    const userData = localStorage.getItem('userData');
+    const userData = localStorage.getItem("userData");
     if (userData) {
       try {
         const parsedData = JSON.parse(userData);
-        setFormData(prevData => ({
+        setFormData((prevData) => ({
           ...prevData,
-          firstName: parsedData.firstName || parsedData.name?.split(' ')?.[0] || prevData.firstName,
-          lastName: parsedData.lastName || (parsedData.name?.split(' ')?.[1] || '') || prevData.lastName,
+          firstName: parsedData.firstName || parsedData.name?.split(" ")?.[0] || prevData.firstName,
+          lastName: parsedData.lastName || (parsedData.name?.split(" ")?.[1] || "") || prevData.lastName,
           email: parsedData.email || prevData.email,
           phone: parsedData.phone || prevData.phone,
         }));
@@ -61,10 +43,10 @@ function PlaceOrder() {
     }
   }, []);
 
-  // Add script loading for Razorpay
+  // Load Razorpay script
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
     document.body.appendChild(script);
 
@@ -75,96 +57,95 @@ function PlaceOrder() {
     };
   }, []);
 
-  // Validate cart items on component mount
+  // Validate cart items
   useEffect(() => {
     validateCartItems();
   }, [cartItems, products]);
 
-  // Get token from context or localStorage as fallback
-  const getAuthToken = () => {
-    // First try to get token from context
-    if (token) {
-      return token;
+  // Validate token
+  const validateToken = async () => {
+    if (!token) return false;
+    try {
+      await axios.get(`${backendUrl}/api/user/user`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return true;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        logout();
+      }
+      return false;
     }
-    
-    // If not in context, try localStorage
-    const localToken = localStorage.getItem('token');
-    if (localToken) {
-      return localToken;
-    }
-    
-    return null;
   };
 
-  // Function to validate cart items
-  const validateCartItems = () => {
+  // Get auth token
+  const getAuthToken = () => {
+    if (token) return token;
+    const localToken = localStorage.getItem("token");
+    return localToken || null;
+  };
+
+  // Validate cart items
+  const validateCartItems = async () => {
     setIsValidating(true);
     setCartError(null);
-    
-    // Check for authentication
+
     const authToken = getAuthToken();
-    if (!authToken) {
+    if (!authToken || !(await validateToken())) {
       setCartError("You need to be logged in to place an order");
       setIsValidating(false);
+      navigate("/login");
       return;
     }
-    
-    // Early return if products aren't loaded yet
+
     if (!products || products.length === 0) {
       setIsValidating(false);
       return;
     }
 
-    // Early return if cart is empty
     if (!cartItems || Object.keys(cartItems).length === 0) {
       setCartError("Your cart is empty");
       setIsValidating(false);
       return;
     }
-    
+
     try {
       const validItems = [];
-      
-      // Check if cartItems is the nested object structure from your Cart component
-      if (typeof cartItems === 'object' && !Array.isArray(cartItems)) {
+
+      if (typeof cartItems === "object" && !Array.isArray(cartItems)) {
         for (const itemId in cartItems) {
           if (cartItems[itemId]) {
-            // Find product data
-            const productData = products.find(product => product && product._id === itemId);
-            
+            const productData = products.find((product) => product && product._id === itemId);
+
             if (!productData) {
               setCartError("Some products in your cart are no longer available");
               setIsValidating(false);
               return;
             }
-            
-            // Check if cartItems has nested size structure
-            if (typeof cartItems[itemId] === 'object') {
-              // Process each size for this item
+
+            if (typeof cartItems[itemId] === "object") {
               for (const size in cartItems[itemId]) {
                 const quantity = cartItems[itemId][size];
-                
+
                 if (quantity > 0) {
-                  // Check if size is valid (assuming product has sizes array)
                   if (productData.sizes && !productData.sizes.includes(size)) {
                     setCartError(`Size ${size} for ${productData.name} is not available`);
                     setIsValidating(false);
                     return;
                   }
-                  
+
                   validItems.push({
                     id: itemId,
-                    _id: itemId, // Adding both formats for compatibility
+                    _id: itemId,
                     size: size,
                     quantity: quantity,
                     name: productData.name,
                     price: productData.price,
-                    image: productData.image || []
+                    image: productData.image || [],
                   });
                 }
               }
-            } else if (typeof cartItems[itemId] === 'number' && cartItems[itemId] > 0) {
-              // Direct quantity without size
+            } else if (typeof cartItems[itemId] === "number" && cartItems[itemId] > 0) {
               validItems.push({
                 id: itemId,
                 _id: itemId,
@@ -172,44 +153,44 @@ function PlaceOrder() {
                 quantity: cartItems[itemId],
                 name: productData.name,
                 price: productData.price,
-                image: productData.image || []
+                image: productData.image || [],
               });
             }
           }
         }
       } else if (Array.isArray(cartItems)) {
-        // Handle if cartItems is already an array
         for (const item of cartItems) {
-          const productData = products.find(product => product && 
-            (product._id === item.id || product._id === item._id));
-          
+          const productData = products.find(
+            (product) => product && (product._id === item.id || product._id === item._id)
+          );
+
           if (!productData) {
             setCartError("Some products in your cart are no longer available");
             setIsValidating(false);
             return;
           }
-          
+
           validItems.push({
             ...item,
             id: item.id || item._id,
             _id: item._id || item.id,
             name: productData.name,
             price: productData.price,
-            image: productData.image || []
+            image: productData.image || [],
           });
         }
       }
-      
+
       if (validItems.length === 0) {
         setCartError("Your cart is empty");
       }
-      
+
       setValidatedCartItems(validItems);
     } catch (error) {
       console.error("Error validating cart:", error);
       setCartError("There was an error processing your cart");
     }
-    
+
     setIsValidating(false);
   };
 
@@ -218,16 +199,21 @@ function PlaceOrder() {
     setFormData((data) => ({ ...data, [name]: value }));
   };
 
-  const initpay = (order) => {
-    // Check if Razorpay is loaded
+  const initpay = async (order) => {
     if (!window.Razorpay) {
       toast.error("Razorpay SDK failed to load");
       return;
     }
 
-    // Ensure order object has the required fields
     if (!order || !order.id || !order.amount || !order.currency) {
       toast.error("Invalid order data for payment");
+      return;
+    }
+
+    const authToken = getAuthToken();
+    if (!authToken || !(await validateToken())) {
+      toast.error("Authentication expired. Please log in again.");
+      logout();
       return;
     }
 
@@ -235,48 +221,48 @@ function PlaceOrder() {
       key: import.meta.env.VITE_RAZORPAY_KEY_ID || "",
       amount: order.amount,
       currency: order.currency || "INR",
-      name: "Order Payment",
+      name: "Zero Fashion",
       description: "Payment for order",
       order_id: order.id,
       handler: async (response) => {
         try {
-          const authToken = getAuthToken();
-          if (!authToken) {
-            toast.error("You need to be logged in to complete this payment");
-            navigate("/login");
-            return;
-          }
-          
           const { data } = await axios.post(
             `${backendUrl}/api/order/verifyRazorPay`,
             response,
-            { headers: { token: authToken } }
+            { headers: { Authorization: `Bearer ${authToken}` } }
           );
           if (data.success) {
-            navigate("/orders");
-            setCartItems([]);
+            setCartItems({});
+            navigate("/order");
             toast.success("Payment successful");
+          } else {
+            toast.error(data.message || "Payment verification failed");
           }
         } catch (error) {
           console.error("Payment verification error:", error);
-          toast.error(error.response?.data?.message || "Payment verification failed");
+          if (error.response?.status === 401) {
+            toast.error("Authentication failed. Please log in again.");
+            logout();
+          } else {
+            toast.error(error.response?.data?.message || "Payment verification failed");
+          }
         }
       },
       prefill: {
         email: formData.email || "",
-        contact: formData.phone || ""
+        contact: formData.phone || "",
       },
       notes: {
-        address: `${formData.street}, ${formData.city}, ${formData.state}, ${formData.country}`
+        address: `${formData.street}, ${formData.city}, ${formData.state}, ${formData.country}`,
       },
       theme: {
-        color: "#000000"
-      }
+        color: "#000000",
+      },
     };
-    
+
     try {
       const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', function (response) {
+      rzp.on("payment.failed", (response) => {
         toast.error(response.error?.description || "Payment failed");
       });
       rzp.open();
@@ -288,99 +274,95 @@ function PlaceOrder() {
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
-    
-    // Get auth token with fallback to localStorage
+
     const authToken = getAuthToken();
-    
-    // Check if user is authenticated
-    if (!authToken) {
-      toast.error("You need to be logged in to place an order");
-      navigate("/login");
+    if (!authToken || !(await validateToken())) {
+      toast.error("Please log in to place an order");
+      logout();
       return;
     }
-    
-    // Validate form data
-    if (!formData.firstName || !formData.lastName || !formData.email || 
-        !formData.street || !formData.city || !formData.state || 
+
+    if (!formData.firstName || !formData.lastName || !formData.email ||
+        !formData.street || !formData.city || !formData.state ||
         !formData.country || !formData.phone) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    // Check if cart has been validated
     if (isValidating) {
       toast.info("Please wait while we validate your cart");
       return;
     }
 
-    // Check if cart has errors
     if (cartError) {
       toast.error(cartError);
       return;
     }
 
-    // Check if cart is empty
     if (!validatedCartItems || validatedCartItems.length === 0) {
       toast.error("Your cart is empty");
       return;
     }
 
     try {
-      const cartTotal = typeof getCartAmount === 'function' ? getCartAmount() : 0;
+      const cartTotal = typeof getCartAmount === "function" ? getCartAmount() : 0;
       const deliveryFee = delivery_fee || 0;
 
-      let orderData = {
+      const orderData = {
         address: formData,
-        items: validatedCartItems,
+        items: validatedCartItems.map((item) => ({
+          productId: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image[0] || "",
+          size: item.size,
+        })),
         amount: cartTotal + deliveryFee,
-        paymentMethod: method
       };
-
-      console.log("Placing order with token:", authToken);
 
       switch (method) {
         case "cod": {
           const response = await axios.post(
             `${backendUrl}/api/order/place`,
             orderData,
-            { headers: { token: authToken } }
+            { headers: { Authorization: `Bearer ${authToken}` } }
           );
-          if (response.data && response.data.success) {
+          if (response.data.success) {
             toast.success("Order placed successfully");
-            setCartItems([]);
+            setCartItems({});
             navigate("/orders");
           } else {
-            toast.error(response.data?.message || "Order placement failed");
+            toast.error(response.data.message || "Order placement failed");
           }
           break;
         }
 
         case "stripe": {
-          const stripeResponse = await axios.post(
+          const response = await axios.post(
             `${backendUrl}/api/order/stripe`,
             orderData,
-            { headers: { token: authToken } }
+            { headers: { Authorization: `Bearer ${authToken}` } }
           );
-          if (stripeResponse.data && stripeResponse.data.success) {
-            toast.success("Order placed successfully");
-            setCartItems([]);
-            navigate("/orders");
+          if (response.data.success) {
+            const { session_url } = response.data;
+            window.location.href = session_url;
           } else {
-            toast.error(stripeResponse.data?.message || "Order placement failed");
+            toast.error(response.data.message || "Order placement failed");
           }
           break;
         }
 
         case "razorpay": {
-          const razorpayResponse = await axios.post(
+          const response = await axios.post(
             `${backendUrl}/api/order/razorpay`,
             orderData,
-            { headers: { token: authToken } }
+            { headers: { Authorization: `Bearer ${authToken}` } }
           );
-          if (razorpayResponse.data && razorpayResponse.data.order) {
-            initpay(razorpayResponse.data.order);
+          if (response.data.success) {
+            initpay(response.data.order);
           } else {
-            toast.error(razorpayResponse.data?.message || "Failed to create payment order");
+            toast.error(response.data.message || "Failed to create payment order");
           }
           break;
         }
@@ -391,18 +373,15 @@ function PlaceOrder() {
       }
     } catch (error) {
       console.error("Error placing order:", error);
-      
-      // Check if the error is due to authentication
-      if (error.response && error.response.status === 401) {
+      if (error.response?.status === 401) {
         toast.error("Authentication failed. Please log in again.");
-        navigate("/login");
+        logout();
       } else {
         toast.error(error.response?.data?.message || "Something went wrong");
       }
     }
   };
 
-  // Show loading state while validating cart
   if (isValidating) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
@@ -412,7 +391,6 @@ function PlaceOrder() {
     );
   }
 
-  // Show error if cart has errors
   if (cartError) {
     return (
       <div className="pt-28 sm:pt-24 min-h-[80vh] border-t">
@@ -421,14 +399,14 @@ function PlaceOrder() {
           <p className="text-red-600 mb-4">{cartError}</p>
           <div className="flex gap-4">
             <button
-              onClick={() => navigate && navigate("/cart")}
+              onClick={() => navigate("/cart")}
               className="bg-black text-white px-6 py-2 hover:bg-gray-800 transition-colors"
             >
               Return to Cart
             </button>
             {cartError.includes("logged in") && (
               <button
-                onClick={() => navigate && navigate("/login")}
+                onClick={() => navigate("/login")}
                 className="bg-gray-800 text-white px-6 py-2 hover:bg-black transition-colors"
               >
                 Login
@@ -440,19 +418,18 @@ function PlaceOrder() {
     );
   }
 
-  // Show order items preview
   const OrderItemsPreview = () => (
     <div className="mb-6 mt-4">
       <h3 className="text-lg font-medium mb-3 pb-2 border-b">Order Items ({validatedCartItems.length})</h3>
       <div className="max-h-60 overflow-y-auto pr-2">
         {validatedCartItems.map((item, index) => (
           <div key={`${item._id}-${item.size}-${index}`} className="flex items-center gap-3 py-2 border-b">
-            <img 
-              src={(item.image && item.image[0]) || (assets && assets.placeholder_image) || ""} 
-              alt={item.name || "Product"} 
+            <img
+              src={item.image[0] || assets?.placeholder_image || ""}
+              alt={item.name || "Product"}
               className="w-12 h-12 object-cover"
               onError={(e) => {
-                e.target.src = (assets && assets.placeholder_image) || "";
+                e.target.src = assets?.placeholder_image || "";
                 e.target.onerror = null;
               }}
             />
@@ -474,7 +451,6 @@ function PlaceOrder() {
       onSubmit={onSubmitHandler}
       className="flex flex-col sm:flex-row justify-between gap-8 pt-28 sm:pt-24 min-h-[80vh] border-t pb-12"
     >
-      {/* --------------------Left Side------------- */}
       <div className="flex flex-col gap-6 w-full sm:max-w-lg">
         <Title text1="DELIVERY" text2="INFORMATION" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -601,7 +577,6 @@ function PlaceOrder() {
         </div>
       </div>
 
-      {/* --------------------Right Side------------------- */}
       <div className="mt-8 sm:mt-0 w-full sm:max-w-md">
         <div className="bg-gray-50 border rounded-lg p-6 sticky top-24">
           <div className="mb-8">
@@ -611,20 +586,21 @@ function PlaceOrder() {
           </div>
           <div>
             <Title text1="PAYMENT" text2="METHOD" />
-            {/* --------------- PAYMENT Method Selection----------- */}
             <div className="flex flex-col gap-4 mt-4">
               <div
                 onClick={() => setMethod("stripe")}
                 className="payment-option bg-white p-3 border rounded-md flex items-center cursor-pointer transition-all hover:border-black"
               >
-                <div 
-                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${method === "stripe" ? "border-2 border-green-500" : "border-gray-300"}`}
+                <div
+                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                    method === "stripe" ? "border-2 border-green-500" : "border-gray-300"
+                  }`}
                 >
                   {method === "stripe" && <div className="w-3 h-3 rounded-full bg-green-500"></div>}
                 </div>
-                <img 
-                  className="h-6 mx-4" 
-                  src={(assets && assets.stripe_logo) || ""} 
+                <img
+                  className="h-6 mx-4"
+                  src={assets?.stripe_logo || ""}
                   alt="Stripe Logo"
                   onError={(e) => {
                     e.target.src = "";
@@ -637,14 +613,16 @@ function PlaceOrder() {
                 onClick={() => setMethod("razorpay")}
                 className="payment-option bg-white p-3 border rounded-md flex items-center cursor-pointer transition-all hover:border-black"
               >
-                <div 
-                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${method === "razorpay" ? "border-2 border-green-500" : "border-gray-300"}`}
+                <div
+                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                    method === "razorpay" ? "border-2 border-green-500" : "border-gray-300"
+                  }`}
                 >
                   {method === "razorpay" && <div className="w-3 h-3 rounded-full bg-green-500"></div>}
                 </div>
-                <img 
-                  className="h-6 mx-4" 
-                  src={(assets && assets.razorpay_logo) || ""} 
+                <img
+                  className="h-6 mx-4"
+                  src={assets?.razorpay_logo || ""}
                   alt="Razorpay Logo"
                   onError={(e) => {
                     e.target.src = "";
@@ -657,14 +635,14 @@ function PlaceOrder() {
                 onClick={() => setMethod("cod")}
                 className="payment-option bg-white p-3 border rounded-md flex items-center cursor-pointer transition-all hover:border-black"
               >
-                <div 
-                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${method === "cod" ? "border-2 border-green-500" : "border-gray-300"}`}
+                <div
+                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                    method === "cod" ? "border-2 border-green-500" : "border-gray-300"
+                  }`}
                 >
                   {method === "cod" && <div className="w-3 h-3 rounded-full bg-green-500"></div>}
                 </div>
-                <p className="text-gray-700 font-medium mx-4">
-                  CASH ON DELIVERY
-                </p>
+                <p className="text-gray-700 font-medium mx-4">CASH ON DELIVERY</p>
               </div>
             </div>
             <div className="w-full flex flex-col gap-3 mt-8">
@@ -676,7 +654,7 @@ function PlaceOrder() {
               </button>
               <button
                 type="button"
-                onClick={() => navigate && navigate("/cart")}
+                onClick={() => navigate("/cart")}
                 className="border border-black text-black text-sm px-8 py-3 w-full hover:bg-gray-100 transition-colors rounded"
               >
                 RETURN TO CART
