@@ -420,12 +420,6 @@ const Navbar = () => {
             <span className="text-xs mt-1">Contact</span>
           </Link>
         </div>
-
-        <div className="flex items-center px-4 py-2 bg-white text-gray-700 border-t border-gray-200">
-          <Home className="w-4 h-4 text-black mr-2" />
-          <span className="text-sm font-medium truncate">GLA UNIVERSITY MATHURA, MAIN CAN...</span>
-          <ChevronRight className="w-4 h-4 ml-auto text-gray-400" />
-        </div>
       </div>
 
       {showSearchBar && (
