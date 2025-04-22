@@ -22,7 +22,7 @@ const razorpayInstance = new Razorpay({
 const placeOrder = async (req, res) => {
   try {
     const { items, amount, address } = req.body;
-    const userId = req.user._id; 
+    const userId = req.user._id;
 
     const orderData = {
       userId,
@@ -72,7 +72,7 @@ const placeOrderStripe = async (req, res) => {
       amount,
       paymentMethod: "Stripe",
       payment: false,
-      status: "Pending",
+      status: "Pending", // Initial status
       date: Date.now(),
     };
 
@@ -82,7 +82,7 @@ const placeOrderStripe = async (req, res) => {
     // Create line items for Stripe checkout
     const line_items = items.map((item) => ({
       price_data: {
-        currency: currency, 
+        currency: currency,
         product_data: { 
           name: item.name,
           images: item.image ? [item.image] : [] 
@@ -103,6 +103,7 @@ const placeOrderStripe = async (req, res) => {
     });
 
     const session = await stripe.checkout.sessions.create({
+      customer_email: req.user.email,
       success_url: `${origin}/verify?success=true&orderId=${newOrder._id}`,
       cancel_url: `${origin}/verify?success=false&orderId=${newOrder._id}`,
       line_items,
@@ -116,6 +117,7 @@ const placeOrderStripe = async (req, res) => {
     newOrder.stripeSessionId = session.id;
     await newOrder.save();
 
+    // Update user's orders
     await UserModel.findByIdAndUpdate(userId, {
       $push: { orders: newOrder._id },
     });
@@ -142,6 +144,7 @@ const verifyStripe = async (req, res) => {
 
     const userId = req.user._id;
 
+    // Find the order and verify ownership
     if (!orderId) {
       return res.status(400).json({ 
         success: false, 
@@ -172,12 +175,8 @@ const verifyStripe = async (req, res) => {
           order.stripePaymentIntentId = session.payment_intent.id;
           await order.save();
 
-          await UserModel.findByIdAndUpdate(userId, { 
-            cartData: {},
-            $set: { 'orders.$[elem].payment': true }
-          }, {
-            arrayFilters: [{ 'elem._id': orderId }]
-          });
+          // Clear user's cart
+          await UserModel.findByIdAndUpdate(userId, { cartData: {} });
 
           return res.status(200).json({ 
             success: true, 
@@ -279,7 +278,7 @@ const verifyRazorPay = async (req, res) => {
     const payment = await razorpayInstance.payments.fetch(razorpay_payment_id);
     if (payment.status === "captured") {
       order.payment = true;
-      order.paymentStatus = "paid";
+      order.status = "Order Placed";
       order.razorpayPaymentId = razorpay_payment_id;
       await order.save();
       await UserModel.findByIdAndUpdate(order.userId, { cartData: {} });
@@ -335,8 +334,8 @@ const updateStatus = async (req, res) => {
 // Cancel Order
 const cancelOrder = async (req, res) => {
   try {
-    const userId = req.user._id;
     const { orderId } = req.params;
+    const userId = req.user._id;
 
     const order = await OrderModel.findOne({ _id: orderId, userId });
     if (!order) {
@@ -347,12 +346,52 @@ const cancelOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Cannot cancel delivered or already cancelled order" });
     }
 
+    const orderDate = new Date(order.date);
+    const currentDate = new Date();
+    const hoursSinceOrder = (currentDate - orderDate) / (1000 * 60 * 60);
+
+    if (hoursSinceOrder > 24) {
+      return res.status(400).json({
+        success: false,
+        message: "Order cannot be cancelled after 24 hours",
+      });
+    }
+
     order.status = "Cancelled";
     await order.save();
+
+    // Restore product stock
+    for (let item of order.items) {
+      await ProductModel.findByIdAndUpdate(item.productId, {
+        $inc: { stock: item.quantity },
+      });
+    }
+
+    // Process refunds for paid orders
+    if (order.payment) {
+      if (order.paymentMethod === "Stripe") {
+        await processStripeRefund(order);
+      } else if (order.paymentMethod === "RazorPay") {
+        await processRazorPayRefund(order);
+      }
+    }
 
     res.status(200).json({ success: true, message: "Order cancelled successfully" });
   } catch (error) {
     console.error("Error in cancelOrder:", error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
+  }
+};
+
+// List all orders with user details (Admin)
+const listOrders = async (req, res) => {
+  try {
+    const orders = await OrderModel.find()
+      .populate("userId", "name email")
+      .sort({ date: -1 });
+    res.status(200).json({ success: true, orders });
+  } catch (error) {
+    console.error("Error in listOrders:", error);
     res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
@@ -384,17 +423,6 @@ async function processRazorPayRefund(order) {
     throw new Error(`RazorPay refund failed: ${error.message}`);
   }
 }
-const listOrders = async (req, res) => {
-  try {
-    const orders = await OrderModel.find()
-      .populate("userId", "name email")
-      .sort({ date: -1 });
-    res.status(200).json({ success: true, orders });
-  } catch (error) {
-    console.error("Error in listOrders:", error);
-    res.status(500).json({ success: false, message: "Something went wrong" });
-  }
-};
 
 export {
   placeOrder,
@@ -407,4 +435,6 @@ export {
   verifyRazorPay,
   cancelOrder,
   listOrders,
+  processStripeRefund,
+  processRazorPayRefund,
 };
