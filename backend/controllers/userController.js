@@ -107,18 +107,15 @@ const adminLogin = async (req, res) => {
       return res.status(400).json({ success: false, message: "Email and password are required" });
     }
 
-    // Check .env credentials
-    if (
-      email !== process.env.ADMIN_EMAIL ||
-      !(await bcrypt.compare(password, process.env.ADMIN_PASSWORD))
-    ) {
+    // Check .env credentials (plaintext comparison)
+    if (email !== process.env.ADMIN_EMAIL || password !== process.env.ADMIN_PASSWORD) {
       return res.status(401).json({ success: false, message: "Invalid admin credentials" });
     }
 
     // Find or create admin user in UserModel for consistency
     let adminUser = await UserModel.findOne({ email });
     if (!adminUser) {
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10); // Hash for DB storage
       adminUser = new UserModel({
         name: "Admin",
         email,
