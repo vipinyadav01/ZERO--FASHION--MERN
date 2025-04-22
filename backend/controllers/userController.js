@@ -107,26 +107,40 @@ const adminLogin = async (req, res) => {
       return res.status(400).json({ success: false, message: "Email and password are required" });
     }
 
-    const user = await UserModel.findOne({ email, role: "admin" }).select("+password");
-    if (!user) {
+    // Check .env credentials
+    if (
+      email !== process.env.ADMIN_EMAIL ||
+      !(await bcrypt.compare(password, process.env.ADMIN_PASSWORD))
+    ) {
       return res.status(401).json({ success: false, message: "Invalid admin credentials" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Invalid admin credentials" });
+    // Find or create admin user in UserModel for consistency
+    let adminUser = await UserModel.findOne({ email });
+    if (!adminUser) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      adminUser = new UserModel({
+        name: "Admin",
+        email,
+        password: hashedPassword,
+        role: "admin",
+        isAdmin: true,
+      });
+      await adminUser.save();
+    } else if (adminUser.role !== "admin") {
+      return res.status(403).json({ success: false, message: "User is not an admin" });
     }
 
-    const token = createToken(user._id, user.role);
+    const token = createToken(adminUser._id, adminUser.role);
     res.status(200).json({
       success: true,
       token,
       user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        isAdmin: user.isAdmin,
+        _id: adminUser._id,
+        name: adminUser.name,
+        email: adminUser.email,
+        role: adminUser.role,
+        isAdmin: adminUser.isAdmin,
       },
     });
   } catch (error) {
@@ -326,6 +340,13 @@ const cancelOrder = async (req, res) => {
 
     if (["Delivered", "Cancelled"].includes(order.status)) {
       return res.status(400).json({ success: false, message: "Cannot cancel delivered or already cancelled order" });
+    }
+
+    // Restore stock
+    for (const item of order.items) {
+      await ProductModel.findByIdAndUpdate(item.productId, {
+        $inc: { stock: item.quantity },
+      });
     }
 
     order.status = "Cancelled";
