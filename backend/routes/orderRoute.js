@@ -20,7 +20,7 @@ orderRouter.post("/stripe", authUser, placeOrderStripe);
 orderRouter.post("/razorpay", authUser, placeOrderRazorPay);
 orderRouter.get("/verifyStripe", authUser, verifyStripe);
 orderRouter.post("/verifyRazorPay", authUser, verifyRazorPay);
-orderRouter.get("/userorders", authUser, userOrders);
+orderRouter.get("/userOrders", authUser, userOrders);
 orderRouter.put("/:orderId/cancel", authUser, cancelOrder);
 orderRouter.get("/list", adminAuth, listOrders);
 

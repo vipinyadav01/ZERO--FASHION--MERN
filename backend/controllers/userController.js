@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import UserModel from "../models/userModel.js";
 import OrderModel from "../models/orderModel.js";
+import { processStripeRefund, processRazorPayRefund } from "./orderController.js";
 
 // Create JWT token
 const createToken = (id, role = "user") => {
@@ -39,6 +40,7 @@ const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isAdmin: user.isAdmin,
       },
     });
   } catch (error) {
@@ -88,6 +90,7 @@ const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isAdmin: user.isAdmin,
       },
     });
   } catch (error) {
@@ -123,6 +126,7 @@ const adminLogin = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isAdmin: user.isAdmin,
       },
     });
   } catch (error) {
@@ -134,7 +138,7 @@ const adminLogin = async (req, res) => {
 // Get user details
 const userDetails = async (req, res) => {
   try {
-    const user = await UserModel.findById(req.user.id).select("-password");
+    const user = await UserModel.findById(req.user._id).select("-password");
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
@@ -145,6 +149,7 @@ const userDetails = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isAdmin: user.isAdmin,
         cartData: user.cartData,
       },
     });
@@ -157,11 +162,21 @@ const userDetails = async (req, res) => {
 // Get user profile
 const getUserProfile = async (req, res) => {
   try {
-    const user = await UserModel.findById(req.user.id).select("-password");
+    const user = await UserModel.findById(req.user._id).select("-password");
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
-    res.status(200).json({ success: true, user });
+    res.status(200).json({
+      success: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isAdmin: user.isAdmin,
+        cartData: user.cartData,
+      },
+    });
   } catch (error) {
     console.error("Error fetching user profile:", error);
     res.status(500).json({ success: false, message: "Something went wrong" });
@@ -185,13 +200,13 @@ const updateProfile = async (req, res) => {
     if (name) updateData.name = name;
     if (email) {
       const existingUser = await UserModel.findOne({ email });
-      if (existingUser && existingUser._id.toString() !== req.user.id) {
+      if (existingUser && existingUser._id.toString() !== req.user._id) {
         return res.status(400).json({ success: false, message: "Email already in use" });
       }
       updateData.email = email;
     }
 
-    const updatedUser = await UserModel.findByIdAndUpdate(req.user.id, updateData, {
+    const updatedUser = await UserModel.findByIdAndUpdate(req.user._id, updateData, {
       new: true,
       runValidators: true,
     }).select("-password");
@@ -298,26 +313,42 @@ const deleteUser = async (req, res) => {
 const cancelOrder = async (req, res) => {
   try {
     const { orderId } = req.body;
+    const userId = req.user._id;
+
     if (!orderId) {
       return res.status(400).json({ success: false, message: "Order ID is required" });
     }
 
-    const order = await OrderModel.findOne({ _id: orderId, userId: req.user.id });
+    const order = await OrderModel.findOne({ _id: orderId, userId });
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found or not authorized" });
     }
 
-    if (order.status === "Cancelled") {
-      return res.status(400).json({ success: false, message: "Order is already cancelled" });
+    if (["Delivered", "Cancelled"].includes(order.status)) {
+      return res.status(400).json({ success: false, message: "Cannot cancel delivered or already cancelled order" });
     }
 
     order.status = "Cancelled";
-    await order.save();
 
-    res.status(200).json({ success: true, order });
+    // Process refund if paid
+    if (order.payment) {
+      try {
+        if (order.paymentMethod === "Stripe" && order.stripePaymentIntentId) {
+          await processStripeRefund(order);
+        } else if (order.paymentMethod === "RazorPay" && order.razorpayPaymentId) {
+          await processRazorPayRefund(order);
+        }
+      } catch (refundError) {
+        console.error("Refund error:", refundError.message);
+        return res.status(400).json({ success: false, message: refundError.message });
+      }
+    }
+
+    await order.save();
+    res.status(200).json({ success: true, message: "Order cancelled successfully", order });
   } catch (error) {
     console.error("Cancel order error:", error.message);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
 

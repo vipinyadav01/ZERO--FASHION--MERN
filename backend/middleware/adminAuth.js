@@ -13,20 +13,15 @@ const adminAuth = async (req, res, next) => {
       return res.status(403).json({ success: false, message: "Admin access required" });
     }
 
-    // Validate user existence (skip for adminLogin token with id: "admin")
-    if (decoded.id !== "admin") {
-      const user = await UserModel.findById(decoded.id).select("_id role");
-      if (!user || user.role !== "admin") {
-        return res.status(403).json({ success: false, message: "Admin access required" });
-      }
-      req.user = { id: user._id, role: user.role };
-    } else {
-      req.user = decoded; // For adminLogin token
+    const user = await UserModel.findById(decoded.id).select("_id role");
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Admin access required" });
     }
 
+    req.user = { _id: user._id, role: decoded.role };
     next();
   } catch (error) {
-    console.error("Admin Auth Error:", error.message);
+    console.error("Admin Auth Error:", error);
     res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };

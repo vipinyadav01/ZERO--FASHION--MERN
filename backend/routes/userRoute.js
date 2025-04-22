@@ -6,7 +6,7 @@ import {
   userDetails,
   getAllUsers,
   updateProfile,
-  adminUpdateUser, 
+  adminUpdateUser,
   deleteUser,
   cancelOrder,
   getUserProfile,
@@ -23,7 +23,7 @@ userRouter.get("/user", authUser, userDetails);
 userRouter.get("/profile", authUser, getUserProfile);
 userRouter.get("/all", adminAuth, getAllUsers);
 userRouter.post("/update", authUser, updateProfile);
-userRouter.post("/admin-update", adminAuth, adminUpdateUser); 
+userRouter.post("/admin-update", adminAuth, adminUpdateUser);
 userRouter.post("/delete", adminAuth, deleteUser);
 userRouter.post("/cancel-order", authUser, cancelOrder);
 
