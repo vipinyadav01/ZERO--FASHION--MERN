@@ -54,7 +54,7 @@ const Orders = () => {
         setLoading(false);
         return;
       }
-      const response = await axios.get(`${backendUrl}/api/order/userorders`, {
+      const response = await axios.get(`${backendUrl}/api/order/userOrders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = response.data;
