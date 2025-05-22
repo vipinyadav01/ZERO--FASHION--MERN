@@ -8,6 +8,8 @@ import {
     ChevronLeft,
     LayoutDashboard,
     Users,
+    Settings,
+    HelpCircle
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -34,11 +36,22 @@ const Sidebar = () => {
     }, [isCollapsed]);
 
     const toggleSidebar = () => {
+        // Explicitly set isHovered to false when collapsing to prevent expanded state
+        setIsHovered(false);
         setIsCollapsed(prev => !prev);
     };
 
-    const handleMouseEnter = () => isCollapsed && setIsHovered(true);
-    const handleMouseLeave = () => isCollapsed && setIsHovered(false);
+    const handleMouseEnter = () => {
+        if (isCollapsed) {
+            setIsHovered(true);
+        }
+    };
+    
+    const handleMouseLeave = () => {
+        if (isCollapsed) {
+            setIsHovered(false);
+        }
+    };
 
     const navItems = [
         { to: "/dashboard", icon: LayoutDashboard, text: "Dashboard" },
@@ -46,7 +59,6 @@ const Sidebar = () => {
         { to: "/add", icon: PlusCircle, text: "Add Items" },
         { to: "/list", icon: ListTodo, text: "Inventory" },
         { to: "/orders", icon: ShoppingCart, text: "Orders" },
-        { to: "/UserProfile", icon: Users, text: "Users" },
     ];
 
     const isExpanded = !isCollapsed || isHovered;
@@ -59,76 +71,90 @@ const Sidebar = () => {
                 className={`
                     fixed inset-y-0 left-0 pt-16
                     ${isMobile ? "w-16" : isExpanded ? "w-64" : "w-16"}
-                    bg-gradient-to-b from-[#1a1a1a] to-[#131313]
-                    text-white shadow-2xl
+                    bg-slate-800 border-r border-slate-700
+                    text-white shadow-xl
                     transition-all duration-300 ease-in-out
                     z-40 flex flex-col
-                    ${isMobile ? "" : "md:hover:w-64 group"}
+                    ${isMobile ? "" : "md:group"}
                 `}
                 onMouseEnter={isMobile ? undefined : handleMouseEnter}
                 onMouseLeave={isMobile ? undefined : handleMouseLeave}
             >
                 {/* Navigation */}
-                <nav className="flex-1 px-2 py-6 space-y-1 overflow-y-auto scrollbar-thin 
-                    scrollbar-thumb-[#939393]/20 scrollbar-track-transparent">
-                    {navItems.map((item, index) => (
-                        <NavLink
-                            key={index}
-                            to={item.to}
-                            className={({ isActive }) => `
-                                flex items-center px-3 py-3 rounded-xl
-                                transition-all duration-300 group/nav relative
-                                ${isActive
-                                    ? "bg-[#ff6200] text-white shadow-md"
-                                    : "text-[#939393] hover:bg-[#1a1a1a] hover:text-white"}
-                            `}
-                        >
-                            <div className="w-8 flex-shrink-0 flex justify-center">
-                                <item.icon className={`${isMobile ? "w-6 h-6" : "w-5 h-5"}`} />
-                            </div>
-                            {!isMobile && (
-                                <span className={`ml-3 font-medium text-sm whitespace-nowrap
-                                    ${isExpanded ? "opacity-100" : "opacity-0 w-0 invisible group-hover:visible group-hover:opacity-100 group-hover:w-auto"}`}>
+                <nav className="flex-1 px-2 py-5 space-y-2 overflow-y-auto scrollbar-thin 
+                    scrollbar-thumb-slate-600 scrollbar-track-transparent">
+                    {navItems.map((item, index) => {
+                        return (
+                            <NavLink
+                                key={index}
+                                to={item.to}
+                                className={({ isActive }) => `
+                                    flex items-center gap-3 px-4 py-3 rounded-2xl
+                                    transition-all duration-300 group/nav relative
+                                    hover:bg-slate-700/50
+                                    ${isActive
+                                        ? "bg-gradient-to-r from-indigo-600/80 to-purple-600/80 text-white shadow-xl"
+                                        : "text-slate-300 hover:text-white"}
+                                `}
+                            >
+                                <div className="w-6 flex-shrink-0 flex justify-center opacity-80 group-hover/nav:opacity-100">
+                                    <item.icon className={`${isMobile ? "w-6 h-6" : "w-5 h-5"}`} />
+                                </div>
+                                <span 
+                                    className={`
+                                        font-medium text-sm whitespace-nowrap
+                                        transition-all duration-300
+                                        ${isExpanded 
+                                            ? "opacity-100 max-w-full" 
+                                            : "opacity-0 max-w-0 overflow-hidden group-hover:opacity-100 group-hover:max-w-full"}
+                                    `}
+                                >
                                     {item.text}
                                 </span>
-                            )}
-                            {!isMobile && isCollapsed && (
-                                <div className="absolute left-full ml-2 px-2 py-1 bg-[#1a1a1a]
-                                    rounded-md opacity-0 invisible group-hover/nav:visible group-hover/nav:opacity-100 transition-all duration-200
-                                    shadow-lg text-xs whitespace-nowrap z-50">
-                                    {item.text}
-                                </div>
-                            )}
-                        </NavLink>
-                    ))}
+                                {!isMobile && isCollapsed && (
+                                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-slate-800
+                                        rounded-lg opacity-0 invisible group-hover/nav:visible group-hover/nav:opacity-100 
+                                        transition-all duration-250 ease-out
+                                        shadow-lg text-xs whitespace-nowrap z-50 border border-slate-700">
+                                        {item.text}
+                                    </div>
+                                )}
+                            </NavLink>
+                        );
+                    })}
                 </nav>
 
                 {/* User Profile Section (Hidden on Mobile) */}
                 {!isMobile && (
-                    <div className={`p-3 mb-2 mt-auto border-t border-[#939393]/10 backdrop-blur-sm
-                        ${isExpanded ? "block" : "hidden group-hover:block"}
-                        transition-all duration-300 ease-in-out`}>
+                    <div className={`
+                        p-3 mb-2 mt-auto border-t border-slate-700
+                        transition-all duration-300 ease-in-out
+                        ${isExpanded ? "opacity-100" : "opacity-0 group-hover:opacity-100"} 
+                    `}>
                         <div className="flex items-center gap-3 group/profile">
                             <div className="relative flex-shrink-0">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff6200] to-[#ff8534]
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600
                                     flex items-center justify-center
                                     transform group-hover/profile:scale-105 transition-all duration-300
-                                    shadow-lg shadow-[#ff6200]/20">
+                                    shadow-lg shadow-indigo-500/20">
                                     <span className="text-base font-bold text-white">
                                         {user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
                                     </span>
                                 </div>
                                 <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 
-                                    rounded-full border-2 border-[#1a1a1a]"></div>
+                                    rounded-full border-2 border-slate-800"></div>
                             </div>
-                            <div className="flex-1 min-w-0 group-hover/profile:translate-x-1 transition-transform duration-300">
+                            <div className={`
+                                flex-1 min-w-0 transition-all duration-300
+                                ${isExpanded ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
+                            `}>
                                 <h4 className="text-sm font-semibold text-white truncate tracking-wide">
                                     {user.name}
                                 </h4>
-                                <p className="text-xs font-medium text-[#939393] truncate">
+                                <p className="text-xs font-medium text-slate-400 truncate">
                                     {user.role}
                                 </p>
-                                <p className="text-xs text-[#939393]/80 truncate hover:text-[#ff6200] 
+                                <p className="text-xs text-slate-500 truncate hover:text-indigo-400 
                                     transition-colors duration-300">
                                     {user.email}
                                 </p>
@@ -142,12 +168,13 @@ const Sidebar = () => {
                     <button
                         onClick={toggleSidebar}
                         className="absolute -right-3 top-20
-                            bg-[#131313] 
-                            text-[#939393] hover:text-[#ff6200] rounded-full p-1.5
-                            border border-[#939393]/20 hover:border-[#ff6200]/50
-                            transition-all duration-300 shadow-md hidden md:block"
+                            bg-slate-700 
+                            text-slate-300 hover:text-indigo-400 rounded-full p-1.5
+                            border border-slate-600 hover:border-indigo-500
+                            transition-all duration-300 shadow-md hidden md:block z-50"
+                        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                     >
-                        <ChevronLeft className={`w-4 h-4 ${isCollapsed ? "rotate-180" : ""}`} />
+                        <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""}`} />
                     </button>
                 )}
             </aside>
