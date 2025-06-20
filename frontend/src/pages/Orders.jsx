@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useMemo } from "react";
+import  { useContext, useState, useEffect, useMemo } from "react";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import { useNavigate } from "react-router-dom";
@@ -129,7 +129,7 @@ const Orders = () => {
   };
 
   const handleTrackOrder = (item) => {
-    navigate("/track-order", {
+    navigate("/TrackOrder", {
       state: {
         orderDetails: {
           orderId: item.orderId,
