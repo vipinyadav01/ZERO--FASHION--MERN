@@ -1,12 +1,11 @@
-import  { useContext, useState, useEffect, useMemo } from "react";
+import { useContext, useState, useEffect, useMemo } from "react";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   FiPackage, FiTruck, FiCheck, FiX, FiAlertCircle,
   FiSearch, FiFilter, FiBox, FiShoppingBag, FiCalendar,
-  FiCreditCard, FiArrowUp, FiArrowDown
+  FiCreditCard, FiArrowUp, FiArrowDown, FiChevronDown
 } from "react-icons/fi";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -25,25 +24,25 @@ const Orders = () => {
   const navigate = useNavigate();
 
   const statusColors = {
-    "Pending": "bg-gray-100 text-gray-800",
-    "Order Placed": "bg-indigo-100 text-indigo-800",
-    "Packing": "bg-amber-100 text-amber-800",
-    "Shipped": "bg-blue-100 text-blue-800",
-    "Out for delivered": "bg-purple-100 text-purple-800",
-    "Delivered": "bg-emerald-100 text-emerald-800",
-    "Cancelled": "bg-rose-100 text-rose-800",
-    "Payment Failed": "bg-red-100 text-red-800",
+    "Pending": "bg-gray-100 text-gray-800 border-gray-300",
+    "Order Placed": "bg-gray-100 text-gray-800 border-gray-300",
+    "Packing": "bg-gray-100 text-gray-800 border-gray-300",
+    "Shipped": "bg-gray-100 text-gray-800 border-gray-300",
+    "Out for delivered": "bg-gray-100 text-gray-800 border-gray-300",
+    "Delivered": "bg-black text-white border-black",
+    "Cancelled": "bg-white text-black border-black",
+    "Payment Failed": "bg-white text-black border-black",
   };
 
   const statusIcons = {
-    "Pending": <FiAlertCircle className="w-5 h-5" />,
-    "Order Placed": <FiShoppingBag className="w-5 h-5" />,
-    "Packing": <FiBox className="w-5 h-5" />,
-    "Shipped": <FiPackage className="w-5 h-5" />,
-    "Out for delivered": <FiTruck className="w-5 h-5" />,
-    "Delivered": <FiCheck className="w-5 h-5" />,
-    "Cancelled": <FiX className="w-5 h-5" />,
-    "Payment Failed": <FiX className="w-5 h-5" />,
+    "Pending": <FiAlertCircle className="w-4 h-4" />,
+    "Order Placed": <FiShoppingBag className="w-4 h-4" />,
+    "Packing": <FiBox className="w-4 h-4" />,
+    "Shipped": <FiPackage className="w-4 h-4" />,
+    "Out for delivered": <FiTruck className="w-4 h-4" />,
+    "Delivered": <FiCheck className="w-4 h-4" />,
+    "Cancelled": <FiX className="w-4 h-4" />,
+    "Payment Failed": <FiX className="w-4 h-4" />,
   };
 
   const loadOrders = async () => {
@@ -185,124 +184,116 @@ const Orders = () => {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full"
-        >
-          <FiAlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-3">Login Required</h2>
+      <div className="min-h-screen flex items-center justify-center bg-white p-4">
+        <div className="text-center p-8 bg-white border border-black rounded-none max-w-md w-full">
+          <FiAlertCircle className="w-16 h-16 text-black mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-black mb-3">Login Required</h2>
           <p className="text-gray-600 mb-6">Please log in to view your orders.</p>
           <button
             onClick={() => navigate("/login")}
-            className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition duration-300"
+            className="px-6 py-3 bg-black text-white font-medium hover:bg-gray-800 transition duration-300"
           >
             Go to Login
           </button>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 mt-16 md:mt-24 mb-16">
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className={`fixed top-24 left-1/2 transform -translate-x-1/2 z-50 mb-4 p-4 rounded-xl shadow-lg ${
-              error.type === "success" ? "bg-emerald-50 border-emerald-500" : "bg-rose-50 border-rose-500"
-            } border flex items-center justify-between max-w-md w-full`}
+    <div className="min-h-screen bg-white py-10 md:py-20 px-4 md:px-8 max-w-7xl mx-auto">
+      {/* Error notification */}
+      {error && (
+        <div className={`fixed top-24 left-1/2 transform -translate-x-1/2 z-50 mb-4 p-4 border ${
+          error.type === "success" ? "border-green-500 bg-white" : "border-black bg-white"
+        } flex items-center justify-between max-w-md w-full`}>
+          <div className="flex items-center">
+            {error.type === "success" ? (
+              <FiCheck className="w-5 h-5 text-green-500 mr-2" />
+            ) : (
+              <FiAlertCircle className="w-5 h-5 text-black mr-2" />
+            )}
+            <span className={error.type === "success" ? "text-green-700" : "text-black"}>
+              {error.message}
+            </span>
+          </div>
+          <button
+            onClick={() => setError(null)}
+            className="text-gray-500 hover:text-black"
           >
-            <div className="flex items-center">
-              {error.type === "success" ? (
-                <FiCheck className="w-5 h-5 text-emerald-500 mr-2" />
-              ) : (
-                <FiAlertCircle className="w-5 h-5 text-rose-500 mr-2" />
-              )}
-              <span className={error.type === "success" ? "text-emerald-700" : "text-rose-700"}>
-                {error.message}
-              </span>
-            </div>
-            <button
-              onClick={() => setError(null)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <FiX className="w-5 h-5" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <FiX className="w-5 h-5" />
+          </button>
+        </div>
+      )}
 
-      <div className="mb-8">
+      <div className="mb-16">
         <Title text1={"MY"} text2={"ORDERS"} />
+        <div className="h-px bg-black w-20 mx-auto mt-4"></div>
       </div>
 
       {/* Search and filter bar */}
-      <div className="mb-6 bg-white rounded-xl shadow-md p-4">
-        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+      <div className="mb-12 border-b border-gray-200 pb-8">
+        <div className="flex flex-col md:flex-row md:items-center gap-6 mb-6">
           <div className="flex-1 relative">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search by order ID or product name"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-12 pr-4 py-4 border border-gray-300 focus:outline-none focus:border-black focus:ring-0 transition-colors"
             />
           </div>
 
           {/* Sort options */}
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               onClick={() => toggleSort("date")}
-              className={`px-4 py-3 rounded-xl flex items-center gap-2 text-sm font-medium ${
-                sortBy === "date" ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-700"
-              }`}
+              className={`px-5 py-4 flex items-center gap-2 text-sm font-medium border ${
+                sortBy === "date" ? "border-black bg-black text-white" : "border-gray-300 text-gray-700 hover:border-gray-500"
+              } transition-colors`}
             >
               <FiCalendar className="w-4 h-4" />
               Date
               {sortBy === "date" && (
-                sortOrder === "desc" ? <FiArrowDown className="w-4 h-4" /> : <FiArrowUp className="w-4 h-4" />
+                sortOrder === "desc" ? <FiArrowDown className="w-4 h-4 ml-1" /> : <FiArrowUp className="w-4 h-4 ml-1" />
               )}
             </button>
             <button
               onClick={() => toggleSort("price")}
-              className={`px-4 py-3 rounded-xl flex items-center gap-2 text-sm font-medium ${
-                sortBy === "price" ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-700"
-              }`}
+              className={`px-5 py-4 flex items-center gap-2 text-sm font-medium border ${
+                sortBy === "price" ? "border-black bg-black text-white" : "border-gray-300 text-gray-700 hover:border-gray-500"
+              } transition-colors`}
             >
               <FiCreditCard className="w-4 h-4" />
               Price
               {sortBy === "price" && (
-                sortOrder === "desc" ? <FiArrowDown className="w-4 h-4" /> : <FiArrowUp className="w-4 h-4" />
+                sortOrder === "desc" ? <FiArrowDown className="w-4 h-4 ml-1" /> : <FiArrowUp className="w-4 h-4 ml-1" />
               )}
             </button>
           </div>
 
           {/* Mobile filter toggle */}
           <button
-            className="md:hidden flex items-center justify-center px-4 py-3 bg-gray-100 rounded-xl text-gray-700 hover:bg-gray-200"
+            className="md:hidden flex items-center justify-center px-5 py-4 border border-gray-300 text-gray-700 hover:border-black transition-colors"
             onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
           >
             <FiFilter className="mr-2" />
             <span>Filter</span>
+            <FiChevronDown className={`ml-2 transform transition-transform ${mobileFiltersOpen ? 'rotate-180' : ''}`} />
           </button>
         </div>
 
         {/* Desktop filters */}
-        <div className="hidden md:flex flex-wrap gap-2">
+        <div className="hidden md:flex flex-wrap gap-3">
           {["all", "Pending", "Order Placed", "Packing", "Shipped", "Out for delivered", "Delivered", "Cancelled", "Payment Failed"].map((status) => (
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`px-5 py-2.5 text-sm font-medium transition-all border ${
                 filterStatus.toLowerCase() === status.toLowerCase()
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-gray-700 border-gray-300 hover:border-black"
               }`}
             >
               {status === "all" ? "All Orders" : status}
@@ -311,94 +302,89 @@ const Orders = () => {
         </div>
 
         {/* Mobile filters */}
-        <AnimatePresence>
-          {mobileFiltersOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="md:hidden mt-4 overflow-hidden"
-            >
-              <div className="grid grid-cols-2 gap-2">
-                {["all", "Pending", "Order Placed", "Packing", "Shipped", "Out for delivered", "Delivered", "Cancelled", "Payment Failed"].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => {
-                      setFilterStatus(status);
-                      setMobileFiltersOpen(false);
-                    }}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                      filterStatus.toLowerCase() === status.toLowerCase()
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {status === "all" ? "All Orders" : status}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {mobileFiltersOpen && (
+          <div className="md:hidden mt-4 grid grid-cols-2 gap-3">
+            {["all", "Pending", "Order Placed", "Packing", "Shipped", "Out for delivered", "Delivered", "Cancelled", "Payment Failed"].map((status) => (
+              <button
+                key={status}
+                onClick={() => {
+                  setFilterStatus(status);
+                  setMobileFiltersOpen(false);
+                }}
+                className={`px-4 py-2.5 text-sm font-medium transition-all border ${
+                  filterStatus.toLowerCase() === status.toLowerCase()
+                    ? "bg-black text-white border-black"
+                    : "bg-white text-gray-700 border-gray-300"
+                }`}
+              >
+                {status === "all" ? "All Orders" : status}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin">
-              <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-600 rounded-full animate-ping opacity-25"></div>
-            </div>
+          <div className="w-16 h-16 relative">
+            <div className="w-full h-full border-2 border-gray-200 rounded-full"></div>
+            <div className="w-full h-full border-t-2 border-black rounded-full absolute top-0 left-0 animate-spin"></div>
           </div>
         </div>
       ) : filteredAndSortedOrders.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-16 bg-white rounded-2xl shadow-md"
-        >
+        <div className="text-center py-20 border border-gray-200">
           <FiPackage className="w-20 h-20 text-gray-300 mx-auto mb-6" />
-          <h3 className="text-2xl font-bold text-gray-700 mb-3">No Orders Found</h3>
-          <p className="text-gray-500 mb-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-3">No Orders Found</h3>
+          <p className="text-gray-500 mb-8">
             {searchTerm || filterStatus !== "all"
               ? "Try adjusting your filters or search term"
               : "Start shopping to create your first order!"}
           </p>
           <button
             onClick={() => navigate("/collection")}
-            className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition duration-300"
+            className="px-8 py-4 bg-black text-white font-medium hover:bg-gray-800 transition-colors"
           >
             Browse Products
           </button>
-        </motion.div>
+        </div>
       ) : (
-        <div className="grid gap-6">
+        <div className="space-y-8">
           {filteredAndSortedOrders.map((item, index) => (
-            <motion.div
+            <div
               key={`${item.orderId}-${index}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+              className="border border-gray-200 overflow-hidden hover:border-black transition-colors duration-300"
             >
-              <div className="p-4 sm:p-6">
-                <div className="flex flex-col gap-6">
+              <div className="p-6 md:p-8">
+                <div className="flex flex-col gap-8">
                   {/* Order header with status */}
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-500">Order ID:</span>
-                      <span className="font-mono font-semibold">{item.orderId.slice(-8)}</span>
+                  <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-gray-100">
+                    <div>
+                      <span className="text-xs text-gray-500 uppercase tracking-wider">Order ID</span>
+                      <div className="font-mono font-medium text-lg">{item.orderId.slice(-8)}</div>
                     </div>
-                    <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${statusColors[item.status] || "bg-gray-100 text-gray-800"}`}>
-                      {statusIcons[item.status] || <FiPackage className="w-5 h-5" />}
-                      <span className="text-sm font-medium">{item.status}</span>
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-gray-500">
+                        <span className="block text-xs uppercase tracking-wider mb-1">Order Date</span>
+                        <span className="font-medium">
+                          {new Date(item.date).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </div>
+                      <div className={`flex items-center gap-2 px-4 py-2 border ${statusColors[item.status] || "bg-gray-100 text-gray-800 border-gray-300"}`}>
+                        {statusIcons[item.status] || <FiPackage className="w-4 h-4" />}
+                        <span className="text-sm font-medium">{item.status}</span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Product details */}
-                  <div className="flex flex-col sm:flex-row gap-6">
-                    <div className="relative group">
+                  <div className="flex flex-col sm:flex-row gap-8">
+                    <div className="bg-gray-50">
                       <img
-                        className="w-full sm:w-32 h-32 sm:h-32 object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
+                        className="w-full sm:w-32 h-32 object-cover object-center"
                         src={item.image || "/placeholder.svg"}
                         alt={item.name}
                         onError={(e) => {
@@ -406,56 +392,45 @@ const Orders = () => {
                           e.target.src = "/placeholder.svg";
                         }}
                       />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity duration-300 rounded-xl"></div>
                     </div>
 
-                    <div className="flex-1">
-                      <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">{item.name}</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Unit Price:</span>
-                          <span>
+                    <div className="flex-1 space-y-6">
+                      <div>
+                        <h3 className="text-xl font-medium text-black mb-2">{item.name}</h3>
+                        <p className="text-gray-500 text-sm">Size: {item.size}</p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4">
+                        <div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Unit Price</div>
+                          <div className="font-medium">
                             {currency}
                             {item.price.toFixed(2)}
-                          </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Quantity:</span>
-                          <span>{item.quantity}</span>
+                        <div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Quantity</div>
+                          <div className="font-medium">{item.quantity}</div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Total:</span>
-                          <span className="font-semibold text-gray-800">
+                        <div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Total</div>
+                          <div className="font-medium text-black">
                             {currency}
                             {item.totalPrice.toFixed(2)}
-                          </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Size:</span>
-                          <span>{item.size}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Payment:</span>
-                          <span>{item.paymentMethod}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">Date:</span>
-                          <span>
-                            {new Date(item.date).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </span>
+                        <div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Payment Method</div>
+                          <div className="font-medium">{item.paymentMethod}</div>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Action buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3 mt-2">
+                  <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-100">
                     <button
-                      className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-2"
+                      className="flex-1 px-6 py-3 bg-black text-white hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
                       onClick={() => handleTrackOrder(item)}
                     >
                       <FiTruck className="w-4 h-4" />
@@ -464,11 +439,11 @@ const Orders = () => {
 
                     {["Pending", "Order Placed", "Packing", "Shipped"].includes(item.status) && (
                       <button
-                        className={`flex-1 px-4 py-3 rounded-xl flex items-center justify-center gap-2 ${
+                        className={`flex-1 px-6 py-3 border border-black flex items-center justify-center gap-2 ${
                           cancellingOrder === item.orderId
-                            ? "bg-gray-300 cursor-not-allowed"
-                            : "bg-rose-600 hover:bg-rose-700 text-white"
-                        } transition duration-300`}
+                            ? "bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300"
+                            : "bg-white text-black hover:bg-black hover:text-white"
+                        } transition-colors`}
                         onClick={() => handleCancelOrder(item.orderId)}
                         disabled={cancellingOrder === item.orderId}
                       >
@@ -479,10 +454,22 @@ const Orders = () => {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
+
+      {/* Newsletter/CTA section */}
+      <div className="mt-20 py-16 border-t border-gray-200 text-center">
+        <h3 className="text-2xl font-bold mb-3">ZERO FASHION</h3>
+        <p className="text-gray-500 mb-8 max-w-md mx-auto">Premium fashion experience with minimalist design and quality materials.</p>
+        <button 
+          onClick={() => navigate("/collection")}
+          className="px-8 py-3 border border-black text-black hover:bg-black hover:text-white transition-colors font-medium"
+        >
+          Continue Shopping
+        </button>
+      </div>
     </div>
   );
 };

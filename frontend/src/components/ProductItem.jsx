@@ -1,55 +1,54 @@
 import React, { useContext } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 
 const ProductItem = ({ id, image, name, price, category, isNew, rating }) => {
   const { currency } = useContext(ShopContext);
 
   return (
-    <Link to={`/product/${id}`} className="block h-full">
-      <motion.div
-        className="group flex flex-col h-full overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:shadow-xl"
-        whileHover={{ y: -5, transition: { duration: 0.3 } }}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+    <Link to={`/product/${id}`} className="block h-full group">
+      <div className="flex flex-col h-full border border-gray-200 bg-white transition-all duration-300 hover:border-black">
         {/* Image Container */}
-        <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
+        <div className="relative aspect-square w-full overflow-hidden">
           <img
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             src={image?.[0] ?? "https://via.placeholder.com/300"}
             alt={name}
             loading="lazy"
           />
+          
           {/* Overlay */}
-          <div className="absolute inset-0 bg-black bg-opacity-0 transition-all duration-300 group-hover:bg-opacity-20"></div>
+          <div className="absolute inset-0 bg-black bg-opacity-0 transition-all duration-300 group-hover:bg-opacity-10"></div>
 
           {/* Tags */}
           {isNew && (
-            <span className="absolute left-2 top-2 sm:left-3 sm:top-3 rounded-full bg-blue-600 px-2 py-1 sm:px-3 sm:py-1 text-xs font-medium text-white">
-              New
-            </span>
+            <div className="absolute left-0 top-0 bg-black py-1 px-3">
+              <span className="text-xs uppercase tracking-wider font-medium text-white">
+                New
+              </span>
+            </div>
           )}
+          
           {category && (
-            <span className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 rounded-full bg-black/70 px-2 py-1 sm:px-3 sm:py-1 text-xs font-medium text-white">
-              {category}
-            </span>
+            <div className="absolute bottom-0 left-0 bg-white py-1 px-3">
+              <span className="text-xs uppercase tracking-wider font-medium text-black">
+                {category}
+              </span>
+            </div>
           )}
         </div>
 
         {/* Product Details */}
-        <div className="flex flex-1 flex-col p-3 sm:p-4">
-          <h3 className="mb-1 truncate text-sm sm:text-base font-semibold text-gray-900">
+        <div className="flex flex-1 flex-col p-4">
+          <h3 className="mb-1 text-sm font-medium text-black line-clamp-1">
             {name}
           </h3>
 
           {rating && (
-            <div className="mb-2 flex items-center">
-              <div className="flex text-yellow-400 text-xs sm:text-sm">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className={i < Math.floor(rating) ? "text-yellow-400" : "text-gray-300"}>
+            <div className="mb-3 flex items-center">
+              <div className="flex text-black text-xs">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <span key={i} className={`${i < Math.floor(rating) ? "text-black" : "text-gray-300"}`}>
                     ★
                   </span>
                 ))}
@@ -59,16 +58,19 @@ const ProductItem = ({ id, image, name, price, category, isNew, rating }) => {
           )}
 
           <div className="mt-auto flex items-center justify-between">
-            <p className="text-base sm:text-lg font-bold text-gray-900">
+            <p className="text-base font-bold text-black">
               {currency}
               {typeof price === 'number' ? price.toLocaleString() : price}
             </p>
-            <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
-              In Stock
-            </span>
+            
+            <div className="inline-block border-b border-black transition-all duration-200 group-hover:border-b-2">
+              <span className="text-xs uppercase tracking-wider font-medium">
+                View
+              </span>
+            </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </Link>
   );
 };

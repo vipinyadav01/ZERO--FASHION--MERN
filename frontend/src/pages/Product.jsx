@@ -5,14 +5,13 @@ import { useParams } from "react-router-dom"
 import { ShopContext } from "../context/ShopContext"
 import { assets } from "../assets/assets"
 import RelatedProducts from "../components/RelatedProducts"
-import { motion, AnimatePresence } from "framer-motion"
 
 const Product = () => {
   const { productId } = useParams()
   const { products, currency, addToCart } = useContext(ShopContext)
   const [productData, setProductData] = useState(null) 
   const [image, setImage] = useState("")
-  const [size, setSize] = useState("")
+  const [selectedSizes, setSelectedSizes] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("description")
 
@@ -32,192 +31,176 @@ const Product = () => {
     fetchProductData()
   }, [productId, products])
 
+  const handleSizeToggle = (size) => {
+    if (selectedSizes.includes(size)) {
+      setSelectedSizes(selectedSizes.filter(s => s !== size))
+    } else {
+      setSelectedSizes([...selectedSizes, size])
+    }
+  }
+
+  const handleAddToCart = () => {
+    selectedSizes.forEach(size => {
+      addToCart(productData._id, size)
+    })
+  }
+
   if (loading || !productData) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+        <div className="relative w-16 h-16">
+          <div className="absolute top-0 left-0 w-full h-full border-2 border-gray-200 rounded-full"></div>
+          <div className="absolute top-0 left-0 w-full h-full border-t-2 border-black rounded-full animate-spin"></div>
+        </div>
       </div>
     )
   }
 
   return (
-    <motion.div
-      className="container mx-auto px-4 py-12 mt-16 sm:mt-24"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+    <div className="container mx-auto px-4 py-16 mt-8 sm:mt-16">
+      <div className="flex flex-col lg:flex-row gap-12">
         {/*---------- product images ----------*/}
-        <motion.div
-          className="flex-1 flex flex-col-reverse gap-4 lg:flex-row"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto lg:max-h-[500px] gap-3 lg:w-[20%] w-full">
+        <div className="flex-1 flex flex-col-reverse gap-6 lg:flex-row">
+          <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto gap-4 lg:w-[20%] w-full no-scrollbar">
             {productData.image.map((item, index) => (
-              <motion.div
+              <div
                 key={index}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`cursor-pointer rounded-lg overflow-hidden border-2 ${image === item ? "border-gray-800" : "border-transparent"}`}
+                onClick={() => setImage(item)}
+                className={`cursor-pointer border ${image === item ? "border-black" : "border-transparent"} transition-all duration-300`}
               >
                 <img
-                  onClick={() => setImage(item)}
                   src={item || "/placeholder.svg"}
-                  className="w-20 h-20 lg:w-full lg:h-auto object-cover"
+                  className="w-24 h-24 lg:w-full lg:h-auto object-cover"
                   alt={`${productData.name} - view ${index + 1}`}
                 />
-              </motion.div>
+              </div>
             ))}
           </div>
 
-          <motion.div
-            className="w-full lg:w-[80%] rounded-xl overflow-hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <img src={image || "/placeholder.svg"} className="w-full h-auto object-cover" alt={productData.name} />
-          </motion.div>
-        </motion.div>
+          <div className="w-full lg:w-[80%] bg-gray-50">
+            <img 
+              src={image || "/placeholder.svg"} 
+              className="w-full h-auto object-contain mix-blend-multiply" 
+              alt={productData.name} 
+            />
+          </div>
+        </div>
 
         {/*---------- product info ----------*/}
-        <motion.div
-          className="flex-1"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{productData.name}</h1>
+        <div className="flex-1 flex flex-col">
+          <span className="text-xs uppercase tracking-widest text-gray-500 mb-2">
+            {productData.category} / {productData.subCategory}
+          </span>
+          
+          <h1 className="text-2xl sm:text-3xl font-medium text-black mb-4">{productData.name}</h1>
 
-          <div className="flex items-center gap-1 mb-4">
+          <div className="flex items-center gap-1 mb-6">
             {[...Array(5)].map((_, i) => (
-              <img key={i} src={i < 4 ? assets.star_icon : assets.star_dull_icon} alt="" className="w-4 h-4" />
+              <span key={i} className={`text-lg ${i < 4 ? "text-black" : "text-gray-300"}`}>★</span>
             ))}
             <p className="pl-2 text-sm text-gray-600">(199 reviews)</p>
           </div>
 
-          <p className="text-3xl font-bold text-gray-900 mb-6">
+          <p className="text-2xl font-medium text-black mb-8">
             {currency}
             {productData.price}
           </p>
 
-          <p className="text-gray-600 mb-8 leading-relaxed">{productData.description}</p>
+          <div className="h-px w-full bg-gray-200 my-6"></div>
+
+          <p className="text-gray-700 mb-8 leading-relaxed">{productData.description}</p>
 
           <div className="mb-8">
-            <p className="font-medium mb-3">Select Size</p>
+            <p className="font-medium mb-3 uppercase text-sm tracking-widest">Select Sizes</p>
             <div className="flex flex-wrap gap-3">
               {productData.sizes.map((item, index) => (
-                <motion.button
+                <button
                   key={index}
-                  onClick={() => setSize(item)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`py-2 px-4 rounded-lg transition-all duration-200 ${
-                    item === size ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  onClick={() => handleSizeToggle(item)}
+                  className={`h-12 w-12 flex items-center justify-center border-2 transition-all duration-200 ${
+                    selectedSizes.includes(item) 
+                      ? "border-black bg-black text-white" 
+                      : "border-gray-300 hover:border-gray-500"
                   }`}
                 >
                   {item}
-                </motion.button>
+                </button>
               ))}
             </div>
+            <p className="mt-2 text-xs text-gray-500">Select multiple sizes as needed</p>
           </div>
 
-          <motion.button
-            onClick={() => addToCart(productData._id, size)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            disabled={!size}
-            className={`w-full sm:w-auto px-8 py-3 rounded-lg font-medium transition-all duration-300 ${
-              !size
-                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                : "bg-black text-white hover:bg-gray-800 active:bg-gray-700"
+          <button
+            onClick={handleAddToCart}
+            disabled={selectedSizes.length === 0}
+            className={`w-full py-4 uppercase text-sm tracking-widest font-medium transition-all duration-300 ${
+              selectedSizes.length === 0
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                : "bg-black text-white hover:bg-gray-800"
             }`}
           >
-            {!size ? "SELECT A SIZE" : "ADD TO CART"}
-          </motion.button>
+            {selectedSizes.length === 0 ? "SELECT A SIZE" : `ADD ${selectedSizes.length} ITEM${selectedSizes.length > 1 ? 'S' : ''} TO CART`}
+          </button>
 
-          <hr className="my-8" />
+          <div className="h-px w-full bg-gray-200 my-8"></div>
 
-          <div className="space-y-3 text-sm text-gray-600">
-            <p className="flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-green-600"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              100% Original Product
-            </p>
-            <p className="flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-green-600"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Cash on delivery is available
-            </p>
-            <p className="flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-green-600"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Easy return and exchange policy within 7 days
-            </p>
+          <div className="space-y-4 text-sm text-gray-700">
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 flex-shrink-0 mt-0.5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span>100% Original Product</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 flex-shrink-0 mt-0.5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span>Cash on delivery is available</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 flex-shrink-0 mt-0.5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span>Easy return and exchange policy within 7 days</span>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/*----------- Description & Review----------*/}
-      <div className="mt-16">
-        <div className="flex border-b">
+      <div className="mt-20">
+        <div className="flex border-b border-gray-200">
           <button
-            className={`px-5 py-3 text-sm font-medium transition-colors ${activeTab === "description" ? "border-b-2 border-black" : "text-gray-500"}`}
+            className={`px-6 py-4 text-sm font-medium uppercase tracking-widest transition-colors ${
+              activeTab === "description" 
+                ? "border-b-2 border-black text-black" 
+                : "text-gray-500 hover:text-gray-800"
+            }`}
             onClick={() => setActiveTab("description")}
           >
             Description
           </button>
           <button
-            className={`px-5 py-3 text-sm font-medium transition-colors ${activeTab === "reviews" ? "border-b-2 border-black" : "text-gray-500"}`}
+            className={`px-6 py-4 text-sm font-medium uppercase tracking-widest transition-colors ${
+              activeTab === "reviews" 
+                ? "border-b-2 border-black text-black" 
+                : "text-gray-500 hover:text-gray-800"
+            }`}
             onClick={() => setActiveTab("reviews")}
           >
             Reviews (199)
           </button>
         </div>
 
-        <AnimatePresence mode="wait">
+        <div className="p-6">
           {activeTab === "description" && (
-            <motion.div
-              key="description"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="p-6 text-gray-600 space-y-4"
-            >
+            <div className="text-gray-700 space-y-4">
               <p>
                 An e-commerce website is a virtual store where customers can buy and sell products and services online
               </p>
@@ -225,28 +208,26 @@ const Product = () => {
                 An e-commerce website allows customers to browse products, place orders, and make payments. It also
                 allows businesses to process orders, manage shipping, and provide customer service
               </p>
-            </motion.div>
+            </div>
           )}
           {activeTab === "reviews" && (
-            <motion.div
-              key="reviews"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3 }}
-              className="p-6 text-gray-600"
-            >
-              <p className="text-center py-8">Reviews coming soon</p>
-            </motion.div>
+            <div className="text-gray-700">
+              <div className="flex flex-col items-center justify-center py-16">
+                <p className="text-lg mb-4">Reviews coming soon</p>
+                <div className="w-12 h-1 bg-black"></div>
+              </div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </div>
 
       {/*----------- Related Products----------*/}
-      <div className="mt-16">
+      <div className="mt-20">
+        <h2 className="text-2xl font-medium text-black mb-8">Related Products</h2>
         <RelatedProducts category={productData.category} subCategory={productData.subCategory} />
       </div>
-    </motion.div>
+    </div>
   )
 }
+
 export default Product
