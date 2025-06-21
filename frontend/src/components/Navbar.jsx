@@ -368,9 +368,9 @@ const Navbar = () => {
         <div className="flex items-center justify-between px-4 py-3 bg-white">
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-9 h-9 bg-black rounded-lg flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-sm">ZF</span>
+              <span className="text-white font-bold text-sm font-asterion">ZF</span>
             </div>
-            <span className="text-lg font-bold text-black">ZFashion</span>
+            <span className="text-lg font-bold text-black font-asterion">ZFashion</span>
           </Link>
           <div className="flex items-center space-x-4">
             <div
@@ -381,7 +381,7 @@ const Navbar = () => {
               <input
                 type="text"
                 placeholder="Search for Products"
-                className="bg-transparent text-sm outline-none placeholder-gray-500 text-gray-800 w-full"
+                className="bg-transparent text-sm outline-none placeholder-gray-500 text-gray-800 w-full font-asterion"
                 readOnly
               />
             </div>
@@ -389,7 +389,7 @@ const Navbar = () => {
               <Link to={isAuthenticated() ? "/cart" : "/login"} className="relative">
                 <ShoppingBag className="w-6 h-6 text-black" />
                 {isAuthenticated() && getCartCount() > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-asterion">
                     {getCartCount()}
                   </span>
                 )}
@@ -403,21 +403,21 @@ const Navbar = () => {
             className="flex flex-col items-center border border-black px-3 py-2 rounded-md hover:text-black transition-colors"
           >
             <UserCircle className="w-5 h-5 text-black" />
-            <span className="text-xs mt-1">Profile</span>
+            <span className="text-xs mt-1 font-asterion">Profile</span>
           </Link>
           <Link
             to={isAuthenticated() ? "/notifications" : "/login"}
             className="flex flex-col items-center border border-black px-3 py-2 rounded-md hover:text-black transition-colors"
           >
             <Bell className="w-5 h-5 text-black" />
-            <span className="text-xs mt-1">Notification</span>
+            <span className="text-xs mt-1 font-asterion">Notification</span>
           </Link>
           <Link
             to="/contact"
             className="flex flex-col items-center border border-black px-3 py-2 rounded-md hover:text-black transition-colors"
           >
             <Contact className="w-5 h-5 text-black" />
-            <span className="text-xs mt-1">Contact</span>
+            <span className="text-xs mt-1 font-asterion">Contact</span>
           </Link>
         </div>
       </div>
@@ -426,7 +426,7 @@ const Navbar = () => {
         <div className="fixed top-0 left-0 right-0 bottom-0 bg-black/70 z-50 md:hidden">
           <div className="bg-white p-4 rounded-b-lg">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="font-medium text-black">Search Products</h3>
+              <h3 className="font-medium text-black font-asterion">Search Products</h3>
               <button onClick={() => setShowSearchBar(false)} className="text-gray-600 hover:text-gray-800">
                 <X className="w-5 h-5" />
               </button>
@@ -451,7 +451,7 @@ const Navbar = () => {
             <Link to="/" className="flex items-center space-x-3 group">
               <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
                 <motion.span
-                  className="text-white font-bold text-xl"
+                  className="text-white font-bold text-xl font-asterion"
                   initial={{ opacity: 1 }}
                   whileHover={{ scale: 1.1 }}
                 >
@@ -459,8 +459,8 @@ const Navbar = () => {
                 </motion.span>
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold text-black tracking-wider">ZERO</span>
-                <span className="text-xs font-medium text-gray-600 tracking-widest">FASHION</span>
+                <span className="text-lg font-bold text-black tracking-wider font-asterion">ZERO</span>
+                <span className="text-xs font-medium text-gray-600 tracking-widest font-asterion">FASHION</span>
               </div>
             </Link>
             <div className="hidden md:flex items-center space-x-8">
@@ -502,14 +502,14 @@ const Navbar = () => {
                       className="absolute right-0 mt-4 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50"
                     >
                       <div className="px-4 py-4 border-b border-gray-100 bg-gray-50">
-                        <p className="text-sm font-medium text-gray-800">
+                        <p className="text-sm font-medium text-gray-800 font-asterion">
                           {userInfo?.username || userInfo?.name || "My Account"}
                         </p>
-                        {userInfo?.email && <p className="text-xs text-gray-600 mt-1 truncate">{userInfo.email}</p>}
+                        {userInfo?.email && <p className="text-xs text-gray-600 mt-1 truncate font-asterion">{userInfo.email}</p>}
                       </div>
                       <Link
                         to="/profile"
-                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-asterion"
                         onClick={() => setShowUserDropdown(false)}
                       >
                         <UserCircle className="w-4 h-4 mr-3 text-black" />
@@ -517,7 +517,7 @@ const Navbar = () => {
                       </Link>
                       <Link
                         to="/order"
-                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-asterion"
                         onClick={() => setShowUserDropdown(false)}
                       >
                         <ListOrdered className="w-4 h-4 mr-3 text-black" />
@@ -525,7 +525,7 @@ const Navbar = () => {
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
+                        className="w-full text-left flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200 font-asterion"
                       >
                         <LogOut className="w-4 h-4 mr-3" />
                         Logout
@@ -545,7 +545,7 @@ const Navbar = () => {
                 >
                   <ShoppingBag className="w-6 h-6" />
                   {isAuthenticated() && getCartCount() > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-black text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-black text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-asterion">
                       {getCartCount()}
                     </span>
                   )}
@@ -560,7 +560,7 @@ const Navbar = () => {
                       className="absolute right-0 mt-4 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50"
                     >
                       <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                        <p className="text-sm font-medium text-gray-800">Your Cart ({getCartCount()} items)</p>
+                        <p className="text-sm font-medium text-gray-800 font-asterion">Your Cart ({getCartCount()} items)</p>
                       </div>
                       {cartItems && cartItems.length > 0 ? (
                         <div className="max-h-72 overflow-y-auto">
@@ -568,7 +568,7 @@ const Navbar = () => {
                             <CartItem key={index} item={item} />
                           ))}
                           {cartItems.length > 3 && (
-                            <p className="text-xs text-center py-2 text-gray-600">
+                            <p className="text-xs text-center py-2 text-gray-600 font-asterion">
                               {cartItems.length - 3} more items in cart
                             </p>
                           )}
@@ -576,12 +576,12 @@ const Navbar = () => {
                       ) : (
                         <div className="p-6 text-center">
                           <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                          <p className="text-gray-600">Your cart is empty</p>
+                          <p className="text-gray-600 font-asterion">Your cart is empty</p>
                         </div>
                       )}
                       <Link
                         to="/cart"
-                        className="block px-4 py-3 text-sm text-center text-white bg-black hover:bg-gray-900 transition-colors duration-200"
+                        className="block px-4 py-3 text-sm text-center text-white bg-black hover:bg-gray-900 transition-colors duration-200 font-asterion"
                         onClick={() => setShowCartDropdown(false)}
                       >
                         View Full Cart
