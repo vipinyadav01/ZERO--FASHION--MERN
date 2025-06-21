@@ -1,5 +1,3 @@
-import mongoose from "mongoose";
-
 const orderSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   items: [
@@ -30,9 +28,13 @@ const orderSchema = new mongoose.Schema({
   },
   date: { type: Date, default: Date.now },
   payment: { type: Boolean, default: false },
-  paymentMethod: { type: String },
+  paymentMethod: {
+    type: String,
+    enum: ["RazorPay", "Stripe", "CashOnDelivery"],
+    required: true,
+  },
+
+  razorpayOrderId: { type: String },
+  razorpayPaymentId: { type: String },
+  stripePaymentIntentId: { type: String },
 });
-
-const OrderModel = mongoose.models.Order || mongoose.model("Order", orderSchema);
-
-export default OrderModel;
