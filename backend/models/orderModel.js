@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 const orderSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   items: [
@@ -34,7 +36,13 @@ const orderSchema = new mongoose.Schema({
     required: true,
   },
 
+  // 👇 These are optional and based on the payment method
   razorpayOrderId: { type: String },
   razorpayPaymentId: { type: String },
   stripePaymentIntentId: { type: String },
 });
+
+
+const OrderModel = mongoose.models.Order || mongoose.model("Order", orderSchema);
+
+export default OrderModel;
