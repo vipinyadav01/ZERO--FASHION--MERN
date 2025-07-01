@@ -16,6 +16,7 @@ import PlaceOrder from "./pages/PlaceOrder";
 import Orders from "./pages/Orders";
 import Verify from "./pages/Verify";
 import Profile from "./pages/profile";
+import EditProfile from "./pages/EditProfile";
 import TrackOrder from "./pages/TrackOrder";
 import PrivacyPolicy from "./pages/Privacy-Policy";
 import Wishlist from "./pages/Wishlist";
@@ -25,7 +26,6 @@ import Support from "./pages/Support";
 // Layout components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import SearchBar from "./components/SearchBar";
 
 const App = () => {
     const [toastPosition, setToastPosition] = useState("top-right");
@@ -63,9 +63,8 @@ const App = () => {
 
             <div className="flex-grow px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
                 <Navbar />
-                <SearchBar />
 
-                <main className="py-4">
+                <main className="sm:py-4">
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/collection" element={<Collection />} />
@@ -78,6 +77,7 @@ const App = () => {
                         <Route path="/order" element={<Orders />} />
                         <Route path="/verify" element={<Verify />} />
                         <Route path="/profile" element={<Profile />} />
+                        <Route path="/edit-profile" element={<EditProfile />} />
                         <Route path="/TrackOrder" element={<TrackOrder />} />
                         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                         <Route path="/wishlist" element={<Wishlist />} />
@@ -86,7 +86,7 @@ const App = () => {
                     </Routes>
                 </main>
 
-                <Footer />
+                <Footer  />
             </div>
 
             <SpeedInsights />

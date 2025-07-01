@@ -59,6 +59,7 @@ const Sidebar = () => {
         { to: "/add", icon: PlusCircle, text: "Add Items" },
         { to: "/list", icon: ListTodo, text: "Inventory" },
         { to: "/orders", icon: ShoppingCart, text: "Orders" },
+        { to: "/userprofile", icon: Users, text: "Users" },
     ];
 
     const isExpanded = !isCollapsed || isHovered;

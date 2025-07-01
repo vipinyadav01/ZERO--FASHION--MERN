@@ -18,15 +18,19 @@ import {
   ChevronRight,
   Camera,
   X,
+  Heart,
+  Info,
+  Phone,
 } from "lucide-react"
 import PropTypes from "prop-types"
 import { ShopContext } from "../context/ShopContext"
+import SearchBar from "./SearchBar"
 
 const animations = {
   dropdown: {
-    hidden: { opacity: 0, y: -10, scale: 0.95 },
+    hidden: { opacity: 0, y: 10, scale: 0.95 },
     visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2, ease: "easeOut" } },
-    exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.15 } },
+    exit: { opacity: 0, y: 10, scale: 0.95, transition: { duration: 0.15 } },
   },
   fadeIn: {
     hidden: { opacity: 0 },
@@ -35,6 +39,10 @@ const animations = {
   slideUp: {
     hidden: { y: 20, opacity: 0 },
     visible: { y: 0, opacity: 1, transition: { duration: 0.4 } },
+  },
+  dock: {
+    hidden: { y: 100, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },
   },
 }
 
@@ -69,7 +77,7 @@ NavbarLink.propTypes = {
   children: PropTypes.node.isRequired,
 }
 
-const SearchBar = ({ setShowSearchBar }) => {
+const DockSearchBar = ({ setShowSearchBar }) => {
   const [searchQuery, setSearchQuery] = useState("")
   const navigate = useNavigate()
 
@@ -106,7 +114,7 @@ const SearchBar = ({ setShowSearchBar }) => {
   )
 }
 
-SearchBar.propTypes = {
+DockSearchBar.propTypes = {
   setShowSearchBar: PropTypes.func.isRequired,
 }
 
@@ -119,19 +127,24 @@ const CartItem = memo(({ item }) => {
       animate="visible"
     >
       <div className="w-14 h-14 bg-gray-100 rounded-md mr-3 overflow-hidden">
-        {item.image && (
-          <img
-            src={item.image || "/placeholder.svg"}
-            alt={item.name || "Product"}
-            className="w-full h-full object-cover"
-          />
-        )}
+        <img
+          src={item.image || "/placeholder.svg"}
+          alt={item.name || "Product"}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.target.src = "/placeholder.svg"
+          }}
+        />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-800 truncate">{item.name || "Product"}</p>
-        <p className="text-xs text-gray-600">Qty: {item.quantity || 1}</p>
+        <div className="flex items-center gap-2 text-xs text-gray-600">
+          <span>Size: {item.size}</span>
+          <span>•</span>
+          <span>Qty: {item.quantity || 1}</span>
+        </div>
       </div>
-      <p className="text-sm font-medium text-black whitespace-nowrap">${item.price?.toFixed(2) || "0.00"}</p>
+      <p className="text-sm font-medium text-black whitespace-nowrap">₹{item.price?.toFixed(2) || "0.00"}</p>
     </motion.div>
   )
 })
@@ -174,35 +187,39 @@ const BottomNavigation = () => {
   )
 }
 
-const Navbar = () => {
-  const [scrolled, setScrolled] = useState(false)
+// Desktop Floating Dock Component
+const FloatingDock = () => {
   const [showUserDropdown, setShowUserDropdown] = useState(false)
   const [showCartDropdown, setShowCartDropdown] = useState(false)
-  const [showSearchBar, setShowSearchBar] = useState(false)
   const [userInfo, setUserInfo] = useState(null)
 
-  const { token, setToken, setShowSearch, getCartCount, setCartItems, cartItems, setUser, backendUrl } = useContext(
+  const { token, setToken, getCartCount, setCartItems, cartItems, setUser, backendUrl, setShowSearch, products, getCartAmount } = useContext(
     ShopContext,
   ) || {
     token: null,
     setToken: () => { },
-    setShowSearch: () => { },
     getCartCount: () => 0,
     setCartItems: () => { },
-    cartItems: [],
+    cartItems: {},
     setUser: () => { },
     backendUrl: "",
+    setShowSearch: () => { },
+    products: [],
+    getCartAmount: () => 0,
   }
 
   const navigate = useNavigate()
   const location = useLocation()
 
-  const navLinks = [
-    { path: "/", label: "Home" },
-    { path: "/collection", label: "Collection" },
-    { path: "/wishlist", label: "Wishlist" },
-    { path: "/about", label: "About" },
-    { path: "/contact", label: "Contact" },
+  const dockItems = [
+    { icon: Home, label: "Home", path: "/", type: "nav" },
+    { icon: Play, label: "Collection", path: "/collection", type: "nav" },
+    { icon: Heart, label: "Wishlist", path: "/wishlist", type: "nav" },
+    { icon: Info, label: "About", path: "/about", type: "nav" },
+    { icon: Phone, label: "Contact", path: "/contact", type: "nav" },
+    { icon: Search, label: "Search", path: "/search", type: "action", action: () => setShowSearch(true) },
+    { icon: User, label: "Profile", path: "/profile", type: "user" },
+    { icon: ShoppingBag, label: "Cart", path: "/cart", type: "cart" },
   ]
 
   const decodeToken = (token) => {
@@ -309,87 +326,313 @@ const Navbar = () => {
   }, [setToken, setUser, handleLogout])
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  useEffect(() => {
     const handleClickOutside = (event) => {
-      const navbar = document.querySelector("nav")
-      const searchBar = document.querySelector(".search-bar")
-      const userDropdown = document.querySelector(".user-dropdown")
-      const cartDropdown = document.querySelector(".cart-dropdown")
-      if (
-        navbar &&
-        (!searchBar || !searchBar.contains(event.target)) &&
-        (!userDropdown || !userDropdown.contains(event.target)) &&
-        (!cartDropdown || !cartDropdown.contains(event.target)) &&
-        !navbar.contains(event.target)
-      ) {
+      if (!event.target.closest('.dock-container')) {
         setShowUserDropdown(false)
         setShowCartDropdown(false)
-        setShowSearchBar(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  useEffect(() => {
-    if (setShowSearch) {
-      setShowSearch(location.pathname.includes("/search"))
-      return () => setShowSearch(false)
-    }
-  }, [location.pathname, setShowSearch])
-
-  const handleUserIconClick = () => {
-    if (token) {
-      setShowUserDropdown((prev) => !prev)
+  const handleItemClick = (item) => {
+    if (item.type === "action" && item.action) {
+      item.action()
+    } else if (item.type === "user") {
+      if (token) {
+        setShowUserDropdown((prev) => !prev)
+      } else {
+        navigate("/login")
+      }
+    } else if (item.type === "cart") {
+      if (getCartCount() > 0) {
+        setShowCartDropdown((prev) => !prev)
+      } else {
+        navigate("/cart")
+      }
     } else {
-      navigate("/login")
-    }
-  }
-
-  const handleCartIconClick = () => {
-    if (token) {
-      setShowCartDropdown((prev) => !prev)
-    } else {
-      navigate("/login")
+      navigate(item.path)
     }
   }
 
   const isAuthenticated = () => !!token && !!userInfo
 
+  const isActive = (path) => {
+    if (path === "/") return location.pathname === "/"
+    return location.pathname.startsWith(path)
+  }
+
+  // Get enriched cart items with product details
+  const getCartItemsForDisplay = () => {
+    if (!cartItems || !products || Object.keys(cartItems).length === 0) {
+      return []
+    }
+
+    const cartItemsArray = []
+    
+    for (const itemId in cartItems) {
+      const product = products.find(p => p._id === itemId)
+      if (product) {
+        const sizes = cartItems[itemId]
+        for (const size in sizes) {
+          const quantity = sizes[size]
+          if (quantity > 0) {
+            cartItemsArray.push({
+              _id: itemId,
+              name: product.name,
+              price: product.price,
+              image: product.image?.[0] || '/placeholder.svg',
+              size: size,
+              quantity: quantity
+            })
+          }
+        }
+      }
+    }
+    
+    return cartItemsArray
+  }
+
+  return (
+    <div className="dock-container hidden md:block">
+      {/* Floating Dock with Integrated Logo */}
+      <motion.div
+        className="fixed top-2 left-1/2 transform -translate-x-1/2 z-[60]"
+        variants={animations.dock}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className="bg-white/20 backdrop-blur-2xl rounded-3xl border border-white/30 shadow-2xl px-4 py-3">
+          <div className="flex items-center space-x-4">
+            {/* Brand Logo and Name */}
+            <Link to="/" className="flex items-center space-x-3 group">
+              <div className="w-10 h-10 bg-black/80 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-xl border border-white/10 group-hover:shadow-2xl transition-all duration-300">
+                <motion.span
+                  className="text-white font-bold text-lg"
+                  whileHover={{ scale: 1.1 }}
+                >
+                  ZF
+                </motion.span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-black tracking-wider">ZERO</span>
+                <span className="text-xs font-medium text-gray-600 tracking-widest">FASHION</span>
+              </div>
+            </Link>
+            
+            {/* Separator */}
+            <div className="w-px h-8 bg-white/30"></div>
+            
+                         {/* Navigation Icons */}
+            <div className="flex items-center space-x-2">
+              {dockItems.map((item) => (
+                <motion.button
+                  key={item.path}
+                  onClick={() => handleItemClick(item)}
+                  className={`relative group p-3 rounded-2xl transition-all duration-300 ${
+                    isActive(item.path) 
+                      ? "bg-black text-white shadow-lg" 
+                      : "bg-white/10 text-black hover:bg-white/20 hover:text-black"
+                  }`}
+                  whileHover={{ scale: 1.1, y: 5 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <item.icon className="w-6 h-6" />
+                  
+                  {/* Badge for cart count */}
+                  {item.type === "cart" && getCartCount() > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-medium shadow-lg">
+                      {getCartCount()}
+                    </span>
+                  )}
+
+                  {/* Tooltip */}
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 bg-black text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                    {item.label}
+                  </div>
+
+                  {/* Active indicator */}
+                  {isActive(item.path) && (
+                    <motion.div
+                      className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"
+                      layoutId="activeIndicator"
+                    />
+                  )}
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+                 {/* User Dropdown */}
+         <AnimatePresence>
+           {showUserDropdown && isAuthenticated() && (
+             <motion.div
+               variants={animations.dropdown}
+               initial="hidden"
+               animate="visible"
+               exit="exit"
+               className="absolute top-full right-0 mt-4 w-56 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden z-[70]"
+             >
+              <div className="px-4 py-4 border-b border-gray-100/50">
+                <p className="text-sm font-medium text-black">
+                  {userInfo?.username || userInfo?.name || "My Account"}
+                </p>
+                {userInfo?.email && <p className="text-xs text-gray-600 mt-1 truncate">{userInfo.email}</p>}
+              </div>
+              <Link
+                to="/profile"
+                className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white/50 transition-colors duration-200"
+                onClick={() => setShowUserDropdown(false)}
+              >
+                <UserCircle className="w-4 h-4 mr-3 text-black" />
+                My Profile
+              </Link>
+              <Link
+                to="/order"
+                className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-white/50 transition-colors duration-200"
+                onClick={() => setShowUserDropdown(false)}
+              >
+                <ListOrdered className="w-4 h-4 mr-3 text-black" />
+                Orders
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="w-full text-left flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50/50 transition-colors duration-200"
+              >
+                <LogOut className="w-4 h-4 mr-3" />
+                Logout
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+                 {/* Cart Dropdown */}
+         <AnimatePresence>
+           {showCartDropdown && (
+             <motion.div
+               variants={animations.dropdown}
+               initial="hidden"
+               animate="visible"
+               exit="exit"
+               className="absolute top-full right-0 mt-4 w-72 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden z-[70]"
+             >
+              <div className="px-4 py-3 border-b border-gray-100/50">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-black">Your Cart ({getCartCount()} items)</p>
+                  <p className="text-sm font-bold text-black">₹{getCartAmount()}</p>
+                </div>
+              </div>
+              {(() => {
+                const displayItems = getCartItemsForDisplay()
+                return displayItems.length > 0 ? (
+                  <div className="max-h-72 overflow-y-auto">
+                    {displayItems.slice(0, 3).map((item, index) => (
+                      <CartItem key={`${item._id}-${item.size}`} item={item} />
+                    ))}
+                    {displayItems.length > 3 && (
+                      <p className="text-xs text-center py-2 text-gray-600">
+                        {displayItems.length - 3} more items in cart
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-6 text-center">
+                    <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-600 mb-3">Your cart is empty</p>
+                    <button
+                      onClick={() => {
+                        setShowCartDropdown(false)
+                        navigate("/collection")
+                      }}
+                      className="px-4 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-800 transition-colors duration-200"
+                    >
+                      Start Shopping
+                    </button>
+                  </div>
+                )
+              })()}
+              <Link
+                to="/cart"
+                className="block px-4 py-3 text-sm text-center text-white bg-black hover:bg-gray-900 transition-colors duration-200"
+                onClick={() => setShowCartDropdown(false)}
+              >
+                View Full Cart
+              </Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+
+      </motion.div>
+    </div>
+  )
+}
+
+const Navbar = () => {
+  const [userInfo, setUserInfo] = useState(null)
+
+  const { token, setToken, setShowSearch, getCartCount, setCartItems, setUser, backendUrl } = useContext(
+    ShopContext,
+  ) || {
+    token: null,
+    setToken: () => { },
+    setShowSearch: () => { },
+    getCartCount: () => 0,
+    setCartItems: () => { },
+    setUser: () => { },
+    backendUrl: "",
+  }
+
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("token")
+    localStorage.removeItem("tokenExpiry")
+    localStorage.removeItem("userData")
+    setToken(null)
+    setUserInfo(null)
+    setUser?.(null)
+    setCartItems([])
+    navigate("/login")
+  }, [navigate, setToken, setCartItems, setUser])
+
+  const isAuthenticated = () => !!token && !!userInfo
+
   return (
     <>
-      {/* Mobile Header - */}
+      {/* Unified SearchBar for all devices */}
+      <SearchBar />
+      
+      {/* Mobile Header */}
       <div className="fixed top-0 left-0 right-0 bg-white z-50 md:hidden">
         <div className="flex items-center justify-between px-4 py-3 bg-white">
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-9 h-9 bg-black rounded-lg flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-sm font-asterion">ZF</span>
+              <span className="text-white font-bold text-sm">ZF</span>
             </div>
-            <span className="text-lg font-bold text-black font-asterion">ZFashion</span>
+            <span className="text-lg font-bold text-black">ZFashion</span>
           </Link>
           <div className="flex items-center space-x-4">
             <div
               className="relative flex items-center bg-gray-100 rounded-full px-3 py-2 w-40 border border-gray-200"
-              onClick={() => setShowSearchBar(true)}
+              onClick={() => setShowSearch(true)}
             >
               <Search className="w-4 h-4 text-gray-500 mr-2" />
               <input
                 type="text"
                 placeholder="Search for Products"
-                className="bg-transparent text-sm outline-none placeholder-gray-500 text-gray-800 w-full font-asterion"
+                className="bg-transparent text-sm outline-none placeholder-gray-500 text-gray-800 w-full"
                 readOnly
               />
             </div>
             <div className="relative">
-              <Link to={isAuthenticated() ? "/cart" : "/login"} className="relative">
+              <Link to="/cart" className="relative">
                 <ShoppingBag className="w-6 h-6 text-black" />
-                {isAuthenticated() && getCartCount() > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-asterion">
+                {getCartCount() > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                     {getCartCount()}
                   </span>
                 )}
@@ -403,215 +646,35 @@ const Navbar = () => {
             className="flex flex-col items-center border border-black px-3 py-2 rounded-md hover:text-black transition-colors"
           >
             <UserCircle className="w-5 h-5 text-black" />
-            <span className="text-xs mt-1 font-asterion">Profile</span>
+            <span className="text-xs mt-1">Profile</span>
           </Link>
           <Link
             to={isAuthenticated() ? "/notifications" : "/login"}
             className="flex flex-col items-center border border-black px-3 py-2 rounded-md hover:text-black transition-colors"
           >
             <Bell className="w-5 h-5 text-black" />
-            <span className="text-xs mt-1 font-asterion">Notification</span>
+            <span className="text-xs mt-1">Notification</span>
           </Link>
           <Link
             to="/contact"
             className="flex flex-col items-center border border-black px-3 py-2 rounded-md hover:text-black transition-colors"
           >
             <Contact className="w-5 h-5 text-black" />
-            <span className="text-xs mt-1 font-asterion">Contact</span>
+            <span className="text-xs mt-1">Contact</span>
           </Link>
         </div>
       </div>
 
-      {showSearchBar && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 bg-black/70 z-50 md:hidden">
-          <div className="bg-white p-4 rounded-b-lg">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-medium text-black font-asterion">Search Products</h3>
-              <button onClick={() => setShowSearchBar(false)} className="text-gray-600 hover:text-gray-800">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <SearchBar setShowSearchBar={setShowSearchBar} />
-          </div>
-        </div>
-      )}
+
 
       <div className="h-40 md:hidden"></div>
 
-      {/* Desktop Navigation */}
-      <motion.nav
-        className={`fixed top-0 left-0 right-0 bg-white z-50 transition-all duration-500 ${scrolled ? "shadow-xl py-2" : "py-5"
-          } hidden md:block`}
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      >
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-10">
-            <Link to="/" className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-                <motion.span
-                  className="text-white font-bold text-xl font-asterion"
-                  initial={{ opacity: 1 }}
-                  whileHover={{ scale: 1.1 }}
-                >
-                  ZF
-                </motion.span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold text-black tracking-wider font-asterion">ZERO</span>
-                <span className="text-xs font-medium text-gray-600 tracking-widest font-asterion">FASHION</span>
-              </div>
-            </Link>
-            <div className="hidden md:flex items-center space-x-8">
-              {navLinks.map(({ path, label }) => (
-                <NavbarLink key={path} to={path}>
-                  {label}
-                </NavbarLink>
-              ))}
-            </div>
-            <div className="flex items-center space-x-6">
-              <motion.button
-                onClick={() => setShowSearchBar(!showSearchBar)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="text-black hover:text-gray-800 transition-colors duration-300 relative"
-                aria-label="Search"
-              >
-                <Search className="w-6 h-6" />
-                <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-black group-hover:w-full transition-all duration-300"></span>
-              </motion.button>
-              <div className="relative user-dropdown">
-                <motion.button
-                  onClick={handleUserIconClick}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="text-black hover:text-gray-800 transition-colors duration-300"
-                  aria-label="User profile"
-                  aria-expanded={showUserDropdown}
-                >
-                  <User className="w-6 h-6" />
-                </motion.button>
-                <AnimatePresence>
-                  {showUserDropdown && isAuthenticated() && (
-                    <motion.div
-                      variants={animations.dropdown}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      className="absolute right-0 mt-4 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50"
-                    >
-                      <div className="px-4 py-4 border-b border-gray-100 bg-gray-50">
-                        <p className="text-sm font-medium text-gray-800 font-asterion">
-                          {userInfo?.username || userInfo?.name || "My Account"}
-                        </p>
-                        {userInfo?.email && <p className="text-xs text-gray-600 mt-1 truncate font-asterion">{userInfo.email}</p>}
-                      </div>
-                      <Link
-                        to="/profile"
-                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-asterion"
-                        onClick={() => setShowUserDropdown(false)}
-                      >
-                        <UserCircle className="w-4 h-4 mr-3 text-black" />
-                        My Profile
-                      </Link>
-                      <Link
-                        to="/order"
-                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-asterion"
-                        onClick={() => setShowUserDropdown(false)}
-                      >
-                        <ListOrdered className="w-4 h-4 mr-3 text-black" />
-                        Orders
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200 font-asterion"
-                      >
-                        <LogOut className="w-4 h-4 mr-3" />
-                        Logout
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-              <div className="relative cart-dropdown">
-                <motion.button
-                  onClick={handleCartIconClick}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="text-black hover:text-gray-800 transition-colors duration-300 relative"
-                  aria-label="Shopping cart"
-                  aria-expanded={showCartDropdown}
-                >
-                  <ShoppingBag className="w-6 h-6" />
-                  {isAuthenticated() && getCartCount() > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-black text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-asterion">
-                      {getCartCount()}
-                    </span>
-                  )}
-                </motion.button>
-                <AnimatePresence>
-                  {showCartDropdown && isAuthenticated() && (
-                    <motion.div
-                      variants={animations.dropdown}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      className="absolute right-0 mt-4 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50"
-                    >
-                      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                        <p className="text-sm font-medium text-gray-800 font-asterion">Your Cart ({getCartCount()} items)</p>
-                      </div>
-                      {cartItems && cartItems.length > 0 ? (
-                        <div className="max-h-72 overflow-y-auto">
-                          {cartItems.slice(0, 3).map((item, index) => (
-                            <CartItem key={index} item={item} />
-                          ))}
-                          {cartItems.length > 3 && (
-                            <p className="text-xs text-center py-2 text-gray-600 font-asterion">
-                              {cartItems.length - 3} more items in cart
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="p-6 text-center">
-                          <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                          <p className="text-gray-600 font-asterion">Your cart is empty</p>
-                        </div>
-                      )}
-                      <Link
-                        to="/cart"
-                        className="block px-4 py-3 text-sm text-center text-white bg-black hover:bg-gray-900 transition-colors duration-200 font-asterion"
-                        onClick={() => setShowCartDropdown(false)}
-                      >
-                        View Full Cart
-                      </Link>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.nav>
-      <AnimatePresence>
-        {showSearchBar && (
-          <motion.div
-            className="fixed top-16 left-0 right-0 bg-white z-40 shadow-xl search-bar hidden md:block"
-            variants={animations.dropdown}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <div className="max-w-2xl mx-auto py-4 px-6">
-              <SearchBar setShowSearchBar={setShowSearchBar} />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Desktop Floating Dock */}
+      <FloatingDock />
 
       <BottomNavigation />
     </>
   )
 }
+
 export default memo(Navbar)

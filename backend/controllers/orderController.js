@@ -12,6 +12,11 @@ const deliveryFee = 10;
 // Stripe instance
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+// Validate Stripe configuration
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error("STRIPE_SECRET_KEY is not configured");
+}
+
 // Razorpay instance
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -134,6 +139,13 @@ const verifyStripe = async (req, res) => {
   try {
     const { orderId, success } = req.query;
 
+    console.log("Verify Stripe Request:", {
+      orderId,
+      success,
+      userId: req.user?._id,
+      headers: req.headers.authorization ? 'Present' : 'Missing'
+    });
+
     // Check if user token exists
     if (!req.user) {
       return res.status(401).json({
@@ -144,11 +156,27 @@ const verifyStripe = async (req, res) => {
 
     const userId = req.user._id;
 
-    // Find the order and verify ownership
+    // Validate orderId
     if (!orderId) {
       return res.status(400).json({ 
         success: false, 
         message: "Order ID is required" 
+      });
+    }
+
+    // Validate orderId format (MongoDB ObjectId)
+    if (!orderId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid order ID format" 
+      });
+    }
+
+    // Validate success parameter
+    if (success !== "true" && success !== "false") {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid success parameter" 
       });
     }
 
@@ -160,14 +188,38 @@ const verifyStripe = async (req, res) => {
       });
     }
 
+    console.log("Order found:", {
+      orderId: order._id,
+      status: order.status,
+      paymentMethod: order.paymentMethod,
+      hasStripeSessionId: !!order.stripeSessionId,
+      payment: order.payment
+    });
+
     if (success === "true") {
+      // Check if order has Stripe session ID
+      if (!order.stripeSessionId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Order does not have a valid Stripe session ID" 
+        });
+      }
+
       try {
+        console.log("Retrieving Stripe session:", order.stripeSessionId);
+        
         const session = await stripe.checkout.sessions.retrieve(
           order.stripeSessionId,
           {
             expand: ['payment_intent']
           }
         );
+
+        console.log("Stripe session retrieved:", {
+          sessionId: session.id,
+          paymentStatus: session.payment_status,
+          paymentIntentId: session.payment_intent?.id
+        });
 
         if (session.payment_status === "paid") {
           order.payment = true;
@@ -190,15 +242,25 @@ const verifyStripe = async (req, res) => {
             message: "Payment incomplete" 
           });
         }
-      } catch (stripeError) {
-        console.error("Stripe session retrieval error:", stripeError);
-        order.status = "Payment Failed";
-        await order.save();
-        return res.status(400).json({ 
-          success: false, 
-          message: "Payment verification failed" 
-        });
-      }
+              } catch (stripeError) {
+          console.error("Stripe session retrieval error:", stripeError);
+          
+          let errorMessage = "Payment verification failed";
+          if (stripeError.code === 'resource_missing') {
+            errorMessage = "Stripe session not found. Payment may have expired.";
+          } else if (stripeError.type === 'StripeConnectionError') {
+            errorMessage = "Unable to connect to payment service. Please try again.";
+          } else if (stripeError.message) {
+            errorMessage = `Stripe error: ${stripeError.message}`;
+          }
+          
+          order.status = "Payment Failed";
+          await order.save();
+          return res.status(400).json({ 
+            success: false, 
+            message: errorMessage
+          });
+        }
     } else {
       order.status = "Cancelled";
       await order.save();
@@ -209,9 +271,23 @@ const verifyStripe = async (req, res) => {
     }
   } catch (error) {
     console.error("Error in verifyStripe:", error);
+    console.error("Error details:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    
+    // If it's a validation error from MongoDB
+    if (error.name === 'CastError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid order ID format" 
+      });
+    }
+    
     res.status(500).json({ 
       success: false, 
-      message: "Something went wrong" 
+      message: "Internal server error during payment verification" 
     });
   }
 };

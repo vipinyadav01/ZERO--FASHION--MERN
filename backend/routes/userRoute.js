@@ -13,6 +13,7 @@ import {
 } from "../controllers/userController.js";
 import authUser from "../middleware/auth.js";
 import adminAuth from "../middleware/adminAuth.js";
+import upload from "../middleware/multer.js";
 
 const userRouter = express.Router();
 
@@ -22,10 +23,9 @@ userRouter.post("/admin/login", adminLogin);
 userRouter.get("/user", authUser, userDetails);
 userRouter.get("/profile", authUser, getUserProfile);
 userRouter.get("/all", adminAuth, getAllUsers);
-userRouter.post("/update", authUser, updateProfile);
+userRouter.post("/update", authUser, upload.single("profileImage"), updateProfile);
 userRouter.post("/admin-update", adminAuth, adminUpdateUser);
 userRouter.post("/delete", adminAuth, deleteUser);
 userRouter.post("/cancel-order", authUser, cancelOrder);
-
 
 export default userRouter;

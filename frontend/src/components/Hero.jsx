@@ -22,7 +22,7 @@ const Hero = () => {
     {
       id: 1,
       image: "https://images.pexels.com/photos/934070/pexels-photo-934070.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-      title: "Summer Collection",
+      title: "Winter Collection",
       subtitle: "Latest Arrivals"
     },
     {
@@ -49,7 +49,7 @@ const Hero = () => {
   }, [isHovered, featuredProducts.length]);
 
   return (
-    <div className="relative w-full overflow-hidden">
+    <div className="relative w-full overflow-hidden lg:mt-16">
       <div className="absolute top-0 left-0 w-full h-full bg-white" style={{ zIndex: -1 }} />
       <div className="flex flex-col lg:flex-row">
         {/* Left content section */}

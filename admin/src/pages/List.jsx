@@ -2,7 +2,23 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { backendUrl, currency } from "../App";
-import { Trash2, Search, Plus, ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
+import { 
+  Trash2, 
+  Search, 
+  Plus, 
+  ArrowLeft, 
+  ArrowRight, 
+  Sparkles, 
+  Package,
+  Edit3,
+  Filter,
+  Grid3X3,
+  List as ListIcon,
+  Eye,
+  X,
+  ChevronLeft,
+  ChevronRight
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const List = ({ token }) => {
@@ -11,13 +27,10 @@ const List = ({ token }) => {
   const [deleting, setDeleting] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const itemsPerPage = window.innerWidth < 768 ? 6 : 9; // More items on mobile for better scrolling
   const navigate = useNavigate();
-
-  // Main color theme
-  const primaryColor = "#131313";
-  const secondaryColor = "#939393";
-  const accentColor = "#ff6200";
 
   const fetchList = async () => {
     try {
@@ -78,12 +91,16 @@ const List = ({ token }) => {
     }
   }, [token, navigate]);
 
-  // Filter products based on search query
-  const filteredProducts = list.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter products based on search query and category
+  const filteredProducts = list.filter((product) => {
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !selectedCategory || product.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Get unique categories for filter
+  const categories = [...new Set(list.map(product => product.category))];
 
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -94,47 +111,53 @@ const List = ({ token }) => {
   // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  // Mobile loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: primaryColor }}>
-        <div className="flex flex-col items-center gap-4">
-          <div
-            className="animate-spin rounded-full h-12 w-12 border-4 border-t-transparent"
-            style={{ borderColor: accentColor, borderTopColor: "transparent" }}
-          ></div>
-          <p style={{ color: secondaryColor }} className="font-medium">
-            Loading products...
-          </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <div className="relative h-12 w-12 mx-auto">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 animate-pulse"></div>
+              <div className="absolute inset-1 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-40 animate-pulse animation-delay-75"></div>
+              <div className="absolute inset-2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-spin"></div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-white font-semibold text-lg">Loading Products</p>
+              <p className="text-slate-400 text-sm">Fetching inventory data...</p>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!filteredProducts.length) {
+  // Mobile empty state
+  if (!list.length) {
     return (
-      <div className="min-h-screen py-8 px-4" style={{ backgroundColor: primaryColor }}>
-        <div
-          className="rounded-3xl shadow-lg max-w-3xl mx-auto p-8"
-          style={{ backgroundColor: "#1a1a1a", borderWidth: "1px", borderColor: "#2a2a2a" }}
-        >
-          <div className="flex flex-col items-center justify-center min-h-[300px] text-center">
-            <div className="rounded-full p-6 mb-6" style={{ backgroundColor: `rgba(255, 98, 0, 0.15)` }}>
-              <Sparkles className="w-12 h-12" style={{ color: accentColor }} />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6">
+        <div className="max-w-md mx-auto">
+          <div className="relative overflow-hidden rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-6">
+            <div className="text-center space-y-4">
+              <div className="relative">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                  <Package className="w-8 h-8 text-indigo-400" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-bold text-white">No Products Yet</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Start building your inventory by adding your first product.
+                </p>
+              </div>
+              <button 
+                onClick={() => navigate('/add')}
+                className="w-full mt-4 py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add First Product
+              </button>
             </div>
-            <h3 className="text-xl font-semibold mb-3" style={{ color: "white" }}>
-              No products found
-            </h3>
-            <p style={{ color: secondaryColor }} className="max-w-md mb-6">
-              Add some products to get started. They will appear here once created.
-            </p>
-            <button
-              className="inline-flex items-center px-5 py-2.5 rounded-xl font-medium"
-              style={{ backgroundColor: accentColor, color: "white" }}
-              onClick={() => navigate("/add-product")} // Adjust to your add product route
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Add New Product
-            </button>
           </div>
         </div>
       </div>
@@ -142,168 +165,326 @@ const List = ({ token }) => {
   }
 
   return (
-    <div className="min-h-screen py-16 px-4" style={{ backgroundColor: primaryColor }}>
-      <div
-        className="rounded-3xl shadow-lg max-w-6xl mx-auto overflow-hidden"
-        style={{ backgroundColor: "#1a1a1a", borderWidth: "1px", borderColor: "#2a2a2a" }}
-      >
-        {/* Header */}
-        <div className="border-b px-6 py-5" style={{ borderColor: "#2a2a2a" }}>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <h2 className="text-2xl font-bold" style={{ color: "white" }}>
-              Products ({filteredProducts.length})
-            </h2>
-            <div className="flex items-center gap-3">
-              {/* Search Bar */}
-              <div className="relative flex-grow max-w-xs">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5" style={{ color: secondaryColor }} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Mobile-first container */}
+      <div className="px-3 pt-20 pb-6 sm:px-4 sm:pt-24 lg:px-6 lg:pt-28">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+          
+          {/* Mobile-first Header */}
+          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-4 sm:p-6">
+            <div className="space-y-4">
+              {/* Title and Stats Row */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-indigo-500/20">
+                    <Package className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-400" />
+                  </div>
+                  <div>
+                    <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">Product Inventory</h1>
+                    <p className="text-xs sm:text-sm text-slate-400">{filteredProducts.length} products</p>
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  className="w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-opacity-50"
-                  style={{
-                    backgroundColor: "#2a2a2a",
-                    color: "white",
-                    borderWidth: "1px",
-                    borderColor: "#3a3a3a",
-                    caretColor: accentColor,
-                  }}
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+                
+                {/* Add Product Button - Mobile optimized */}
+                <button
+                  onClick={() => navigate('/add')}
+                  className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 active:scale-95"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Add Product</span>
+                </button>
               </div>
 
-              {/* Add Product Button */}
-              <button
-                className="inline-flex items-center px-4 py-2 rounded-xl font-medium"
-                style={{ backgroundColor: accentColor, color: "white" }}
-                onClick={() => navigate("/add-product")} // Adjust to your add product route
-              >
-                <Plus className="mr-2 h-5 w-5" />
-                Add Product
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-          {currentItems.map((item) => (
-            <div
-              key={item._id}
-              className="rounded-2xl p-4 transition-transform duration-200 hover:scale-102 hover:shadow-lg"
-              style={{
-                backgroundColor: "#252525",
-                borderWidth: "1px",
-                borderColor: "#333333",
-              }}
-            >
-              <div className="relative">
-                <div className="h-48 w-full overflow-hidden rounded-xl bg-gray-800">
-                  <img
-                    className="h-full w-full object-cover"
-                    src={item.image && item.image.length > 0 ? item.image[0] : "/placeholder.svg"}
-                    alt={item.name}
-                    onError={(e) => {
-                      e.target.src = "/placeholder.svg";
-                      e.target.onerror = null;
+              {/* Mobile-first Search and Filters */}
+              <div className="space-y-3">
+                {/* Search Bar */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-600/50 text-white placeholder-slate-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all text-sm"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
                     }}
                   />
-                </div>
-                <span
-                  className="absolute top-2 right-2 inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium"
-                  style={{ backgroundColor: `rgba(255, 98, 0, 0.15)`, color: accentColor }}
-                >
-                  {item.category}
-                </span>
-              </div>
-
-              <div className="mt-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold truncate" style={{ color: "white" }}>
-                    {item.name}
-                  </h3>
-                  <span className="font-bold" style={{ color: accentColor }}>
-                    {currency}
-                    {item.price.toLocaleString()}
-                  </span>
+                  {searchQuery && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        setCurrentPage(1);
+                      }}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      <X className="h-4 w-4 text-slate-400 hover:text-white transition-colors" />
+                    </button>
+                  )}
                 </div>
 
-                <div className="flex items-center justify-between mt-4">
-                  <button
-                    className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-sm"
-                    style={{ backgroundColor: "#3a3a3a", color: "white" }}
-                    onClick={() => navigate(`/edit-product/${item._id}`)} // Adjust to your edit route
+                {/* Mobile-first Filter Row */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                  {/* Category Filter */}
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => {
+                      setSelectedCategory(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="flex-shrink-0 px-3 py-2 bg-slate-700/50 border border-slate-600/50 text-white text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   >
-                    Edit
-                  </button>
+                    <option value="">All Categories</option>
+                    {categories.map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
 
-                  <button
-                    onClick={() => handleRemoveProduct(item._id)}
-                    disabled={deleting === item._id}
-                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg"
-                    style={{ backgroundColor: "#3a3a3a", color: "#f87171" }}
-                    aria-label="Delete product"
-                  >
-                    {deleting === item._id ? (
-                      <div className="animate-spin h-5 w-5">
-                        <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                      </div>
-                    ) : (
-                      <Trash2 className="h-5 w-5" />
-                    )}
-                  </button>
+                  {/* View Toggle - Hidden on mobile */}
+                  <div className="hidden sm:flex items-center ml-auto bg-slate-700/50 rounded-lg p-1">
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                    >
+                      <Grid3X3 className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setViewMode('list')}
+                      className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                    >
+                      <ListIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 py-6 border-t" style={{ borderColor: "#2a2a2a" }}>
-            <button
-              onClick={() => currentPage > 1 && paginate(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="inline-flex items-center justify-center h-8 w-8 rounded-lg disabled:opacity-50"
-              style={{ backgroundColor: "#252525", color: "white" }}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-
-            {Array.from({ length: totalPages }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => paginate(index + 1)}
-                className="inline-flex items-center justify-center h-8 w-8 rounded-lg"
-                style={{
-                  backgroundColor: currentPage === index + 1 ? accentColor : "#252525",
-                  color: currentPage === index + 1 ? "white" : secondaryColor,
-                }}
-              >
-                {index + 1}
-              </button>
-            ))}
-
-            <button
-              onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="inline-flex items-center justify-center h-8 w-8 rounded-lg disabled:opacity-50"
-              style={{ backgroundColor: "#252525", color: "white" }}
-            >
-              <ArrowRight className="h-4 w-4" />
-            </button>
           </div>
-        )}
+
+          {/* Products Section */}
+          {filteredProducts.length === 0 ? (
+            /* No Results State */
+            <div className="relative overflow-hidden rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-6 text-center">
+              <div className="space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-slate-500/20 to-slate-600/20 flex items-center justify-center">
+                  <Search className="w-8 h-8 text-slate-400" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-bold text-white">No Products Found</h3>
+                  <p className="text-sm text-slate-400">
+                    {searchQuery || selectedCategory ? 'Try adjusting your search or filters' : 'No products available'}
+                  </p>
+                </div>
+                {(searchQuery || selectedCategory) && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedCategory('');
+                      setCurrentPage(1);
+                    }}
+                    className="mt-4 px-4 py-2 bg-slate-600/50 text-slate-300 text-sm rounded-lg hover:bg-slate-600 transition-colors"
+                  >
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Products Grid - Mobile-first responsive */}
+              <div className={`grid gap-3 sm:gap-4 ${
+                viewMode === 'grid' 
+                  ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' 
+                  : 'grid-cols-1'
+              }`}>
+                {currentItems.map((item) => (
+                  <div
+                    key={item._id}
+                    className={`group relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 hover:bg-slate-700/60 transition-all duration-300 active:scale-95 cursor-pointer ${
+                      viewMode === 'list' ? 'p-4 sm:p-6' : 'p-3 sm:p-4'
+                    }`}
+                    onClick={() => navigate(`/product/${item._id}`)}
+                  >
+                    {viewMode === 'grid' ? (
+                      /* Grid View - Mobile optimized */
+                      <>
+                        <div className="relative">
+                          <div className="aspect-square overflow-hidden rounded-lg bg-slate-700/50 mb-3">
+                            <img
+                              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              src={item.image && item.image.length > 0 ? item.image[0] : "/placeholder.svg"}
+                              alt={item.name}
+                              onError={(e) => {
+                                e.target.src = "/placeholder.svg";
+                                e.target.onerror = null;
+                              }}
+                            />
+                          </div>
+                          <span className="absolute top-2 right-2 px-2 py-1 bg-indigo-500/20 text-indigo-400 text-xs font-medium rounded-md backdrop-blur-sm">
+                            {item.category}
+                          </span>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h3 className="font-semibold text-white text-sm sm:text-base truncate" title={item.name}>
+                            {item.name}
+                          </h3>
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-indigo-400 text-sm sm:text-base">
+                              {currency}{item.price.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/edit/${item._id}`);
+                            }}
+                            className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveProduct(item._id);
+                            }}
+                            disabled={deleting === item._id}
+                            className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors disabled:opacity-50"
+                          >
+                            {deleting === item._id ? (
+                              <div className="h-4 w-4 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      /* List View - Mobile optimized */
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 overflow-hidden rounded-lg bg-slate-700/50">
+                          <img
+                            className="h-full w-full object-cover"
+                            src={item.image && item.image.length > 0 ? item.image[0] : "/placeholder.svg"}
+                            alt={item.name}
+                            onError={(e) => {
+                              e.target.src = "/placeholder.svg";
+                              e.target.onerror = null;
+                            }}
+                          />
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-semibold text-white text-sm sm:text-base truncate">{item.name}</h3>
+                              <span className="inline-block px-2 py-1 bg-indigo-500/20 text-indigo-400 text-xs rounded-md mt-1">
+                                {item.category}
+                              </span>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <p className="font-bold text-indigo-400 text-sm sm:text-base">
+                                {currency}{item.price.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 mt-3">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/edit/${item._id}`);
+                              }}
+                              className="px-3 py-1.5 bg-indigo-600/20 text-indigo-400 text-xs font-medium rounded-lg hover:bg-indigo-600/30 transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveProduct(item._id);
+                              }}
+                              disabled={deleting === item._id}
+                              className="px-3 py-1.5 bg-red-600/20 text-red-400 text-xs font-medium rounded-lg hover:bg-red-600/30 transition-colors disabled:opacity-50"
+                            >
+                              {deleting === item._id ? 'Deleting...' : 'Delete'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Mobile-first Pagination */}
+              {totalPages > 1 && (
+                <div className="relative overflow-hidden rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-slate-400">
+                      Page {currentPage} of {totalPages}
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      {/* Previous Button */}
+                      <button
+                        onClick={() => currentPage > 1 && paginate(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="p-2 rounded-lg bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+
+                      {/* Page Numbers - Mobile optimized */}
+                      <div className="flex items-center gap-1 mx-2">
+                        {Array.from({ length: Math.min(5, totalPages) }).map((_, index) => {
+                          let pageNumber;
+                          if (totalPages <= 5) {
+                            pageNumber = index + 1;
+                          } else if (currentPage <= 3) {
+                            pageNumber = index + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNumber = totalPages - 4 + index;
+                          } else {
+                            pageNumber = currentPage - 2 + index;
+                          }
+
+                          return (
+                            <button
+                              key={pageNumber}
+                              onClick={() => paginate(pageNumber)}
+                              className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                                currentPage === pageNumber
+                                  ? 'bg-indigo-600 text-white'
+                                  : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
+                              }`}
+                            >
+                              {pageNumber}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Next Button */}
+                      <button
+                        onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="p-2 rounded-lg bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

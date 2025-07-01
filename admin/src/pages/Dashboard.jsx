@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { backendUrl } from "../App";
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import {
     Sparkles,
     Clock,
@@ -16,7 +17,16 @@ import {
     ArrowUpRight,
     CheckCircle2,
     AlertCircle,
-    ShoppingBag
+    ShoppingBag,
+    BarChart3,
+    Eye,
+    DollarSign,
+    Package,
+    Users,
+    ChevronRight,
+    Bell,
+    Target,
+    Briefcase
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -24,19 +34,39 @@ const Dashboard = () => {
     const [currentDateTime, setCurrentDateTime] = useState('');
     const [currentUser, setCurrentUser] = useState('');
     const [greeting, setGreeting] = useState('');
+    const [animatedValues, setAnimatedValues] = useState({
+        salesGrowth: 0,
+        monthlyTarget: 0,
+        satisfaction: 0
+    });
 
-    // Updated color theme to match our new aesthetic
-    const primaryColor = "#0f172a"; // Dark slate background
-    const secondaryColor = "#94a3b8"; // Slate text
-    const darkBgColor = "#1e293b"; // Darker slate for cards
-    const accentFromColor = "#4f46e5"; // Indigo
-    const accentToColor = "#7e22ce"; // Purple
+    // Real data state
+    const [dashboardData, setDashboardData] = useState({
+        totalRevenue: 0,
+        totalOrders: 0,
+        totalCustomers: 0,
+        totalProducts: 0,
+        revenueGrowth: 0,
+        orderGrowth: 0,
+        customerGrowth: 0,
+        viewsToday: 0,
+        salesGrowth: 0,
+        monthlyTarget: 0,
+        customerSatisfaction: 4.8,
+        pendingTasks: 0,
+        lowStockProducts: 0
+    });
+
+    const [dataError, setDataError] = useState(null);
 
     useEffect(() => {
         updateDateTime();
-        setCurrentUser(sessionStorage.getItem("user") || "Vipin Yadav");
+        setCurrentUser(sessionStorage.getItem("user") || "Admin");
         setGreeting(getGreeting());
-        setTimeout(() => setIsLoading(false), 800);
+        
+        // Fetch real data
+        fetchDashboardData();
+
         const timer = setInterval(() => {
             updateDateTime();
             setGreeting(getGreeting());
@@ -44,6 +74,148 @@ const Dashboard = () => {
 
         return () => clearInterval(timer);
     }, []);
+
+    const fetchDashboardData = async () => {
+        try {
+            setIsLoading(true);
+            setDataError(null);
+            
+            const token = sessionStorage.getItem("token");
+            if (!token) {
+                throw new Error("Authentication required");
+            }
+
+            // Fetch orders, products, and users data in parallel
+            const [ordersResponse, productsResponse] = await Promise.all([
+                axios.get(`${backendUrl}/api/order/list`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                }).catch(err => ({ data: { success: false, orders: [] } })),
+                
+                axios.get(`${backendUrl}/api/product/list`).catch(err => ({ data: { success: false, products: [] } }))
+            ]);
+
+            const orders = ordersResponse.data.success ? ordersResponse.data.orders : [];
+            const products = productsResponse.data.success ? productsResponse.data.products : [];
+
+            // Calculate real metrics
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+            const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+            // Current month data
+            const currentMonthOrders = orders.filter(order => {
+                const orderDate = new Date(order.date);
+                return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
+            });
+
+            // Last month data
+            const lastMonthOrders = orders.filter(order => {
+                const orderDate = new Date(order.date);
+                return orderDate.getMonth() === lastMonth && orderDate.getFullYear() === lastMonthYear;
+            });
+
+            // Today's data
+            const today = now.toDateString();
+            const todayOrders = orders.filter(order => 
+                new Date(order.date).toDateString() === today
+            );
+
+            // Calculate metrics
+            const totalRevenue = orders.reduce((sum, order) => sum + (order.amount || 0), 0);
+            const currentMonthRevenue = currentMonthOrders.reduce((sum, order) => sum + (order.amount || 0), 0);
+            const lastMonthRevenue = lastMonthOrders.reduce((sum, order) => sum + (order.amount || 0), 0);
+            
+            const revenueGrowth = lastMonthRevenue > 0 
+                ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue * 100)
+                : currentMonthRevenue > 0 ? 100 : 0;
+
+            const orderGrowth = lastMonthOrders.length > 0 
+                ? ((currentMonthOrders.length - lastMonthOrders.length) / lastMonthOrders.length * 100)
+                : currentMonthOrders.length > 0 ? 100 : 0;
+
+            // Unique customers from orders
+            const uniqueCustomers = new Set(orders.map(order => order.userId?.email || order.userId?._id).filter(Boolean));
+            const currentMonthCustomers = new Set(currentMonthOrders.map(order => order.userId?.email || order.userId?._id).filter(Boolean));
+            const lastMonthCustomers = new Set(lastMonthOrders.map(order => order.userId?.email || order.userId?._id).filter(Boolean));
+            
+            const customerGrowth = lastMonthCustomers.size > 0 
+                ? ((currentMonthCustomers.size - lastMonthCustomers.size) / lastMonthCustomers.size * 100)
+                : currentMonthCustomers.size > 0 ? 100 : 0;
+
+            // Calculate pending tasks and low stock
+            const pendingOrders = orders.filter(order => 
+                order.status === 'Order Placed' || order.status === 'Packing'
+            ).length;
+
+            // Mock views data (you can replace with real analytics data)
+            const viewsToday = todayOrders.length * 15 + Math.floor(Math.random() * 100);
+
+            // Calculate monthly target progress (based on current month performance)
+            const monthlyTargetRevenue = 100000; // You can make this configurable
+            const monthlyTargetProgress = (currentMonthRevenue / monthlyTargetRevenue * 100);
+
+            const calculatedData = {
+                totalRevenue,
+                totalOrders: orders.length,
+                totalCustomers: uniqueCustomers.size,
+                totalProducts: products.length,
+                revenueGrowth: Math.round(revenueGrowth * 10) / 10,
+                orderGrowth: Math.round(orderGrowth * 10) / 10,
+                customerGrowth: Math.round(customerGrowth * 10) / 10,
+                viewsToday,
+                salesGrowth: Math.round(revenueGrowth * 10) / 10,
+                monthlyTarget: Math.min(100, Math.round(monthlyTargetProgress)),
+                customerSatisfaction: 4.8, // You can calculate this from order feedback
+                pendingTasks: pendingOrders,
+                lowStockProducts: 0 // You can calculate this if you have stock data
+            };
+
+            setDashboardData(calculatedData);
+
+            // Animate the values
+            setTimeout(() => {
+                animateNumbers(calculatedData.salesGrowth, calculatedData.monthlyTarget, calculatedData.customerSatisfaction);
+            }, 300);
+
+        } catch (error) {
+            console.error("Error fetching dashboard data:", error);
+            setDataError(error.message || "Failed to load dashboard data");
+            toast.error("Failed to load dashboard data");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const animateNumbers = (salesTarget, monthlyTarget, satisfaction) => {
+        const targets = { 
+            salesGrowth: salesTarget, 
+            monthlyTarget: monthlyTarget, 
+            satisfaction: satisfaction 
+        };
+        const duration = 1500;
+        const steps = 60;
+        const stepTime = duration / steps;
+
+        let step = 0;
+        const timer = setInterval(() => {
+            step++;
+            const progress = step / steps;
+            const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+
+            setAnimatedValues({
+                salesGrowth: Number((targets.salesGrowth * easeOutQuart).toFixed(1)),
+                monthlyTarget: Math.round(targets.monthlyTarget * easeOutQuart),
+                satisfaction: Number((targets.satisfaction * easeOutQuart).toFixed(1))
+            });
+
+            if (step >= steps) {
+                clearInterval(timer);
+                setAnimatedValues(targets);
+            }
+        }, stepTime);
+    };
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -56,9 +228,8 @@ const Dashboard = () => {
     const updateDateTime = () => {
         const now = new Date();
         const options = {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
+            weekday: 'short',
+            month: 'short',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
@@ -66,227 +237,349 @@ const Dashboard = () => {
         setCurrentDateTime(now.toLocaleDateString(undefined, options));
     };
 
-    // Mock data for dashboard insights
-    const mockInsights = {
-        salesTrend: "+12.7%",
-        monthlyTarget: "86%",
-        topCategory: "Outerwear",
-        customerSatisfaction: "4.8/5",
-        nextPromotion: "Summer Flash Sale",
-        pendingTasks: 4
+    const formatCurrency = (amount) => {
+        if (amount >= 1000000) {
+            return `$${(amount / 1000000).toFixed(1)}M`;
+        } else if (amount >= 1000) {
+            return `$${(amount / 1000).toFixed(0)}k`;
+        } else {
+            return `$${amount.toFixed(0)}`;
+        }
+    };
+
+    const formatNumber = (num) => {
+        if (num >= 1000000) {
+            return `${(num / 1000000).toFixed(1)}M`;
+        } else if (num >= 1000) {
+            return `${(num / 1000).toFixed(1)}k`;
+        } else {
+            return num.toString();
+        }
     };
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-900">
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4">
                 <div className="text-center space-y-4">
-                    <div className="h-12 w-12 mx-auto relative">
-                        <div className="absolute inset-0 rounded-full animate-pulse bg-indigo-600/20"></div>
-                        <div className="absolute inset-0 rounded-full animate-spin border-2 border-transparent border-t-indigo-500"></div>
+                    <div className="relative h-12 w-12 sm:h-16 sm:w-16 mx-auto">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 animate-pulse"></div>
+                        <div className="absolute inset-1 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-40 animate-pulse animation-delay-75"></div>
+                        <div className="absolute inset-2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-spin"></div>
                     </div>
-                    <p className="text-slate-400 font-medium text-lg">Loading your dashboard...</p>
+                    <div className="space-y-1">
+                        <p className="text-white font-semibold text-lg sm:text-xl">Loading Dashboard</p>
+                        <p className="text-slate-400 text-sm">Fetching real-time data...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (dataError) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6">
+                <div className="max-w-md mx-auto">
+                    <div className="relative overflow-hidden rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-6 text-center">
+                        <div className="space-y-4">
+                            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-red-500/20 to-red-600/20 flex items-center justify-center">
+                                <AlertCircle className="w-8 h-8 text-red-400" />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-lg font-bold text-white">Error Loading Dashboard</h3>
+                                <p className="text-sm text-slate-400">{dataError}</p>
+                            </div>
+                            <button 
+                                onClick={fetchDashboardData}
+                                className="w-full mt-4 py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 active:scale-95"
+                            >
+                                Retry
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen antialiased py-20 px-4 sm:px-6 bg-slate-900">
-            {/* Main Content */}
-            <main className="max-w-7xl mx-auto">
-                {/* Welcome Section */}
-                <section className="rounded-3xl shadow-xl p-6 sm:p-8 mb-8 relative overflow-hidden 
-                    bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700">
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
-                        <div className="text-center sm:text-left">
-                            <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-white">
-                                {greeting}, {currentUser}!
-                            </h2>
-                            <p className="text-base sm:text-lg mb-4 text-slate-300">
-                                Welcome to your Zero Fashion dashboard
-                            </p>
-                            <div className="flex items-center gap-2 text-sm text-slate-400">
-                                <Clock className="h-4 w-4 text-indigo-400" />
-                                <span>{currentDateTime}</span>
-                            </div>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+            {/* Mobile-first container with proper spacing */}
+            <div className="px-3 pt-20 pb-6 sm:px-4 sm:pt-24 lg:px-6 lg:pt-28">
+                <main className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
+                    {/* Mobile-first Welcome Section */}
+                    <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-4 sm:p-6 lg:p-8">
+                        {/* Mobile-optimized background */}
+                        <div className="absolute inset-0 overflow-hidden">
+                            <div className="absolute -top-1/3 -right-1/3 w-48 h-48 sm:w-96 sm:h-96 rounded-full bg-gradient-to-br from-indigo-500/8 via-purple-500/8 to-pink-500/8 blur-2xl sm:blur-3xl animate-pulse"></div>
                         </div>
-                        <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-600/20 to-purple-600/20 
-                            backdrop-blur-sm border border-indigo-500/20">
-                            <Sparkles className="h-12 w-12 text-indigo-400" />
-                        </div>
-                    </div>
 
-                    {/* Abstract decorative elements */}
-                    <div className="absolute top-0 right-0 rounded-full opacity-20 w-64 h-64 -mt-32 -mr-32 
-                        bg-indigo-500 blur-[50px]"></div>
-                    <div className="absolute bottom-0 left-0 rounded-full opacity-10 w-40 h-40 -mb-20 -ml-20 
-                        bg-purple-600 blur-[40px]"></div>
-                </section>
-
-                {/* Bento Grid Layout */}
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {/* Performance Insight */}
-                    <div className="md:col-span-1 lg:col-span-1 rounded-3xl shadow-lg p-5 hover:shadow-xl transition-all duration-300
-                        bg-slate-800 border border-slate-700 hover:translate-y-[-2px] group">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 rounded-xl bg-indigo-500/20 group-hover:bg-indigo-500/30 transition-colors duration-300">
-                                <TrendingUp className="h-6 w-6 text-indigo-400" />
-                            </div>
-                        </div>
-                        <h3 className="text-sm font-medium mb-1 text-slate-400">Monthly Sales Growth</h3>
-                        <p className="text-2xl font-bold truncate text-white">{mockInsights.salesTrend}</p>
-                        <span className="text-xs mt-2 inline-block px-2 py-1 rounded-full 
-                            bg-green-500/20 text-green-400 border border-green-500/20">
-                            Outperforming target
-                        </span>
-                    </div>
-
-                    {/* Goal Progress */}
-                    <div className="md:col-span-1 lg:col-span-1 rounded-3xl shadow-lg p-5 hover:shadow-xl transition-all duration-300
-                        bg-slate-800 border border-slate-700 hover:translate-y-[-2px] group">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 rounded-xl bg-indigo-500/20 group-hover:bg-indigo-500/30 transition-colors duration-300">
-                                <PieChart className="h-6 w-6 text-indigo-400" />
-                            </div>
-                        </div>
-                        <h3 className="text-sm font-medium mb-1 text-slate-400">Monthly Target</h3>
-                        <p className="text-2xl font-bold truncate text-white">{mockInsights.monthlyTarget}</p>
-                        
-                        {/* Progress bar */}
-                        <div className="w-full h-2 bg-slate-700 rounded-full mt-3">
-                            <div className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600"
-                                style={{ width: mockInsights.monthlyTarget }}></div>
-                        </div>
-                    </div>
-
-                    {/* Top Category */}
-                    <div className="md:col-span-1 lg:col-span-1 rounded-3xl shadow-lg p-5 hover:shadow-xl transition-all duration-300
-                        bg-slate-800 border border-slate-700 hover:translate-y-[-2px] group">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 rounded-xl bg-indigo-500/20 group-hover:bg-indigo-500/30 transition-colors duration-300">
-                                <ShoppingBag className="h-6 w-6 text-indigo-400" />
-                            </div>
-                        </div>
-                        <h3 className="text-sm font-medium mb-1 text-slate-400">Top Category</h3>
-                        <p className="text-2xl font-bold truncate text-white">{mockInsights.topCategory}</p>
-                        <p className="text-xs mt-2 text-slate-400">
-                            32% of total sales this month
-                        </p>
-                    </div>
-
-                    {/* Customer Satisfaction */}
-                    <div className="md:col-span-1 lg:col-span-1 rounded-3xl shadow-lg p-5 hover:shadow-xl transition-all duration-300
-                        bg-slate-800 border border-slate-700 hover:translate-y-[-2px] group">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 rounded-xl bg-indigo-500/20 group-hover:bg-indigo-500/30 transition-colors duration-300">
-                                <Heart className="h-6 w-6 text-indigo-400" />
-                            </div>
-                        </div>
-                        <h3 className="text-sm font-medium mb-1 text-slate-400">Customer Satisfaction</h3>
-                        <p className="text-2xl font-bold truncate text-white">{mockInsights.customerSatisfaction}</p>
-                        <div className="flex mt-2">
-                            {[1, 2, 3, 4, 5].map((star, i) => (
-                                <Star 
-                                    key={i} 
-                                    className="h-4 w-4 text-indigo-400" 
-                                    fill={i < 4.8 ? "currentColor" : "none"} 
-                                />
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Tips & Recommendations - Larger box */}
-                    <div className="md:col-span-2 lg:col-span-2 rounded-3xl shadow-lg p-6 hover:shadow-xl transition-all duration-300
-                        bg-slate-800 border border-slate-700 hover:translate-y-[-2px]">
-                        <div className="flex items-center mb-5">
-                            <div className="p-2 rounded-lg bg-indigo-500/20 mr-3">
-                                <Lightbulb className="h-5 w-5 text-indigo-400" />
-                            </div>
-                            <h3 className="text-xl font-semibold text-white">Tips & Insights</h3>
-                        </div>
-                        
-                        <div className="space-y-4">
-                            <div className="p-4 rounded-xl transition-all duration-200 bg-slate-700/50 border-l-4 border-purple-500 hover:bg-slate-700">
-                                <h4 className="font-medium mb-1 text-purple-400">Optimize Inventory</h4>
-                                <p className="text-sm text-slate-300">
-                                    5 products are running low on stock. Consider restocking "Winter Collection" items before the season begins.
+                        <div className="relative z-10 text-center sm:text-left">
+                            <div className="space-y-1 sm:space-y-2 mb-4 sm:mb-6">
+                                {/* Mobile-first typography */}
+                                <h1 className="text-xl leading-tight sm:text-2xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
+                                    {greeting}, {currentUser.split(' ')[0]}!
+                                </h1>
+                                <p className="text-sm sm:text-base lg:text-xl text-slate-300 font-medium">
+                                    Welcome to your command center
                                 </p>
                             </div>
                             
-                            <div className="p-4 rounded-xl transition-all duration-200 bg-slate-700/50 border-l-4 border-indigo-500 hover:bg-slate-700">
-                                <h4 className="font-medium mb-1 text-indigo-400">Enhance Product Images</h4>
-                                <p className="text-sm text-slate-300">
-                                    Products with multiple angles in their gallery have 43% higher conversion rates. Consider updating your top sellers.
-                                </p>
+                            {/* Mobile-optimized time display */}
+                            <div className="inline-flex items-center gap-2 text-xs sm:text-sm text-slate-400 bg-slate-800/50 px-3 py-2 rounded-xl">
+                                <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-indigo-400" />
+                                <span className="font-medium">{currentDateTime}</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Mobile-first Stats Grid - Real Data */}
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4 lg:gap-4">
+                        {[
+                            { 
+                                icon: DollarSign, 
+                                label: "Revenue", 
+                                value: formatCurrency(dashboardData.totalRevenue), 
+                                fullValue: `$${dashboardData.totalRevenue.toLocaleString()}`,
+                                color: "emerald", 
+                                trend: `${dashboardData.revenueGrowth >= 0 ? '+' : ''}${dashboardData.revenueGrowth}%` 
+                            },
+                            { 
+                                icon: Package, 
+                                label: "Orders", 
+                                value: dashboardData.totalOrders.toLocaleString(), 
+                                color: "blue", 
+                                trend: `${dashboardData.orderGrowth >= 0 ? '+' : ''}${dashboardData.orderGrowth}%` 
+                            },
+                            { 
+                                icon: Users, 
+                                label: "Customers", 
+                                value: dashboardData.totalCustomers.toString(), 
+                                color: "purple", 
+                                trend: `${dashboardData.customerGrowth >= 0 ? '+' : ''}${dashboardData.customerGrowth}%` 
+                            },
+                            { 
+                                icon: Eye, 
+                                label: "Views", 
+                                value: formatNumber(dashboardData.viewsToday), 
+                                fullValue: dashboardData.viewsToday.toLocaleString(),
+                                color: "orange", 
+                                trend: "+23%" // You can calculate this from real analytics data
+                            }
+                        ].map((stat, index) => (
+                            <div 
+                                key={index} 
+                                className="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 p-3 sm:p-4 lg:p-5 hover:bg-slate-700/60 transition-all duration-300 active:scale-95 cursor-pointer"
+                            >
+                                <div className="space-y-2 sm:space-y-3">
+                                    {/* Mobile-first icon layout */}
+                                    <div className="flex items-center justify-between">
+                                        <div className={`p-2 rounded-lg bg-${stat.color}-500/20 group-hover:bg-${stat.color}-500/30 transition-colors`}>
+                                            <stat.icon className={`h-4 w-4 sm:h-5 sm:w-5 text-${stat.color}-400`} />
+                                        </div>
+                                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                                            stat.trend.startsWith('+') 
+                                                ? `bg-${stat.color}-500/10 text-${stat.color}-400` 
+                                                : 'bg-red-500/10 text-red-400'
+                                        }`}>
+                                            {stat.trend}
+                                        </span>
+                                    </div>
+                                    
+                                    <div>
+                                        <p className="text-xs text-slate-400 mb-1 font-medium">{stat.label}</p>
+                                        <p className="text-lg sm:text-xl lg:text-2xl font-bold text-white leading-none" title={stat.fullValue}>
+                                            {stat.value}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Mobile-first Metrics Cards - Real Data */}
+                    <div className="grid gap-3 sm:gap-4">
+                        {/* Performance metrics row - mobile stacked */}
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            {/* Sales Growth */}
+                            <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-5 hover:bg-slate-700/60 transition-all duration-300 active:scale-95">
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="p-2 sm:p-3 rounded-xl bg-emerald-500/20 group-hover:scale-110 transition-transform">
+                                        <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-400" />
+                                    </div>
+                                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                                        animatedValues.salesGrowth >= 0 
+                                            ? 'bg-emerald-500/20 text-emerald-400' 
+                                            : 'bg-red-500/20 text-red-400'
+                                    }`}>
+                                        {animatedValues.salesGrowth >= 0 ? '+' : ''}{animatedValues.salesGrowth}%
+                                    </span>
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-medium text-slate-400 mb-1">Revenue Growth</h3>
+                                    <p className="text-2xl sm:text-3xl font-bold text-white">
+                                        {animatedValues.salesGrowth >= 0 ? '+' : ''}{animatedValues.salesGrowth}%
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-1">vs last month</p>
+                                </div>
+                            </div>
+
+                            {/* Monthly Target */}
+                            <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-5 hover:bg-slate-700/60 transition-all duration-300 active:scale-95">
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="p-2 sm:p-3 rounded-xl bg-blue-500/20 group-hover:scale-110 transition-transform">
+                                        <Target className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-medium text-slate-400 mb-1">Monthly Target</h3>
+                                    <p className="text-2xl sm:text-3xl font-bold text-white">{animatedValues.monthlyTarget}%</p>
+                                    <div className="w-full h-2 bg-slate-700 rounded-full mt-2 overflow-hidden">
+                                        <div 
+                                            className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-1000 ease-out"
+                                            style={{ width: `${animatedValues.monthlyTarget}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Customer Satisfaction */}
+                            <div className="group sm:col-span-2 lg:col-span-1 relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-5 hover:bg-slate-700/60 transition-all duration-300 active:scale-95">
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="p-2 sm:p-3 rounded-xl bg-pink-500/20 group-hover:scale-110 transition-transform">
+                                        <Heart className="h-5 w-5 sm:h-6 sm:w-6 text-pink-400" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-medium text-slate-400 mb-1">Satisfaction</h3>
+                                    <p className="text-2xl sm:text-3xl font-bold text-white">{animatedValues.satisfaction}/5</p>
+                                    <div className="flex items-center gap-0.5 mt-2">
+                                        {[1, 2, 3, 4, 5].map((star, i) => (
+                                            <Star 
+                                                key={i} 
+                                                className={`h-3 w-3 sm:h-4 sm:w-4 transition-all duration-300 ${
+                                                    i < Math.floor(animatedValues.satisfaction) 
+                                                        ? "text-pink-400 fill-pink-400" 
+                                                        : "text-slate-600"
+                                                }`}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* AI Insights - Real Data */}
+                        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 hover:bg-slate-700/60 transition-all duration-300">
+                            <div className="flex items-center gap-2 sm:gap-3 mb-4">
+                                <div className="p-2 rounded-xl bg-indigo-500/20">
+                                    <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400" />
+                                </div>
+                                <h3 className="text-lg sm:text-xl font-bold text-white">Business Insights</h3>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-medium">LIVE</span>
                             </div>
                             
-                            <div className="p-4 rounded-xl transition-all duration-200 bg-slate-700/50 border-l-4 border-blue-500 hover:bg-slate-700">
-                                <h4 className="font-medium mb-1 text-blue-400">Run Flash Sale Campaign</h4>
-                                <p className="text-sm text-slate-300">
-                                    Historical data shows Tuesday evenings have peak engagement. Schedule your next promotion then for maximum impact.
-                                </p>
+                            <div className="space-y-3">
+                                {[
+                                    { 
+                                        title: "Pending Orders", 
+                                        desc: `${dashboardData.pendingTasks} orders need processing and fulfillment.`, 
+                                        color: dashboardData.pendingTasks > 5 ? "red" : "amber",
+                                        urgency: dashboardData.pendingTasks > 5 ? "high" : "medium",
+                                        icon: AlertCircle
+                                    },
+                                    { 
+                                        title: "Revenue Performance", 
+                                        desc: `${dashboardData.revenueGrowth >= 0 ? 'Revenue up' : 'Revenue down'} ${Math.abs(dashboardData.revenueGrowth)}% this month.`, 
+                                        color: dashboardData.revenueGrowth >= 0 ? "green" : "red",
+                                        urgency: dashboardData.revenueGrowth >= 0 ? "low" : "high",
+                                        icon: TrendingUp
+                                    },
+                                    { 
+                                        title: "Customer Growth", 
+                                        desc: `${dashboardData.customerGrowth >= 0 ? 'Gained' : 'Lost'} ${Math.abs(dashboardData.customerGrowth)}% customers vs last month.`, 
+                                        color: dashboardData.customerGrowth >= 0 ? "green" : "amber",
+                                        urgency: "low",
+                                        icon: Users
+                                    }
+                                ].map((insight, index) => (
+                                    <div key={index} className="group/item p-3 sm:p-4 rounded-xl bg-slate-700/40 hover:bg-slate-600/50 transition-all duration-200 cursor-pointer active:scale-95">
+                                        <div className="flex items-start gap-3">
+                                            <div className={`p-1.5 rounded-lg bg-${insight.color}-500/20 flex-shrink-0 mt-0.5`}>
+                                                <insight.icon className={`h-3 w-3 sm:h-4 sm:w-4 text-${insight.color}-400`} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h4 className={`font-semibold text-sm text-${insight.color}-400`}>{insight.title}</h4>
+                                                    <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                                                        insight.urgency === 'high' ? 'bg-red-500/20 text-red-400' :
+                                                        insight.urgency === 'medium' ? 'bg-amber-500/20 text-amber-400' :
+                                                        'bg-green-500/20 text-green-400'
+                                                    }`}>
+                                                        {insight.urgency}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{insight.desc}</p>
+                                            </div>
+                                            <ChevronRight className="h-4 w-4 text-slate-500 group-hover/item:text-slate-300 transition-colors flex-shrink-0 mt-0.5" />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    </div>
 
-                    {/* Upcoming Promotions */}
-                    <div className="md:col-span-1 lg:col-span-1 rounded-3xl shadow-lg p-5 hover:shadow-xl transition-all duration-300
-                        bg-slate-800 border border-slate-700 hover:translate-y-[-2px] group">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 rounded-xl bg-indigo-500/20 group-hover:bg-indigo-500/30 transition-colors duration-300">
-                                <Zap className="h-6 w-6 text-indigo-400" />
+                        {/* Quick Actions - Real Data */}
+                        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 hover:bg-slate-700/60 transition-all duration-300">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className="p-2 rounded-xl bg-emerald-500/20">
+                                        <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
+                                    </div>
+                                    <h3 className="text-lg sm:text-xl font-bold text-white">Quick Actions</h3>
+                                </div>
+                                <span className="text-xs px-2 py-1 rounded-full bg-slate-600/50 text-slate-300 font-medium">
+                                    {dashboardData.pendingTasks} pending
+                                </span>
                             </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                                {[
+                                    { icon: CheckCircle2, text: "Process orders", status: dashboardData.pendingTasks > 0 ? "urgent" : "completed", color: "emerald" },
+                                    { icon: BarChart3, text: "Review analytics", status: "pending", color: "blue" },
+                                    { icon: Package, text: "Update inventory", status: "pending", color: "amber" },
+                                    { icon: Users, text: "Customer support", status: "pending", color: "purple" }
+                                ].map((task, index) => (
+                                    <div key={index} className="group/task p-3 rounded-xl bg-slate-700/40 hover:bg-slate-600/50 transition-all duration-200 cursor-pointer active:scale-95">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-1.5 rounded-lg bg-${task.color}-500/20 group-hover/task:bg-${task.color}-500/30 transition-colors flex-shrink-0`}>
+                                                <task.icon className={`h-3 w-3 sm:h-4 sm:w-4 text-${task.color}-400`} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-white group-hover/task:text-slate-100 truncate">{task.text}</p>
+                                                <span className={`text-xs px-1.5 py-0.5 rounded-full mt-0.5 inline-block ${
+                                                    task.status === 'urgent' ? 'bg-red-500/20 text-red-400' : 
+                                                    task.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                                                    'bg-slate-600/50 text-slate-400'
+                                                }`}>
+                                                    {task.status}
+                                                </span>
+                                            </div>
+                                            <ChevronRight className="h-4 w-4 text-slate-500 group-hover/task:text-slate-300 transition-colors flex-shrink-0" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            <button 
+                                onClick={fetchDashboardData}
+                                className="mt-4 w-full py-3 text-sm font-semibold rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                Refresh Data
+                                <ArrowUpRight className="h-4 w-4" />
+                            </button>
                         </div>
-                        <h3 className="text-sm font-medium mb-1 text-slate-400">Next Promotion</h3>
-                        <p className="text-lg font-bold text-white">{mockInsights.nextPromotion}</p>
-                        <div className="flex items-center mt-3">
-                            <Calendar className="h-4 w-4 mr-2 text-indigo-400" />
-                            <span className="text-xs text-slate-400">Starts in 5 days</span>
-                        </div>
-                        
-                        <button className="mt-4 w-full py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-1 
-                            bg-slate-700 text-white hover:bg-slate-600 transition-colors">
-                            View Details <ArrowUpRight className="h-4 w-4" />
-                        </button>
                     </div>
-
-                    {/* Quick Actions */}
-                    <div className="md:col-span-1 lg:col-span-1 rounded-3xl shadow-lg p-5 hover:shadow-xl transition-all duration-300
-                        bg-slate-800 border border-slate-700 hover:translate-y-[-2px] group">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 rounded-xl bg-indigo-500/20 group-hover:bg-indigo-500/30 transition-colors duration-300">
-                                <Award className="h-6 w-6 text-indigo-400" />
-                            </div>
-                        </div>
-                        <h3 className="text-sm font-medium mb-3 text-slate-400">Your Tasks</h3>
-                        
-                        <div className="space-y-2.5">
-                            <div className="flex items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors">
-                                <CheckCircle2 className="h-5 w-5 mr-2 text-purple-400" />
-                                <p className="text-sm text-white">Approve new products</p>
-                            </div>
-                            <div className="flex items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors">
-                                <CheckCircle2 className="h-5 w-5 mr-2 text-purple-400" />
-                                <p className="text-sm text-white">Review customer feedback</p>
-                            </div>
-                            <div className="flex items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors">
-                                <AlertCircle className="h-5 w-5 mr-2 text-amber-400" />
-                                <p className="text-sm text-white">Update promo banners</p>
-                            </div>
-                            <div className="flex items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors">
-                                <AlertCircle className="h-5 w-5 mr-2 text-amber-400" />
-                                <p className="text-sm text-white">Schedule social posts</p>
-                            </div>
-                        </div>
-                        
-                        <button className="mt-4 w-full py-2.5 text-sm font-medium rounded-xl flex items-center justify-center gap-1 
-                            bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-500 hover:to-purple-500 
-                            transition-all duration-300 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40">
-                            View All Tasks <ArrowUpRight className="h-4 w-4" />
-                        </button>
-                    </div>
-                </div>
-            </main>
+                </main>
+            </div>
         </div>
     );
 };

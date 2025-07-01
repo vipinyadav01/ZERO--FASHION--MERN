@@ -14,24 +14,25 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { Sparkles } from "lucide-react";
+import { 
+  Sparkles, 
+  TrendingUp, 
+  PieChart as PieChartIcon, 
+  BarChart3, 
+  Users, 
+  Calendar,
+  DollarSign,
+  Package,
+  Eye,
+  ChevronRight
+} from "lucide-react";
 
-// Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 const OrderCharts = ({ token }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  // Modern color scheme
-  const primaryColor = "#0f172a"; // Slate-900
-  const secondaryColor = "#94a3b8"; // Slate-400
-  const cardBgColor = "#1e293b"; // Slate-800
-  const chartPanelBg = "#0f172a"; // Slate-900
-  const borderColor = "#334155";
-  const accentFromColor = "#4f46e5"; // Indigo-600
-  const accentToColor = "#7e22ce"; // Purple-700
 
   const fetchOrders = async () => {
     try {
@@ -71,12 +72,17 @@ const OrderCharts = ({ token }) => {
     // eslint-disable-next-line
   }, [token, navigate]);
 
-  // Prepare data for charts
+  // Calculate analytics data
   const statusCounts = orders.reduce((acc, order) => {
     acc[order.status] = (acc[order.status] || 0) + 1;
     return acc;
   }, {});
 
+  const totalRevenue = orders.reduce((sum, order) => sum + order.amount, 0);
+  const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+  const recentOrders = orders.slice(0, 7); // Show more on mobile
+
+  // Mobile-optimized chart data
   const statusChartData = {
     labels: Object.keys(statusCounts),
     datasets: [
@@ -93,15 +99,14 @@ const OrderCharts = ({ token }) => {
           "rgba(16,185,129,0.85)",  // Green
           "rgba(236,72,153,0.85)",  // Pink
         ],
-        borderColor: borderColor,
-        borderWidth: 1.5,
+        borderColor: "rgba(30,41,59,0.8)",
+        borderWidth: 1,
       },
     ],
   };
 
   const amountByDate = orders.reduce((acc, order) => {
     const date = new Date(order.date).toLocaleDateString("en-US", {
-      year: "numeric",
       month: "short",
       day: "numeric",
     });
@@ -113,66 +118,117 @@ const OrderCharts = ({ token }) => {
     labels: Object.keys(amountByDate),
     datasets: [
       {
-        label: "Total Amount by Date",
+        label: "Revenue",
         data: Object.values(amountByDate),
         backgroundColor: "rgba(79,70,229,0.85)",
-        borderColor: accentToColor,
+        borderColor: "rgba(126,34,206,1)",
         borderWidth: 2,
-        borderRadius: 10,
-        hoverBackgroundColor: "rgba(126,34,206,0.85)",
+        borderRadius: 8,
+        hoverBackgroundColor: "rgba(126,34,206,0.9)",
       },
     ],
   };
 
-  const chartOptions = {
+  // Mobile-optimized chart options
+  const mobileChartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
-      legend: { labels: { color: "#c7d2fe" } },
-      title: { display: true, color: "#c7d2fe" },
+      legend: { 
+        labels: { 
+          color: "#c7d2fe",
+          font: { size: 12 },
+          padding: 15,
+          usePointStyle: true,
+          pointStyle: 'circle'
+        },
+        position: 'bottom'
+      },
+      title: { 
+        display: false // Remove titles for mobile
+      },
       tooltip: {
-        backgroundColor: "#1e293b",
-        titleColor: accentFromColor,
+        backgroundColor: "rgba(15,23,42,0.95)",
+        titleColor: "#4f46e5",
         bodyColor: "#c7d2fe",
-        borderColor: accentToColor,
+        borderColor: "#4f46e5",
         borderWidth: 1,
+        cornerRadius: 8,
+        padding: 12,
+        titleFont: { size: 14 },
+        bodyFont: { size: 12 }
       },
     },
     scales: {
-      x: { ticks: { color: secondaryColor }, grid: { color: "#232946" } },
-      y: { ticks: { color: secondaryColor }, grid: { color: "#232946" } },
+      x: { 
+        ticks: { 
+          color: "#94a3b8",
+          font: { size: 10 },
+          maxRotation: 45
+        }, 
+        grid: { 
+          color: "rgba(51,65,85,0.3)",
+          display: false // Hide grid on mobile
+        } 
+      },
+      y: { 
+        ticks: { 
+          color: "#94a3b8",
+          font: { size: 10 }
+        }, 
+        grid: { 
+          color: "rgba(51,65,85,0.3)" 
+        } 
+      },
     },
   };
 
+  // Mobile loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 mx-auto relative">
-            <div className="absolute inset-0 rounded-full animate-pulse bg-indigo-600/20"></div>
-            <div className="absolute inset-0 rounded-full animate-spin border-2 border-transparent border-t-indigo-500"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <div className="relative h-12 w-12 mx-auto">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 animate-pulse"></div>
+              <div className="absolute inset-1 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-40 animate-pulse animation-delay-75"></div>
+              <div className="absolute inset-2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-spin"></div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-white font-semibold text-lg">Loading Analytics</p>
+              <p className="text-slate-400 text-sm">Preparing your data...</p>
+            </div>
           </div>
-          <p className="text-slate-400 font-medium">Loading orders...</p>
         </div>
       </div>
     );
   }
 
+  // Mobile empty state
   if (!orders.length) {
     return (
-      <div className="min-h-screen py-8 px-4 bg-slate-900">
-        <div
-          className="rounded-3xl shadow-xl max-w-3xl mx-auto p-8 border border-slate-700 bg-slate-800"
-        >
-          <div className="flex flex-col items-center justify-center min-h-[300px] text-center">
-            <div className="rounded-full p-6 mb-6 bg-gradient-to-br from-indigo-600/15 to-purple-700/10">
-              <Sparkles className="w-12 h-12 text-indigo-400" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6">
+        <div className="max-w-md mx-auto">
+          <div className="relative overflow-hidden rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-6">
+            <div className="text-center space-y-4">
+              <div className="relative">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                  <Sparkles className="w-8 h-8 text-indigo-400" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-bold text-white">No Orders Yet</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  No orders to analyze. Check back once customers start placing orders.
+                </p>
+              </div>
+              <button 
+                onClick={() => navigate('/orders')}
+                className="w-full mt-4 py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 active:scale-95"
+              >
+                View Orders
+              </button>
             </div>
-            <h3 className="text-xl font-semibold mb-3 text-white">
-              No orders found
-            </h3>
-            <p className="text-slate-400 max-w-md mb-6">
-              There are no orders to display. Check back later or encourage users to place orders.
-            </p>
           </div>
         </div>
       </div>
@@ -180,86 +236,188 @@ const OrderCharts = ({ token }) => {
   }
 
   return (
-    <div className="min-h-screen py-16 px-4 bg-slate-900">
-      <div
-        className="rounded-3xl shadow-2xl max-w-6xl mx-auto overflow-hidden border border-slate-700 bg-slate-800"
-      >
-        {/* Header */}
-        <div className="border-b px-7 py-7 border-slate-700 bg-gradient-to-r from-indigo-600/10 to-purple-700/10">
-          <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-            <Sparkles className="w-7 h-7 text-indigo-400" />
-            Order Analytics <span className="text-base text-indigo-300">({orders.length})</span>
-          </h2>
-        </div>
-
-        {/* Charts */}
-        <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Pie Chart: Orders by Status */}
-          <div
-            className="rounded-2xl p-7 bg-slate-900 border border-slate-700 shadow-lg hover:shadow-indigo-800/30 transition-all"
-          >
-            <h3 className="text-lg font-semibold mb-5 text-indigo-300 tracking-wide">
-              Orders by Status
-            </h3>
-            <Pie
-              data={statusChartData}
-              options={{
-                ...chartOptions,
-                plugins: { ...chartOptions.plugins, title: { display: true, text: "Order Status Distribution", color: "#c7d2fe" } },
-              }}
-            />
-          </div>
-
-          {/* Bar Chart: Total Amount by Date */}
-          <div
-            className="rounded-2xl p-7 bg-slate-900 border border-slate-700 shadow-lg hover:shadow-purple-800/30 transition-all"
-          >
-            <h3 className="text-lg font-semibold mb-5 text-purple-300 tracking-wide">
-              Total Amount by Date
-            </h3>
-            <Bar
-              data={amountChartData}
-              options={{
-                ...chartOptions,
-                plugins: { ...chartOptions.plugins, title: { display: true, text: "Revenue Over Time", color: "#c7d2fe" } },
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Order List */}
-        <div className="p-8 border-t border-slate-700 bg-gradient-to-r from-indigo-600/10 to-purple-700/10">
-          <h3 className="text-lg font-semibold mb-6 text-white">
-            Recent Orders
-          </h3>
-          <div className="grid gap-4">
-            {orders.slice(0, 5).map((order) => (
-              <div
-                key={order._id}
-                className="rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 border border-slate-700 hover:border-indigo-500/50 transition-all"
-              >
-                <div>
-                  <p className="font-semibold text-white">
-                    <span className="text-indigo-400">Order</span> #{order._id.slice(-8)}
-                  </p>
-                  <p className="text-slate-400">
-                    <span className="text-white">User:</span> {order.userId.name} ({order.userId.email})
-                  </p>
-                  <p className="text-slate-400">
-                    <span className="text-white">Status:</span> <span className="font-semibold text-indigo-300">{order.status}</span>
-                  </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Mobile-first container */}
+      <div className="px-1 pt-20 pb-6 sm:px-4 sm:pt-24 lg:px-6 lg:pt-28">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+          
+          {/* Mobile-first Header */}
+          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-indigo-500/20">
+                  <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-400" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-lg bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
-                    {currency}
-                    {order.amount.toLocaleString()}
-                  </span>
+                <div>
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">Order Analytics</h1>
+                  <p className="text-xs sm:text-sm text-slate-400">{orders.length} total orders</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-500">Total Revenue</p>
+                <p className="text-lg sm:text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                  {currency}{(totalRevenue / 1000).toFixed(0)}k
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile-first Stats Row */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+            {[
+              {
+                icon: Package,
+                label: "Total Orders",
+                value: orders.length.toString(),
+                color: "blue"
+              },
+              {
+                icon: DollarSign,
+                label: "Revenue",
+                value: `${currency}${(totalRevenue / 1000).toFixed(0)}k`,
+                fullValue: `${currency}${totalRevenue.toLocaleString()}`,
+                color: "emerald"
+              },
+              {
+                icon: Eye,
+                label: "Avg Order",
+                value: `${currency}${Math.round(averageOrderValue)}`,
+                color: "purple"
+              },
+              {
+                icon: Calendar,
+                label: "Today",
+                value: orders.filter(order => 
+                  new Date(order.date).toDateString() === new Date().toDateString()
+                ).length.toString(),
+                color: "amber"
+              }
+            ].map((stat, index) => (
+              <div 
+                key={index}
+                className="relative overflow-hidden rounded-xl bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 p-3 sm:p-4 hover:bg-slate-700/60 transition-all duration-300 active:scale-95 cursor-pointer"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className={`p-1.5 sm:p-2 rounded-lg bg-${stat.color}-500/20`}>
+                      <stat.icon className={`h-3 w-3 sm:h-4 sm:w-4 text-${stat.color}-400`} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 mb-1 font-medium">{stat.label}</p>
+                    <p className="text-lg sm:text-xl font-bold text-white leading-none" title={stat.fullValue}>
+                      {stat.value}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
 
+          {/* Mobile-first Charts Section */}
+          <div className="space-y-4 sm:space-y-6">
+            
+            {/* Charts Grid - Mobile stacked, Desktop side-by-side */}
+            <div className="grid gap-4 lg:grid-cols-2">
+              
+              {/* Pie Chart - Mobile optimized */}
+              <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 hover:bg-slate-700/60 transition-all duration-300">
+                <div className="flex items-center gap-2 sm:gap-3 mb-4">
+                  <div className="p-2 rounded-xl bg-indigo-500/20">
+                    <PieChartIcon className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400" />
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-white">Order Status</h3>
+                </div>
+                <div className="h-64 sm:h-72 lg:h-80">
+                  <Pie data={statusChartData} options={mobileChartOptions} />
+                </div>
+              </div>
+
+              {/* Bar Chart - Mobile optimized */}
+              <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 hover:bg-slate-700/60 transition-all duration-300">
+                <div className="flex items-center gap-2 sm:gap-3 mb-4">
+                  <div className="p-2 rounded-xl bg-purple-500/20">
+                    <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400" />
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-white">Revenue Trend</h3>
+                </div>
+                <div className="h-64 sm:h-72 lg:h-80">
+                  <Bar data={amountChartData} options={mobileChartOptions} />
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Orders - Mobile optimized */}
+            <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 hover:bg-slate-700/60 transition-all duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-2 rounded-xl bg-emerald-500/20">
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
+                  </div>
+                  <h3 className="text-base sm:text-lg font-bold text-white">Recent Orders</h3>
+                </div>
+                <button 
+                  onClick={() => navigate('/orders')}
+                  className="text-xs px-2 py-1 rounded-full bg-slate-600/50 text-slate-300 hover:bg-slate-600 transition-colors"
+                >
+                  View All
+                </button>
+              </div>
+
+              {/* Mobile-first order list */}
+              <div className="space-y-2 sm:space-y-3">
+                {recentOrders.map((order) => (
+                  <div
+                    key={order._id}
+                    className="group p-3 sm:p-4 rounded-xl bg-slate-700/40 hover:bg-slate-600/50 transition-all duration-200 cursor-pointer active:scale-95"
+                    onClick={() => navigate('/orders')}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-semibold text-white truncate">
+                            #{order._id.slice(-6)}
+                          </p>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            order.status === 'delivered' ? 'bg-green-500/20 text-green-400' :
+                            order.status === 'pending' ? 'bg-amber-500/20 text-amber-400' :
+                            order.status === 'shipped' ? 'bg-blue-500/20 text-blue-400' :
+                            'bg-slate-500/20 text-slate-400'
+                          }`}>
+                            {order.status}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400 truncate">
+                          {order.userId?.name || 'Unknown User'}
+                        </p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {new Date(order.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-white">
+                            {currency}{order.amount.toLocaleString()}
+                          </p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-slate-300 transition-colors" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* View all button - Mobile optimized */}
+              <button 
+                onClick={() => navigate('/orders')}
+                className="mt-4 w-full py-3 text-sm font-semibold rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
+              >
+                View All Orders
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

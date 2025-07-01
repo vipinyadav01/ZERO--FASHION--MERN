@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import UserModel from "../models/userModel.js";
 import OrderModel from "../models/orderModel.js";
 import { processStripeRefund, processRazorPayRefund } from "./orderController.js";
+import { v2 as cloudinary } from "cloudinary";
 
 // Create JWT token
 const createToken = (id, role = "user") => {
@@ -161,7 +162,9 @@ const userDetails = async (req, res) => {
         email: user.email,
         role: user.role,
         isAdmin: user.isAdmin,
+        profileImage: user.profileImage,
         cartData: user.cartData,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {
@@ -185,7 +188,9 @@ const getUserProfile = async (req, res) => {
         email: user.email,
         role: user.role,
         isAdmin: user.isAdmin,
+        profileImage: user.profileImage,
         cartData: user.cartData,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {
@@ -197,43 +202,139 @@ const getUserProfile = async (req, res) => {
 // Update user profile
 const updateProfile = async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { name } = req.body; // Only accept name changes
+    let profileImageUrl = "";
 
-    if (!name && !email) {
-      return res.status(400).json({ success: false, message: "At least one field (name or email) is required" });
+    console.log("Update profile request received:", { name, hasFile: !!req.file });
+
+    // Validate input
+    if (!name && !req.file) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "At least one field (name or profile image) is required" 
+      });
     }
 
-    if (email && !validator.isEmail(email)) {
-      return res.status(400).json({ success: false, message: "Invalid email format" });
+    if (name && name.trim().length < 2) {
+      return res.status(400).json({ success: false, message: "Name must be at least 2 characters long" });
     }
 
-    const updateData = {};
-    if (name) updateData.name = name;
-    if (email) {
-      const existingUser = await UserModel.findOne({ email });
-      if (existingUser && existingUser._id.toString() !== req.user._id) {
-        return res.status(400).json({ success: false, message: "Email already in use" });
+    // Handle profile image upload to Cloudinary
+    if (req.file) {
+      try {
+        console.log("Processing image upload...");
+        
+        // Check if Cloudinary is properly configured
+        if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY) {
+          console.error("Cloudinary credentials missing in environment variables");
+          return res.status(500).json({ 
+            success: false, 
+            message: "Image upload service is not configured. Please update only your name or contact support." 
+          });
+        }
+
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          resource_type: "image",
+          folder: "user_profiles",
+          transformation: [
+            { width: 400, height: 400, crop: "fill", gravity: "face" },
+            { quality: "auto", fetch_format: "auto" }
+          ]
+        });
+        profileImageUrl = result.secure_url;
+        console.log("Image uploaded successfully:", profileImageUrl);
+
+        // Delete old profile image if exists
+        try {
+          const currentUser = await UserModel.findById(req.user._id);
+          if (currentUser.profileImage) {
+            const publicId = currentUser.profileImage.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(`user_profiles/${publicId}`);
+            console.log("Old image deleted successfully");
+          }
+        } catch (deleteError) {
+          console.warn("Could not delete old profile image:", deleteError.message);
+          // Don't fail the update if we can't delete the old image
+        }
+      } catch (cloudinaryError) {
+        console.error("Cloudinary upload error:", cloudinaryError);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Failed to upload profile image. Please try again or update without image." 
+        });
       }
-      updateData.email = email;
     }
 
-    const updatedUser = await UserModel.findByIdAndUpdate(req.user._id, updateData, {
-      new: true,
-      runValidators: true,
-    }).select("-password");
+    // Prepare update data
+    const updateData = {};
+    if (name && name.trim()) updateData.name = name.trim();
+    if (profileImageUrl) updateData.profileImage = profileImageUrl;
+
+    // Ensure we have something to update
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "No valid changes detected" 
+      });
+    }
+
+    console.log("Updating user with data:", updateData);
+
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      req.user._id, 
+      updateData, 
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).select("-password");
 
     if (!updatedUser) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    res.status(200).json({ success: true, user: updatedUser });
+    console.log("User updated successfully");
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Profile updated successfully. Note: Email address cannot be changed for security reasons.",
+      user: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        isAdmin: updatedUser.isAdmin,
+        profileImage: updatedUser.profileImage,
+        createdAt: updatedUser.createdAt,
+      }
+    });
   } catch (error) {
     console.error("Profile update error:", error.message);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Full error stack:", error.stack);
+    
+    // Provide specific error messages based on error type
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid data provided: " + error.message 
+      });
+    }
+    
+    if (error.name === 'CastError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid user ID" 
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: "Internal server error. Please try again later." 
+    });
   }
 };
 
-// Admin update user
+// Admin update user (Admin can change email for security/management purposes)
 const adminUpdateUser = async (req, res) => {
   try {
     const { userId, name, email, role } = req.body;
