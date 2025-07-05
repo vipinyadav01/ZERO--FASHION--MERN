@@ -390,7 +390,11 @@ const userOrders = async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
-    res.status(200).json({ success: true, orders: user.orders });
+    
+    // Sort orders by date in descending order (most recent first)
+    const sortedOrders = user.orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    res.status(200).json({ success: true, orders: sortedOrders });
   } catch (error) {
     console.error("Error in userOrders:", error);
     res.status(500).json({ success: false, message: "Something went wrong" });

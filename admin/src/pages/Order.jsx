@@ -54,7 +54,7 @@ const Order = () => {
             );
 
             if (response.data.success) {
-                setOrders(response.data.orders.reverse());
+                setOrders(response.data.orders);
             } else {
                 toast.error(response.data.message);
                 setError(response.data.message);
