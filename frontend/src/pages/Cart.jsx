@@ -25,22 +25,18 @@ function Cart() {
   const [cartData, setCartData] = useState([]);
 
   useEffect(() => {
-    // Check if user is logged in
     const authToken = token || localStorage.getItem('token');
     
     if (!authToken) {
       console.log("No authentication token found");
-      // You could redirect to login here if needed
-      // navigate("/login");
+      navigate("/login");
     }
     
     if (products && products.length > 0 && cartItems) {
       const tempData = [];
 
-      // Extract cart items from nested structure
       for (const itemId in cartItems) {
         if (cartItems[itemId]) {
-          // Check if cartItems[itemId] is an object with size keys
           if (typeof cartItems[itemId] === 'object') {
             for (const size in cartItems[itemId]) {
               if (cartItems[itemId][size] > 0) {
@@ -52,7 +48,6 @@ function Cart() {
               }
             }
           } else if (typeof cartItems[itemId] === 'number' && cartItems[itemId] > 0) {
-            // Handle case where cartItems structure doesn't have sizes
             tempData.push({
               _id: itemId,
               size: "Default",
@@ -66,7 +61,6 @@ function Cart() {
     }
   }, [cartItems, products, token, navigate]);
 
-  // Handle quantity updates
   const handleQuantityUpdate = (itemId, size, newQuantity) => {
     if (!updateQuantity) {
       console.error("updateQuantity function is not available");
@@ -102,7 +96,7 @@ function Cart() {
             <p className="text-lg mb-2">Your cart is empty</p>
             <p className="mb-4">Add some products to see them here.</p>
             <button 
-              onClick={() => navigate && navigate("/shop")} 
+              onClick={() => navigate && navigate("/collection")} 
               className="bg-black text-white px-8 py-2 hover:bg-gray-800 transition-colors"
             >
               Continue Shopping
@@ -116,7 +110,7 @@ function Cart() {
               );
 
               if (!productData) {
-                return null; // Skip rendering if product not found
+                return null; 
               }
 
               return (
