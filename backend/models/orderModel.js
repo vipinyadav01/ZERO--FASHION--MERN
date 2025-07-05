@@ -21,7 +21,7 @@ const orderSchema = new mongoose.Schema({
       "Order Placed",
       "Packing",
       "Shipped",
-      "Out for delivered",
+      "Out for Delivery",
       "Delivered",
       "Cancelled",
       "Payment Failed",
@@ -32,13 +32,14 @@ const orderSchema = new mongoose.Schema({
   payment: { type: Boolean, default: false },
   paymentMethod: {
     type: String,
-    enum: ["RazorPay", "Stripe", "CashOnDelivery"],
+    enum: ["RazorPay", "Stripe", "COD"],
     required: true,
   },
 
   // 👇 These are optional and based on the payment method
   razorpayOrderId: { type: String },
   razorpayPaymentId: { type: String },
+  stripeSessionId: { type: String },
   stripePaymentIntentId: { type: String },
 });
 

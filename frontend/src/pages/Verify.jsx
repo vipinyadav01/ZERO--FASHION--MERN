@@ -35,7 +35,6 @@ const Verify = () => {
                 return;
             }
 
-            // Validate success parameter
             if (success !== "true" && success !== "false") {
                 setError("Invalid payment status. Please try again.");
                 toast.error("Invalid payment status");
@@ -56,7 +55,7 @@ const Verify = () => {
                     headers: { 
                         'Authorization': `Bearer ${storedToken}`
                     },
-                    timeout: 10000 // 10 second timeout
+                    timeout: 10000 
                 }
             );
 
@@ -106,7 +105,6 @@ const Verify = () => {
             setError(errorMessage);
             toast.error(errorMessage);
             
-            // Don't auto-navigate on error, let user choose
         } finally {
             setIsLoading(false);
         }

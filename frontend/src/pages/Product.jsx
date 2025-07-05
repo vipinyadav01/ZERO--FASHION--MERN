@@ -8,7 +8,7 @@ import RelatedProducts from "../components/RelatedProducts"
 
 const Product = () => {
   const { productId } = useParams()
-  const { products, currency, addToCart } = useContext(ShopContext)
+  const { products, currency, addMultipleSizesToCart } = useContext(ShopContext)
   const [productData, setProductData] = useState(null) 
   const [image, setImage] = useState("")
   const [selectedSizes, setSelectedSizes] = useState([])
@@ -40,9 +40,7 @@ const Product = () => {
   }
 
   const handleAddToCart = () => {
-    selectedSizes.forEach(size => {
-      addToCart(productData._id, size)
-    })
+    addMultipleSizesToCart(productData._id, selectedSizes)
   }
 
   if (loading || !productData) {

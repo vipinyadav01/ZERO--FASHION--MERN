@@ -90,7 +90,13 @@ const Order = () => {
             }
         } catch (error) {
             console.error("Error updating status:", error);
-            toast.error("Failed to update order status");
+            if (error.response?.status === 401) {
+                toast.error("Authentication failed. Please log in again.");
+            } else if (error.response?.status === 403) {
+                toast.error("Admin access required");
+            } else {
+                toast.error(error.response?.data?.message || "Failed to update order status");
+            }
         }
     };
 

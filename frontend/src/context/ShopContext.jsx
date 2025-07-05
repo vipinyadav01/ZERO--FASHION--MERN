@@ -62,21 +62,22 @@ const ShopContextProvider = ({ children }) => {
           return;
         }
 
-        let cartData = cloneCartItems(cartItems);
+        setCartItems(prevCartItems => {
+          let cartData = cloneCartItems(prevCartItems);
 
-        if (cartData[itemId]) {
-          if (cartData[itemId][size]) {
-            cartData[itemId][size] += 1;
+          if (cartData[itemId]) {
+            if (cartData[itemId][size]) {
+              cartData[itemId][size] += 1;
+            } else {
+              cartData[itemId][size] = 1;
+            }
           } else {
-            cartData[itemId][size] = 1;
+            cartData[itemId] = { [size]: 1 };
           }
-        } else {
-          cartData[itemId] = { [size]: 1 };
-        }
 
-        setCartItems(cartData);
-        localStorage.setItem("cartItems", JSON.stringify(cartData));
-        toast.success("Item added to cart");
+          localStorage.setItem("cartItems", JSON.stringify(cartData));
+          return cartData;
+        });
 
         if (token) {
           setIsLoading(true);
@@ -98,7 +99,71 @@ const ShopContextProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [cartItems, token, backendUrl]
+    [token, backendUrl]
+  );
+
+  // Add multiple sizes to cart at once
+  const addMultipleSizesToCart = useCallback(
+    async (itemId, sizes) => {
+      try {
+        if (!itemId || !sizes || sizes.length === 0) {
+          toast.error("Invalid product or sizes");
+          return;
+        }
+
+        setCartItems(prevCartItems => {
+          let cartData = cloneCartItems(prevCartItems);
+
+          if (!cartData[itemId]) {
+            cartData[itemId] = {};
+          }
+
+          sizes.forEach(size => {
+            if (cartData[itemId][size]) {
+              cartData[itemId][size] += 1;
+            } else {
+              cartData[itemId][size] = 1;
+            }
+          });
+
+          localStorage.setItem("cartItems", JSON.stringify(cartData));
+          return cartData;
+        });
+
+        // Show success message
+        const sizeText = sizes.length === 1 ? 'size' : 'sizes';
+        toast.success(`${sizes.length} ${sizeText} added to cart`);
+
+        // Sync with backend if authenticated
+        if (token) {
+          setIsLoading(true);
+          try {
+            // Add each size to backend
+            await Promise.all(
+              sizes.map(size =>
+                axios.post(
+                  `${backendUrl}/api/cart/add`,
+                  { itemId, size },
+                  { headers: getAuthHeader() }
+                )
+              )
+            );
+          } catch (error) {
+            console.error("Error syncing cart with backend:", error);
+            // Don't show error toast as local cart is already updated
+          } finally {
+            setIsLoading(false);
+          }
+        }
+      } catch (error) {
+        console.error("Error adding multiple sizes to cart:", error);
+        toast.error("Error adding items to cart");
+        // Revert local cart on failure
+        const storedCart = JSON.parse(localStorage.getItem("cartItems") || "{}");
+        setCartItems(storedCart);
+      }
+    },
+    [token, backendUrl]
   );
 
   const getCartCount = useCallback(() => {
@@ -112,8 +177,15 @@ const ShopContextProvider = ({ children }) => {
         const itemSizes = cartItems[itemId];
         if (!itemSizes) continue;
 
-        for (const size in itemSizes) {
-          const quantity = Number(itemSizes[size]);
+        if (typeof itemSizes === "object") {
+          for (const size in itemSizes) {
+            const quantity = Number(itemSizes[size]);
+            if (!isNaN(quantity) && quantity > 0) {
+              totalCount += quantity;
+            }
+          }
+        } else if (typeof itemSizes === "number") {
+          const quantity = Number(itemSizes);
           if (!isNaN(quantity) && quantity > 0) {
             totalCount += quantity;
           }
@@ -134,22 +206,24 @@ const ShopContextProvider = ({ children }) => {
           return;
         }
 
-        let cartData = cloneCartItems(cartItems);
+        setCartItems(prevCartItems => {
+          let cartData = cloneCartItems(prevCartItems);
 
-        if (!cartData[itemId]) {
-          cartData[itemId] = {};
-        }
-
-        cartData[itemId][size] = quantity;
-        if (quantity === 0) {
-          delete cartData[itemId][size];
-          if (Object.keys(cartData[itemId]).length === 0) {
-            delete cartData[itemId];
+          if (!cartData[itemId]) {
+            cartData[itemId] = {};
           }
-        }
 
-        setCartItems(cartData);
-        localStorage.setItem("cartItems", JSON.stringify(cartData));
+          cartData[itemId][size] = quantity;
+          if (quantity === 0) {
+            delete cartData[itemId][size];
+            if (Object.keys(cartData[itemId]).length === 0) {
+              delete cartData[itemId];
+            }
+          }
+
+          localStorage.setItem("cartItems", JSON.stringify(cartData));
+          return cartData;
+        });
 
         if (token) {
           setIsLoading(true);
@@ -171,7 +245,7 @@ const ShopContextProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [cartItems, token, backendUrl]
+    [token, backendUrl]
   );
 
   const getCartAmount = useCallback(() => {
@@ -191,8 +265,15 @@ const ShopContextProvider = ({ children }) => {
         const itemSizes = cartItems[itemId];
 
         if (productInfo && itemSizes) {
-          for (const size in itemSizes) {
-            const quantity = Number(itemSizes[size]);
+          if (typeof itemSizes === "object") {
+            for (const size in itemSizes) {
+              const quantity = Number(itemSizes[size]);
+              if (!isNaN(quantity) && quantity > 0 && productInfo.price) {
+                totalAmount += productInfo.price * quantity;
+              }
+            }
+          } else if (typeof itemSizes === "number") {
+            const quantity = Number(itemSizes);
             if (!isNaN(quantity) && quantity > 0 && productInfo.price) {
               totalAmount += productInfo.price * quantity;
             }
@@ -220,9 +301,8 @@ const ShopContextProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Error clearing cart on server:", error);
-      toast.error(
-        error?.response?.data?.message || "Error clearing cart on server"
-      );
+      // Don't show error toast for cart clearing as it's not critical
+      // The local cart is already cleared
     }
   }, [token, backendUrl]);
 
@@ -417,6 +497,7 @@ const ShopContextProvider = ({ children }) => {
 
     // Cart functions
     addToCart,
+    addMultipleSizesToCart,
     getCartCount,
     updateQuantity,
     getCartAmount,

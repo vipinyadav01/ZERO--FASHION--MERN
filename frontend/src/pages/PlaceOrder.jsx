@@ -8,7 +8,7 @@ import axios from "axios";
 
 function PlaceOrder() {
   const [method, setMethod] = useState("cod");
-  const { navigate, backendUrl, token, cartItems, setCartItems, getCartAmount, delivery_fee, products, logout } = useContext(ShopContext);
+  const { navigate, backendUrl, token, cartItems, setCartItems, getCartAmount, delivery_fee, products, logout, clearCart } = useContext(ShopContext);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -106,6 +106,7 @@ function PlaceOrder() {
     if (!cartItems || Object.keys(cartItems).length === 0) {
       setCartError("Your cart is empty");
       setIsValidating(false);
+      navigate("/cart");
       return;
     }
 
@@ -128,7 +129,7 @@ function PlaceOrder() {
                 const quantity = cartItems[itemId][size];
 
                 if (quantity > 0) {
-                  if (productData.sizes && !productData.sizes.includes(size)) {
+                  if (productData.sizes && productData.sizes.length > 0 && !productData.sizes.includes(size)) {
                     setCartError(`Size ${size} for ${productData.name} is not available`);
                     setIsValidating(false);
                     return;
@@ -231,13 +232,13 @@ function PlaceOrder() {
             response,
             { headers: { Authorization: `Bearer ${authToken}` } }
           );
-          if (data.success) {
-            setCartItems({});
-            navigate("/order");
-            toast.success("Payment successful");
-          } else {
-            toast.error(data.message || "Payment verification failed");
-          }
+                  if (data.success) {
+          await clearCart();
+          navigate("/order");
+          toast.success("Payment successful");
+        } else {
+          toast.error(data.message || "Payment verification failed");
+        }
         } catch (error) {
           console.error("Payment verification error:", error);
           if (error.response?.status === 401) {
@@ -330,8 +331,8 @@ function PlaceOrder() {
           );
           if (response.data.success) {
             toast.success("Order placed successfully");
-            setCartItems({});
-            navigate("/orders");
+            await clearCart();
+            navigate("/order");
           } else {
             toast.error(response.data.message || "Order placement failed");
           }
@@ -353,7 +354,12 @@ function PlaceOrder() {
             }
           } catch (error) {
             console.error("Stripe payment error:", error);
-            toast.error(error.message || "Payment initialization failed");
+            if (error.response?.status === 401) {
+              toast.error("Authentication failed. Please log in again.");
+              logout();
+            } else {
+              toast.error(error.response?.data?.message || error.message || "Payment initialization failed");
+            }
           }
           break;
         }

@@ -36,6 +36,7 @@ const placeOrder = async (req, res) => {
       amount,
       paymentMethod: "COD",
       payment: false,
+      status: "Order Placed",
       date: Date.now(),
     };
 
@@ -305,6 +306,7 @@ const placeOrderRazorPay = async (req, res) => {
       amount,
       paymentMethod: "RazorPay",
       payment: false,
+      status: "Pending",
       date: Date.now(),
     };
 
@@ -398,8 +400,39 @@ const userOrders = async (req, res) => {
 // Update order status (Admin)
 const updateStatus = async (req, res) => {
   try {
-    const { orderId, status } = req.body;
-    await OrderModel.findByIdAndUpdate(orderId, { status });
+    const { status } = req.body;
+    const { orderId } = req.params;
+    
+    // Validate status
+    const validStatuses = [
+      "Pending",
+      "Order Placed", 
+      "Packing",
+      "Shipped",
+      "Out for Delivery",
+      "Delivered",
+      "Cancelled",
+      "Payment Failed"
+    ];
+    
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid status value" 
+      });
+    }
+
+    const order = await OrderModel.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Order not found" 
+      });
+    }
+
+    order.status = status;
+    await order.save();
+    
     res.status(200).json({ success: true, message: "Status updated successfully" });
   } catch (error) {
     console.error("Error in updateStatus:", error);
