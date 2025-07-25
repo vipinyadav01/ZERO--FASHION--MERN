@@ -1,4 +1,4 @@
-import React from "react";
+
 import { assets } from "../assets/assets";
 import NewsletterBox from "../components/NewsletterBox";
 
@@ -79,7 +79,7 @@ const Contact = () => {
           <div className="bg-gray-50 rounded-lg p-8 shadow-lg">
             <p className="text-xl text-gray-700 mb-6">
               Join our team of passionate fashion enthusiasts and innovators.
-              We're always looking for talented individuals to help shape the
+              We&apos;re always looking for talented individuals to help shape the
               future of fashion.
             </p>
             <p className="text-lg text-gray-600 mb-8">

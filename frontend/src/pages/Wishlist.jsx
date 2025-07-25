@@ -462,7 +462,7 @@ const Wishlist = () => {
                                     Your Wishlist is Empty!
                                 </h3>
                                 <p className="text-gray-600 mb-6">
-                                    It looks like you haven't added any items to your wishlist yet. Start exploring your favorite products!
+                                    It looks like you haven &apos;t added any items to your wishlist yet. Start exploring your favorite products!
                                 </p>
                                 <Link
                                     to="/collection"
