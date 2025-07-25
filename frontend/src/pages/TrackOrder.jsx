@@ -13,7 +13,8 @@ import {
     ChevronDown,
     Info
 } from "lucide-react";
-import Title from "../components/Title";
+import Title from "../components/Title"; // Assuming this path is correct
+
 const StatusBadge = ({ status }) => {
     const getStatusStyles = (status) => {
         switch (status) {
@@ -37,6 +38,10 @@ const StatusBadge = ({ status }) => {
     );
 };
 
+StatusBadge.propTypes = {
+    status: PropTypes.string.isRequired,
+};
+
 const Timeline = ({ events }) => {
     const completedCount = events.filter(event => event.completed).length;
     const progress = (completedCount / events.length) * 100;
@@ -44,17 +49,17 @@ const Timeline = ({ events }) => {
     return (
         <div className="space-y-6 py-6">
             <div className="w-full bg-gray-200 rounded-full h-3 mb-6">
-                <div 
-                    className="bg-gradient-to-r from-gray-800 to-black h-3 rounded-full transition-all duration-700 ease-out" 
-                    style={{ width: `${progress}%` }} 
+                <div
+                    className="bg-gradient-to-r from-gray-800 to-black h-3 rounded-full transition-all duration-700 ease-out"
+                    style={{ width: `${progress}%` }}
                 />
             </div>
             {events.map((event, index) => (
                 <div key={index} className="flex items-start group">
                     <div className="flex flex-col items-center">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
-                            event.completed 
-                                ? 'bg-black border-4 border-gray-300' 
+                            event.completed
+                                ? 'bg-black border-4 border-gray-300'
                                 : 'bg-white border-4 border-gray-300'
                         }`}>
                             {event.completed ? (
@@ -87,6 +92,17 @@ const Timeline = ({ events }) => {
     );
 };
 
+Timeline.propTypes = {
+    events: PropTypes.arrayOf(
+        PropTypes.shape({
+            title: PropTypes.string.isRequired,
+            description: PropTypes.string.isRequired,
+            time: PropTypes.string.isRequired,
+            completed: PropTypes.bool.isRequired,
+        })
+    ).isRequired,
+};
+
 const DeliveryMap = ({ address }) => {
     return (
         <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -107,8 +123,6 @@ DeliveryMap.propTypes = {
     address: PropTypes.string.isRequired
 };
 
-const DeliveryMap = ({ address }) => {
-    return (
 const OrderInfoItem = ({ icon, label, value }) => (
     <div className="flex items-start gap-3 text-sm group">
         <div className="p-1 bg-black rounded-full mt-0.5">
@@ -126,8 +140,6 @@ OrderInfoItem.propTypes = {
     label: PropTypes.string.isRequired,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired
 };
-    );
-};
 
 const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -135,20 +147,8 @@ const formatDate = (dateString) => {
     return date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
 };
 
-const OrderInfoItem = ({ icon, label, value }) => (
-    <div className="flex items-start gap-3 text-sm group">
-        <div className="p-1 bg-black rounded-full mt-0.5">
-            {icon}
-        </div>
-        <div className="flex-1 min-w-0">
-            <span className="text-gray-600 font-medium block">{label}:</span>
-            <span className="font-semibold text-gray-900 group-hover:text-black transition-colors duration-200 break-words">{value}</span>
-        </div>
-    </div>
-);
-                        <p className="text-gray-600 leading-relaxed">
-                            We couldn&apos;t locate the order details you&apos;re looking for.
-                        </p>
+const TrackOrder = () => {
+    const location = useLocation(); // Correctly initialize useLocation
     const navigate = useNavigate();
     const [orderDetails, setOrderDetails] = useState(null);
     const [expandedSection, setExpandedSection] = useState("all");
@@ -163,21 +163,21 @@ const OrderInfoItem = ({ icon, label, value }) => (
         setExpandedSection(expandedSection === section ? "all" : section);
     };
 
-    if (!location.state?.orderDetails) {
+    if (!orderDetails) { // Check for orderDetails directly
         return (
-            <div className="min-h-screen bg-transparent">
+            <div className="min-h-screen bg-transparent flex items-center justify-center p-4">
                 <div className="container mx-auto py-8 pt-20 sm:pt-24">
-                    <div className="max-w-md mx-auto bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 text-center space-y-6">
-                        <div className="rounded-full bg-gray-100 p-6 w-24 h-24 flex items-center justify-center mx-auto">
+                    <div className="max-w-md mx-auto bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 text-center space-y-6 border border-gray-200">
+                        <div className="rounded-full bg-gray-100 p-6 w-24 h-24 flex items-center justify-center mx-auto shadow-inner">
                             <Package className="w-12 h-12 text-black" />
                         </div>
                         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Order Not Found</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            We couldn't locate the order details you're looking for.
+                            We couldn&apos;t locate the order details you&apos;re looking for.
                         </p>
                         <button
                             onClick={() => navigate("/orders")}
-                            className="w-full sm:w-auto px-8 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
+                            className="w-full sm:w-auto px-8 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold transform hover:-translate-y-0.5"
                         >
                             View All Orders
                         </button>
@@ -197,37 +197,37 @@ const OrderInfoItem = ({ icon, label, value }) => (
         {
             title: "Processing",
             description: "Your order is being prepared",
-            time: "2025-02-05 12:30 PM",
+            time: "2025-02-05 12:30 PM", // Placeholder, you might want to dynamically set this
             completed: orderDetails?.status !== "Order Placed"
         },
         {
             title: "Shipped",
             description: "Your order has been shipped",
-            time: "2025-02-06 09:15 AM",
+            time: "2025-02-06 09:15 AM", // Placeholder
             completed: ["Shipped", "Out for Delivery", "Delivered"].includes(orderDetails?.status)
         },
         {
             title: "Out for Delivery",
             description: "Your order is on its way",
-            time: "2025-02-07 02:20 PM",
+            time: "2025-02-07 02:20 PM", // Placeholder
             completed: ["Out for Delivery", "Delivered"].includes(orderDetails?.status)
         },
         {
             title: "Delivered",
             description: "Your order has been delivered",
-            time: "2025-02-07 04:45 PM",
+            time: "2025-02-07 04:45 PM", // Placeholder
             completed: orderDetails?.status === "Delivered"
         }
     ];
 
     return (
-        <div className="min-h-screen bg-transparent">
+        <div className="min-h-screen bg-transparent p-4 sm:p-6">
             {/* Title and Back Button */}
             <div className="max-w-4xl mx-auto pt-6 sm:pt-8 pb-4">
                 <div className="flex items-center space-x-4">
                     <button
                         onClick={() => navigate("/orders")}
-                        className="p-3 rounded-full bg-gray-100 text-gray-600 hover:bg-black hover:text-white transition-all duration-300 shadow-md"
+                        className="p-3 rounded-full bg-gray-100 text-gray-600 hover:bg-black hover:text-white transition-all duration-300 shadow-md transform hover:-translate-x-1"
                     >
                         <ArrowLeft size={20} className="sm:w-6 sm:h-6" />
                     </button>
@@ -245,8 +245,8 @@ const OrderInfoItem = ({ icon, label, value }) => (
                             <StatusBadge status={orderDetails?.status} />
                         </div>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div className="flex gap-4 sm:gap-5">
-                                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 flex-shrink-0">
+                            <div className="flex gap-4 sm:gap-5 items-center">
+                                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 flex-shrink-0 border border-gray-100">
                                     <img
                                         src={orderDetails?.image?.[0]}
                                         alt={orderDetails?.name}
@@ -256,13 +256,13 @@ const OrderInfoItem = ({ icon, label, value }) => (
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-semibold text-lg sm:text-xl text-gray-900 break-words">{orderDetails?.name}</h3>
                                     <div className="flex flex-wrap gap-2 sm:gap-3 mt-3">
-                                        <span className="text-xs sm:text-sm px-3 py-1 bg-gray-100 rounded-full font-medium">Size: {orderDetails?.size}</span>
-                                        <span className="text-xs sm:text-sm px-3 py-1 bg-gray-100 rounded-full font-medium">Qty: {orderDetails?.quantity}</span>
+                                        <span className="text-xs sm:text-sm px-3 py-1 bg-gray-100 rounded-full font-medium shadow-sm">Size: {orderDetails?.size}</span>
+                                        <span className="text-xs sm:text-sm px-3 py-1 bg-gray-100 rounded-full font-medium shadow-sm">Qty: {orderDetails?.quantity}</span>
                                     </div>
                                     <p className="font-bold mt-3 sm:mt-4 text-black text-lg sm:text-xl">₹{orderDetails?.price}</p>
                                 </div>
                             </div>
-                            <div className="bg-gray-50/80 p-4 sm:p-5 rounded-2xl space-y-4 sm:space-y-5">
+                            <div className="bg-gray-50/80 p-4 sm:p-5 rounded-2xl space-y-4 sm:space-y-5 border border-gray-100 shadow-inner">
                                 <OrderInfoItem
                                     icon={<Box className="text-white" size={16} />}
                                     label="Order ID"
@@ -298,12 +298,12 @@ const OrderInfoItem = ({ icon, label, value }) => (
                         </div>
                         <div
                             className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                                expandedSection === "timeline" || expandedSection === "all" 
-                                    ? "max-h-[2000px] opacity-100" 
+                                expandedSection === "timeline" || expandedSection === "all"
+                                    ? "max-h-[2000px] opacity-100"
                                     : "max-h-0 opacity-0 sm:max-h-[2000px] sm:opacity-100"
                             }`}
                         >
-                            <div className="pb-6 sm:pb-8">
+                            <div className="px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
                                 <Timeline events={events} />
                             </div>
                         </div>
@@ -325,8 +325,8 @@ const OrderInfoItem = ({ icon, label, value }) => (
                         </div>
                         <div
                             className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                                expandedSection === "delivery" || expandedSection === "all" 
-                                    ? "max-h-[2000px] opacity-100" 
+                                expandedSection === "delivery" || expandedSection === "all"
+                                    ? "max-h-[2000px] opacity-100"
                                     : "max-h-0 opacity-0 sm:max-h-[2000px] sm:opacity-100"
                             }`}
                         >
@@ -354,14 +354,14 @@ const OrderInfoItem = ({ icon, label, value }) => (
                                     navigator.clipboard?.writeText(window.location.href);
                                 }
                             }}
-                            className="flex items-center justify-center gap-3 px-6 py-3 border-2 border-gray-300 bg-white rounded-full hover:bg-gray-50 hover:border-black transition-all duration-300 shadow-md font-medium"
+                            className="flex items-center justify-center gap-3 px-6 py-3 border-2 border-gray-300 bg-white rounded-full hover:bg-gray-50 hover:border-black transition-all duration-300 shadow-md font-medium transform hover:-translate-y-0.5"
                         >
                             <Share2 size={18} />
                             <span>Share</span>
                         </button>
                         <button
                             onClick={() => navigate("/support")}
-                            className="px-8 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg font-semibold"
+                            className="px-8 py-3 bg-black text-white rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-lg font-semibold transform hover:-translate-y-0.5"
                         >
                             Need Help?
                         </button>
@@ -379,7 +379,7 @@ const OrderInfoItem = ({ icon, label, value }) => (
                         </div>
                         <button
                             onClick={() => navigate("/")}
-                            className="w-full sm:w-auto px-8 py-3 bg-black text-white font-semibold rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-xl"
+                            className="w-full sm:w-auto px-8 py-3 bg-black text-white font-semibold rounded-full hover:bg-gray-800 transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5"
                         >
                             Shop Now
                         </button>
