@@ -64,7 +64,7 @@ const App = () => {
             <div className="flex-grow">
                 <Navbar />
 
-                <main className="sm:py-4">
+                <main className="sm:py-4 px-4 ">
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/collection" element={<Collection />} />

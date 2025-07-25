@@ -32,14 +32,14 @@ const animations = {
 
 const FooterLink = memo(({ href, children, icon: Icon }) => (
     <motion.li
-        whileHover={{ x: 5 }}
+        whileHover={{ x: 6 }} // Increased hover movement for more impact
         transition={{ type: "spring", stiffness: 400, damping: 10 }}
     >
         <a
             href={href}
-            className="text-stone-600 hover:text-stone-900 transition-colors duration-300 flex items-center gap-2 group font-medium"
+            className="text-stone-700 hover:text-stone-900 transition-colors duration-300 flex items-center gap-2 group font-medium" // Darker initial text, bolder hover
         >
-            {Icon && <Icon size={16} className="group-hover:text-stone-900" />}
+            {Icon && <Icon size={16} className="text-stone-600 group-hover:text-stone-900 transition-colors duration-300" />} {/* Icon color adjusted */}
             {children}
         </a>
     </motion.li>
@@ -59,7 +59,7 @@ const SocialIcon = memo(({ href, icon: Icon, label }) => (
         rel="noopener noreferrer"
         whileHover={animations.socialHover}
         whileTap={animations.tap}
-        className="text-stone-500 hover:text-stone-900 transition-colors duration-300 p-3 bg-stone-50 rounded-xl border border-stone-200 hover:bg-stone-100 hover:shadow-md"
+        className="text-stone-600 hover:text-stone-900 transition-colors duration-300 p-3 bg-stone-100 rounded-xl border border-stone-200 hover:bg-stone-200 hover:shadow-md" // Softer background, more defined border
         aria-label={label}
     >
         <Icon size={20} />
@@ -81,14 +81,14 @@ const ScrollToTop = () => {
     return (
         <motion.button
             onClick={scrollToTop}
-            className="fixed bottom-20 md:bottom-8 right-4 md:right-8 bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 text-white p-3 rounded-xl shadow-lg z-50 border border-stone-200"
+            className="fixed bottom-24 md:bottom-10 right-4 md:right-8 bg-gradient-to-br from-stone-700 via-stone-800 to-stone-900 text-white p-3.5 rounded-xl shadow-xl z-50 border border-stone-600" // Elevated position, stronger gradient & shadow
             whileHover={{ scale: 1.1, y: -2 }}
             whileTap={{ scale: 0.9 }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             aria-label="Scroll to top"
         >
-            <ArrowUp size={20} />
+            <ArrowUp size={22} /> {/* Slightly larger icon */}
         </motion.button>
     );
 };
@@ -97,6 +97,8 @@ const Newsletter = memo(() => {
     const handleSubmit = (e) => {
         e.preventDefault();
         // Add newsletter subscription logic here
+        // console.log("Subscribed with:", e.target.email.value);
+        e.target.reset(); // Clear form after submission
     };
 
     return (
@@ -106,14 +108,15 @@ const Newsletter = memo(() => {
                 <input
                     type="email"
                     placeholder="Enter your email"
-                    className="px-4 py-3 rounded-xl border-2 border-stone-200 focus:outline-none focus:ring-4 focus:ring-stone-100 focus:border-stone-400 flex-grow bg-stone-50 text-stone-800 placeholder-stone-500 font-outfit transition-all duration-300"
+                    className="px-4 py-3.5 rounded-xl border-2 border-stone-200 focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 flex-grow bg-stone-50 text-stone-800 placeholder-stone-500 font-outfit transition-all duration-300"
                     required
+                    name="email" // Added name attribute for form submission
                 />
                 <motion.button
                     type="submit"
                     whileHover={animations.hover}
                     whileTap={animations.tap}
-                    className="bg-gradient-to-r from-stone-800 via-stone-900 to-stone-950 text-white px-6 py-3 rounded-xl hover:from-stone-900 hover:to-black transition-all duration-300 font-semibold shadow-lg"
+                    className="bg-gradient-to-r from-stone-800 via-stone-900 to-stone-950 text-white px-6 py-3.5 rounded-xl hover:from-stone-900 hover:to-black transition-all duration-300 font-semibold shadow-lg hover:shadow-xl" // Increased padding, more prominent hover shadow
                 >
                     Subscribe
                 </motion.button>
@@ -126,7 +129,7 @@ Newsletter.displayName = "Newsletter";
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
-    const currentDate = new Date().toLocaleString('en-US', {
+    const currentUTCTime = new Date().toLocaleString('en-US', {
         timeZone: 'UTC',
         year: 'numeric',
         month: '2-digit',
@@ -140,10 +143,10 @@ const Footer = () => {
     const companyLinks = [
         { href: "/", label: "Home" },
         { href: "/about", label: "About Us", icon: Heart },
-        { href: "/TrackOrder", label: "Track Order", icon: MapPin },
+        { href: "/track-order", label: "Track Order", icon: MapPin }, // Changed to kebab-case for consistency
         { href: "/privacy-policy", label: "Privacy Policy" },
         { href: "/terms", label: "Terms & Conditions" },
-        { href: "/support", label: "FAQ" },
+        { href: "/faq", label: "FAQ" }, // Changed to faq for consistency
     ];
 
     const socialLinks = [
@@ -155,29 +158,29 @@ const Footer = () => {
     ];
 
     return (
-        <footer className="bg-gradient-to-br from-stone-50 via-stone-100 to-amber-50 pt-16 pb-32 md:pb-8 relative">
-            <div className="max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
+        <footer className="bg-gradient-to-b from-white to-stone-50 pt-16 pb-32 md:pb-12 relative border-t border-stone-100"> {/* Soft gradient background */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> {/* Added padding for responsiveness */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-16 mb-12"> {/* Increased gap for better spacing */}
                     <div className="col-span-1 sm:col-span-2 lg:col-span-2">
-                        <div className="flex items-center space-x-3 mb-6">
+                        <div className="flex items-center space-x-4 mb-6"> {/* Adjusted space-x */}
                             <motion.img
                                 src={assets.logo}
                                 alt="Zero Fashion logo"
-                                className="w-12 sm:w-16"
+                                className="w-14 sm:w-18" // Slightly larger logo
                                 whileHover={{ scale: 1.05 }}
                                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
                             />
                             <div className="flex flex-col">
-                                <span className="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-stone-800 to-stone-950 font-outfit">
+                                <span className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-stone-700 to-stone-900 font-outfit"> {/* Darker gradient for text */}
                                     ZERO FASHION
                                 </span>
-                                <span className="text-xs sm:text-sm text-stone-600 font-medium">
+                                <span className="text-xs sm:text-sm text-stone-600 font-medium tracking-wide"> {/* Added tracking and medium font */}
                                     Style Meets Sustainability
                                 </span>
                             </div>
                         </div>
 
-                        <p className="text-stone-700 mb-6 sm:mb-8 max-w-md leading-relaxed font-outfit text-sm sm:text-base">
+                        <p className="text-stone-700 mb-8 sm:mb-10 max-w-md leading-relaxed font-outfit text-sm sm:text-base">
                             Welcome to Zero Fashion–where style meets sustainability. Discover
                             trendy, eco-friendly apparel designed to elevate your wardrobe
                             while caring for the planet. Join us in making fashion more
@@ -186,7 +189,7 @@ const Footer = () => {
 
                         <Newsletter />
 
-                        <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
+                        <div className="flex flex-wrap gap-3 sm:gap-4 mt-6"> {/* Adjusted gap and margin-top */}
                             {socialLinks.map((link) => (
                                 <SocialIcon
                                     key={link.label}
@@ -199,8 +202,8 @@ const Footer = () => {
                     </div>
 
                     <div className="order-2 sm:order-none">
-                        <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6 text-stone-900 font-outfit">Company</h3>
-                        <ul className="space-y-2 sm:space-y-3">
+                        <h3 className="text-lg sm:text-xl font-semibold mb-5 sm:mb-7 text-stone-900 font-outfit">Company</h3> {/* Larger heading, adjusted margin */}
+                        <ul className="space-y-3 sm:space-y-4"> {/* Increased spacing */}
                             {companyLinks.map((link) => (
                                 <FooterLink
                                     key={link.label}
@@ -214,19 +217,19 @@ const Footer = () => {
                     </div>
 
                     <div className="order-3 sm:order-none">
-                        <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6 text-stone-900 font-outfit">Get in Touch</h3>
-                        <ul className="space-y-3 sm:space-y-4 text-stone-700">
-                            <li className="flex items-center space-x-3">
-                                <div className="p-2 bg-stone-200 rounded-lg flex-shrink-0">
-                                    <Phone size={14} className="text-stone-800 sm:w-4 sm:h-4" />
+                        <h3 className="text-lg sm:text-xl font-semibold mb-5 sm:mb-7 text-stone-900 font-outfit">Get in Touch</h3> {/* Larger heading, adjusted margin */}
+                        <ul className="space-y-4 sm:space-y-5 text-stone-700"> {/* Increased spacing */}
+                            <li className="flex items-center gap-4"> {/* Adjusted gap */}
+                                <div className="p-2.5 bg-stone-100 rounded-full flex-shrink-0 border border-stone-200 shadow-sm"> {/* Circular, softer icon background */}
+                                    <Phone size={15} className="text-stone-700" /> {/* Icon color adjusted */}
                                 </div>
                                 <motion.span whileHover={{ x: 5 }} className="inline-block font-medium text-sm sm:text-base">
                                     +91-9918572513
                                 </motion.span>
                             </li>
-                            <li className="flex items-center space-x-3">
-                                <div className="p-2 bg-stone-200 rounded-lg flex-shrink-0">
-                                    <Mail size={14} className="text-stone-800 sm:w-4 sm:h-4" />
+                            <li className="flex items-center gap-4"> {/* Adjusted gap */}
+                                <div className="p-2.5 bg-stone-100 rounded-full flex-shrink-0 border border-stone-200 shadow-sm"> {/* Circular, softer icon background */}
+                                    <Mail size={15} className="text-stone-700" /> {/* Icon color adjusted */}
                                 </div>
                                 <motion.a
                                     href="mailto:VipinYadav9m@gmail.com"
@@ -236,30 +239,30 @@ const Footer = () => {
                                     VipinYadav9m@gmail.com
                                 </motion.a>
                             </li>
-                            <li className="flex items-start space-x-3">
-                                <div className="p-2 bg-stone-200 rounded-lg flex-shrink-0">
-                                    <MapPin size={14} className="text-stone-800 mt-0.5 sm:w-4 sm:h-4" />
+                            <li className="flex items-start gap-4"> {/* Adjusted gap */}
+                                <div className="p-2.5 bg-stone-100 rounded-full flex-shrink-0 border border-stone-200 shadow-sm"> {/* Circular, softer icon background */}
+                                    <MapPin size={15} className="text-stone-700 mt-0.5" /> {/* Icon color adjusted */}
                                 </div>
                                 <motion.span whileHover={{ x: 5 }} className="inline-block font-medium text-sm sm:text-base">
                                     123 Fashion Street,
                                     <br />
-                                    Design District, 12345
+                                    Design District, 12345, India
                                 </motion.span>
                             </li>
                         </ul>
                     </div>
                 </div>
 
-                <div className="border-t border-stone-200 pt-6 sm:pt-8">
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="border-t border-stone-200 pt-6 sm:pt-8 mt-8"> {/* Added top border and increased margin */}
+                    <div className="bg-stone-100 p-4 sm:p-5 rounded-xl shadow-inner border border-stone-200 flex flex-col sm:flex-row justify-between items-center gap-4"> {/* Distinct bottom section styling */}
                         <div className="text-xs sm:text-sm text-stone-600 text-center sm:text-left">
                             <p className="font-medium mb-1">&copy; {currentYear} zerofashion.vercel.app - All Rights Reserved.</p>
                             <p className="flex items-center justify-center sm:justify-start gap-1">Designed with <Heart size={12} className="inline text-red-500" /> by {" "}
                                 <span className="text-stone-800 font-semibold">vipinyadav01</span>
                             </p>
                         </div>
-                        <div className="text-xs text-stone-500 bg-stone-100 px-3 py-1 rounded-lg whitespace-nowrap">
-                            Last updated: {currentDate.split(',')[0]} UTC
+                        <div className="text-xs text-stone-500 bg-stone-50 px-3 py-1.5 rounded-lg whitespace-nowrap font-medium border border-stone-200 shadow-sm"> {/* Refined last updated badge */}
+                            Last updated: {currentUTCTime.split(',')[0]} UTC
                         </div>
                     </div>
                 </div>
