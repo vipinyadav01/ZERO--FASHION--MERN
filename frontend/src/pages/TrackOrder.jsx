@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
     ArrowLeft,
@@ -13,7 +14,6 @@ import {
     Info
 } from "lucide-react";
 import Title from "../components/Title";
-
 const StatusBadge = ({ status }) => {
     const getStatusStyles = (status) => {
         switch (status) {
@@ -103,6 +103,32 @@ const DeliveryMap = ({ address }) => {
     );
 };
 
+DeliveryMap.propTypes = {
+    address: PropTypes.string.isRequired
+};
+
+const DeliveryMap = ({ address }) => {
+    return (
+const OrderInfoItem = ({ icon, label, value }) => (
+    <div className="flex items-start gap-3 text-sm group">
+        <div className="p-1 bg-black rounded-full mt-0.5">
+            {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+            <span className="text-gray-600 font-medium block">{label}:</span>
+            <span className="font-semibold text-gray-900 group-hover:text-black transition-colors duration-200 break-words">{value}</span>
+        </div>
+    </div>
+);
+
+OrderInfoItem.propTypes = {
+    icon: PropTypes.node.isRequired,
+    label: PropTypes.string.isRequired,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired
+};
+    );
+};
+
 const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -120,9 +146,9 @@ const OrderInfoItem = ({ icon, label, value }) => (
         </div>
     </div>
 );
-
-const TrackOrder = () => {
-    const location = useLocation();
+                        <p className="text-gray-600 leading-relaxed">
+                            We couldn&apos;t locate the order details you&apos;re looking for.
+                        </p>
     const navigate = useNavigate();
     const [orderDetails, setOrderDetails] = useState(null);
     const [expandedSection, setExpandedSection] = useState("all");
@@ -140,7 +166,7 @@ const TrackOrder = () => {
     if (!location.state?.orderDetails) {
         return (
             <div className="min-h-screen bg-transparent">
-                <div className="container mx-auto px-4 py-8 pt-20 sm:pt-24">
+                <div className="container mx-auto py-8 pt-20 sm:pt-24">
                     <div className="max-w-md mx-auto bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 text-center space-y-6">
                         <div className="rounded-full bg-gray-100 p-6 w-24 h-24 flex items-center justify-center mx-auto">
                             <Package className="w-12 h-12 text-black" />
@@ -197,7 +223,7 @@ const TrackOrder = () => {
     return (
         <div className="min-h-screen bg-transparent">
             {/* Title and Back Button */}
-            <div className="max-w-4xl mx-auto px-4 pt-6 sm:pt-8 pb-4">
+            <div className="max-w-4xl mx-auto pt-6 sm:pt-8 pb-4">
                 <div className="flex items-center space-x-4">
                     <button
                         onClick={() => navigate("/orders")}
@@ -210,7 +236,7 @@ const TrackOrder = () => {
             </div>
 
             {/* Main Content */}
-            <main className="max-w-4xl mx-auto px-4 py-0 sm:py-2">
+            <main className="max-w-4xl mx-auto py-0 sm:py-2">
                 <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border border-gray-200">
                     {/* Order Summary */}
                     <section className="p-4 sm:p-6 lg:p-8 border-b border-gray-200">
@@ -277,7 +303,7 @@ const TrackOrder = () => {
                                     : "max-h-0 opacity-0 sm:max-h-[2000px] sm:opacity-100"
                             }`}
                         >
-                            <div className="px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8">
+                            <div className="pb-6 sm:pb-8">
                                 <Timeline events={events} />
                             </div>
                         </div>

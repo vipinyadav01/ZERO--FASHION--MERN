@@ -61,7 +61,7 @@ const App = () => {
                 }}
             />
 
-            <div className="flex-grow px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
+            <div className="flex-grow">
                 <Navbar />
 
                 <main className="sm:py-4">

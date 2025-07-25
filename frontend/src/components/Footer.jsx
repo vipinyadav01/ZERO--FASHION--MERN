@@ -1,5 +1,6 @@
-import React, { memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { memo } from "react";
+import { motion } from "framer-motion";
+import PropTypes from "prop-types";
 import { assets } from "../assets/assets";
 import {
     Facebook,
@@ -28,6 +29,7 @@ const animations = {
         transition: { type: "spring", stiffness: 400, damping: 10 }
     }
 };
+
 const FooterLink = memo(({ href, children, icon: Icon }) => (
     <motion.li
         whileHover={{ x: 5 }}
@@ -35,13 +37,20 @@ const FooterLink = memo(({ href, children, icon: Icon }) => (
     >
         <a
             href={href}
-            className="text-gray-600 hover:text-indigo-600 transition-colors duration-300 flex items-center gap-2 group"
+            className="text-stone-600 hover:text-stone-900 transition-colors duration-300 flex items-center gap-2 group font-medium"
         >
-            {Icon && <Icon size={16} className="group-hover:text-indigo-600" />}
+            {Icon && <Icon size={16} className="group-hover:text-stone-900" />}
             {children}
         </a>
     </motion.li>
 ));
+
+FooterLink.displayName = "FooterLink";
+FooterLink.propTypes = {
+    href: PropTypes.string.isRequired,
+    children: PropTypes.node.isRequired,
+    icon: PropTypes.elementType,
+};
 
 const SocialIcon = memo(({ href, icon: Icon, label }) => (
     <motion.a
@@ -50,12 +59,19 @@ const SocialIcon = memo(({ href, icon: Icon, label }) => (
         rel="noopener noreferrer"
         whileHover={animations.socialHover}
         whileTap={animations.tap}
-        className="text-gray-400 hover:text-indigo-600 transition-colors duration-300"
+        className="text-stone-500 hover:text-stone-900 transition-colors duration-300 p-3 bg-stone-50 rounded-xl border border-stone-200 hover:bg-stone-100 hover:shadow-md"
         aria-label={label}
     >
-        <Icon size={22} />
+        <Icon size={20} />
     </motion.a>
 ));
+
+SocialIcon.displayName = "SocialIcon";
+SocialIcon.propTypes = {
+    href: PropTypes.string.isRequired,
+    icon: PropTypes.elementType.isRequired,
+    label: PropTypes.string.isRequired,
+};
 
 const ScrollToTop = () => {
     const scrollToTop = () => {
@@ -65,14 +81,14 @@ const ScrollToTop = () => {
     return (
         <motion.button
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 bg-indigo-600 text-white p-3 rounded-full shadow-lg"
-            whileHover={{ scale: 1.1 }}
+            className="fixed bottom-20 md:bottom-8 right-4 md:right-8 bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 text-white p-3 rounded-xl shadow-lg z-50 border border-stone-200"
+            whileHover={{ scale: 1.1, y: -2 }}
             whileTap={{ scale: 0.9 }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             aria-label="Scroll to top"
         >
-            <ArrowUp size={24} />
+            <ArrowUp size={20} />
         </motion.button>
     );
 };
@@ -85,19 +101,19 @@ const Newsletter = memo(() => {
 
     return (
         <div className="mb-8 max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Subscribe to Our Newsletter</h3>
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
+            <h3 className="text-lg font-semibold mb-4 text-stone-900 font-outfit">Subscribe to Our Newsletter</h3>
+            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
                 <input
                     type="email"
                     placeholder="Enter your email"
-                    className="px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 flex-grow"
+                    className="px-4 py-3 rounded-xl border-2 border-stone-200 focus:outline-none focus:ring-4 focus:ring-stone-100 focus:border-stone-400 flex-grow bg-stone-50 text-stone-800 placeholder-stone-500 font-outfit transition-all duration-300"
                     required
                 />
                 <motion.button
                     type="submit"
                     whileHover={animations.hover}
                     whileTap={animations.tap}
-                    className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-300"
+                    className="bg-gradient-to-r from-stone-800 via-stone-900 to-stone-950 text-white px-6 py-3 rounded-xl hover:from-stone-900 hover:to-black transition-all duration-300 font-semibold shadow-lg"
                 >
                     Subscribe
                 </motion.button>
@@ -105,6 +121,8 @@ const Newsletter = memo(() => {
         </div>
     );
 });
+
+Newsletter.displayName = "Newsletter";
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
@@ -137,29 +155,29 @@ const Footer = () => {
     ];
 
     return (
-        <footer className="flex justify-center items-center min-h-screen bg-white  pt-12 pb-6 relative">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-                    <div className="col-span-1 md:col-span-2">
+        <footer className="bg-gradient-to-br from-stone-50 via-stone-100 to-amber-50 pt-16 pb-32 md:pb-8 relative">
+            <div className="max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
+                    <div className="col-span-1 sm:col-span-2 lg:col-span-2">
                         <div className="flex items-center space-x-3 mb-6">
                             <motion.img
                                 src={assets.logo}
                                 alt="Zero Fashion logo"
-                                className="w-16"
+                                className="w-12 sm:w-16"
                                 whileHover={{ scale: 1.05 }}
                                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
                             />
                             <div className="flex flex-col">
-                                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                                <span className="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-stone-800 to-stone-950 font-outfit">
                                     ZERO FASHION
                                 </span>
-                                <span className="text-sm text-gray-500">
+                                <span className="text-xs sm:text-sm text-stone-600 font-medium">
                                     Style Meets Sustainability
                                 </span>
                             </div>
                         </div>
 
-                        <p className="text-gray-600 mb-8 max-w-md leading-relaxed">
+                        <p className="text-stone-700 mb-6 sm:mb-8 max-w-md leading-relaxed font-outfit text-sm sm:text-base">
                             Welcome to Zero Fashion–where style meets sustainability. Discover
                             trendy, eco-friendly apparel designed to elevate your wardrobe
                             while caring for the planet. Join us in making fashion more
@@ -168,7 +186,7 @@ const Footer = () => {
 
                         <Newsletter />
 
-                        <div className="flex space-x-4 mb-8">
+                        <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
                             {socialLinks.map((link) => (
                                 <SocialIcon
                                     key={link.label}
@@ -180,9 +198,9 @@ const Footer = () => {
                         </div>
                     </div>
 
-                    <div>
-                        <h3 className="text-lg font-semibold mb-6">Company</h3>
-                        <ul className="space-y-3">
+                    <div className="order-2 sm:order-none">
+                        <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6 text-stone-900 font-outfit">Company</h3>
+                        <ul className="space-y-2 sm:space-y-3">
                             {companyLinks.map((link) => (
                                 <FooterLink
                                     key={link.label}
@@ -195,28 +213,34 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    <div>
-                        <h3 className="text-lg font-semibold mb-6">Get in Touch</h3>
-                        <ul className="space-y-4 text-gray-600">
+                    <div className="order-3 sm:order-none">
+                        <h3 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6 text-stone-900 font-outfit">Get in Touch</h3>
+                        <ul className="space-y-3 sm:space-y-4 text-stone-700">
                             <li className="flex items-center space-x-3">
-                                <Phone size={16} className="text-indigo-600" />
-                                <motion.span whileHover={{ x: 5 }} className="inline-block">
+                                <div className="p-2 bg-stone-200 rounded-lg flex-shrink-0">
+                                    <Phone size={14} className="text-stone-800 sm:w-4 sm:h-4" />
+                                </div>
+                                <motion.span whileHover={{ x: 5 }} className="inline-block font-medium text-sm sm:text-base">
                                     +91-9918572513
                                 </motion.span>
                             </li>
                             <li className="flex items-center space-x-3">
-                                <Mail size={16} className="text-indigo-600" />
+                                <div className="p-2 bg-stone-200 rounded-lg flex-shrink-0">
+                                    <Mail size={14} className="text-stone-800 sm:w-4 sm:h-4" />
+                                </div>
                                 <motion.a
                                     href="mailto:VipinYadav9m@gmail.com"
                                     whileHover={{ x: 5 }}
-                                    className="inline-block text-gray-600 hover:text-indigo-600 transition-colors duration-300"
+                                    className="inline-block text-stone-700 hover:text-stone-900 transition-colors duration-300 font-medium text-sm sm:text-base break-all"
                                 >
                                     VipinYadav9m@gmail.com
                                 </motion.a>
                             </li>
                             <li className="flex items-start space-x-3">
-                                <MapPin size={16} className="text-indigo-600 mt-1" />
-                                <motion.span whileHover={{ x: 5 }} className="inline-block">
+                                <div className="p-2 bg-stone-200 rounded-lg flex-shrink-0">
+                                    <MapPin size={14} className="text-stone-800 mt-0.5 sm:w-4 sm:h-4" />
+                                </div>
+                                <motion.span whileHover={{ x: 5 }} className="inline-block font-medium text-sm sm:text-base">
                                     123 Fashion Street,
                                     <br />
                                     Design District, 12345
@@ -226,16 +250,16 @@ const Footer = () => {
                     </div>
                 </div>
 
-                <div className="border-t border-gray-200 pt-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center">
-                        <div className="text-sm text-gray-500 mb-4 md:mb-0">
-                            <p>&copy; {currentYear} zerofashion.vercel.app - All Rights Reserved.</p>
-                            <p>Designed with <Heart size={12} className="inline text-red-500" /> by {" "}
-                                <span className="text-indigo-600">vipinyadav01</span>
+                <div className="border-t border-stone-200 pt-6 sm:pt-8">
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div className="text-xs sm:text-sm text-stone-600 text-center sm:text-left">
+                            <p className="font-medium mb-1">&copy; {currentYear} zerofashion.vercel.app - All Rights Reserved.</p>
+                            <p className="flex items-center justify-center sm:justify-start gap-1">Designed with <Heart size={12} className="inline text-red-500" /> by {" "}
+                                <span className="text-stone-800 font-semibold">vipinyadav01</span>
                             </p>
                         </div>
-                        <div className="text-xs text-gray-400">
-                            Last updated: {currentDate} UTC
+                        <div className="text-xs text-stone-500 bg-stone-100 px-3 py-1 rounded-lg whitespace-nowrap">
+                            Last updated: {currentDate.split(',')[0]} UTC
                         </div>
                     </div>
                 </div>

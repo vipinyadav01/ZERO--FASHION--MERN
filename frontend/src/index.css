@@ -12,6 +12,14 @@ a.active hr {
   font-family: Outfit;
 }
 
+.font-outfit {
+  font-family: Outfit, sans-serif;
+}
+
+.shadow-3xl {
+  box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
+}
+
 .prata-regular {
   font-family: "Prata", serif;
   font-weight: 400;

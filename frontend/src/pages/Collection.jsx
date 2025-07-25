@@ -124,7 +124,7 @@ const Collection = () => {
     );
 
     return (
-        <div className="min-h-screen flex flex-col lg:flex-row gap-8 pt-24 pb-8 border-t max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen flex flex-col lg:flex-row gap-8 pt-24 pb-8 border-t max-w-7xl mx-auto">
             {/* Filter options */}
             <motion.div
                 initial={{ opacity: 0, x: -20 }}
