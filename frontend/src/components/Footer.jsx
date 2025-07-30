@@ -14,6 +14,7 @@ import {
     Heart,
     ArrowUp
 } from "lucide-react";
+import axios from "axios";
 
 const animations = {
     hover: {
@@ -32,7 +33,7 @@ const animations = {
 
 const FooterLink = memo(({ href, children, icon: Icon }) => (
     <motion.li
-        whileHover={{ x: 6 }} // Increased hover movement for more impact
+        whileHover={{ x: 6 }} 
         transition={{ type: "spring", stiffness: 400, damping: 10 }}
     >
         <a
@@ -88,17 +89,29 @@ const ScrollToTop = () => {
             animate={{ opacity: 1 }}
             aria-label="Scroll to top"
         >
-            <ArrowUp size={22} /> {/* Slightly larger icon */}
+            <ArrowUp size={22} />
         </motion.button>
     );
 };
 
 const Newsletter = memo(() => {
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Add newsletter subscription logic here
-        // console.log("Subscribed with:", e.target.email.value);
-        e.target.reset(); // Clear form after submission
+        const email = e.target.email.value;
+        try {
+            const response = await axios.post(
+                `${import.meta.env.VITE_BACKEND_URL || "http://localhost:5000"}/api/newsletter/subscribe`,
+                { email }
+            );
+            if (response.data.success) {
+                alert("Subscribed successfully! Check your email.");
+            } else {
+                alert(response.data.message || "Subscription failed.");
+            }
+        } catch (error) {
+            alert("Failed to subscribe. Please try again later.");
+        }
+        e.target.reset();
     };
 
     return (
@@ -110,7 +123,7 @@ const Newsletter = memo(() => {
                     placeholder="Enter your email"
                     className="px-4 py-3.5 rounded-xl border-2 border-stone-200 focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 flex-grow bg-stone-50 text-stone-800 placeholder-stone-500 font-outfit transition-all duration-300"
                     required
-                    name="email" // Added name attribute for form submission
+                    name="email"
                 />
                 <motion.button
                     type="submit"
@@ -143,10 +156,10 @@ const Footer = () => {
     const companyLinks = [
         { href: "/", label: "Home" },
         { href: "/about", label: "About Us", icon: Heart },
-        { href: "/track-order", label: "Track Order", icon: MapPin }, // Changed to kebab-case for consistency
+        { href: "/track-order", label: "Track Order", icon: MapPin },
         { href: "/privacy-policy", label: "Privacy Policy" },
         { href: "/terms", label: "Terms & Conditions" },
-        { href: "/faq", label: "FAQ" }, // Changed to faq for consistency
+        { href: "/faq", label: "FAQ" },
     ];
 
     const socialLinks = [
@@ -158,15 +171,15 @@ const Footer = () => {
     ];
 
     return (
-        <footer className="bg-gradient-to-b from-white to-stone-50 pt-16 pb-32 md:pb-12 relative border-t border-stone-100"> {/* Soft gradient background */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> {/* Added padding for responsiveness */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-16 mb-12"> {/* Increased gap for better spacing */}
+        <footer className="bg-gradient-to-b from-white to-stone-50 pt-16 pb-32 md:pb-12 relative border-t border-stone-100"> 
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-16 mb-12"> 
                     <div className="col-span-1 sm:col-span-2 lg:col-span-2">
-                        <div className="flex items-center space-x-4 mb-6"> {/* Adjusted space-x */}
+                        <div className="flex items-center space-x-4 mb-6">
                             <motion.img
                                 src={assets.logo}
                                 alt="Zero Fashion logo"
-                                className="w-14 sm:w-18" // Slightly larger logo
+                                className="w-14 sm:w-18" 
                                 whileHover={{ scale: 1.05 }}
                                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
                             />
@@ -174,7 +187,7 @@ const Footer = () => {
                                 <span className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-stone-700 to-stone-900 font-outfit"> {/* Darker gradient for text */}
                                     ZERO FASHION
                                 </span>
-                                <span className="text-xs sm:text-sm text-stone-600 font-medium tracking-wide"> {/* Added tracking and medium font */}
+                                <span className="text-xs sm:text-sm text-stone-600 font-medium tracking-wide">
                                     Style Meets Sustainability
                                 </span>
                             </div>
@@ -189,7 +202,7 @@ const Footer = () => {
 
                         <Newsletter />
 
-                        <div className="flex flex-wrap gap-3 sm:gap-4 mt-6"> {/* Adjusted gap and margin-top */}
+                        <div className="flex flex-wrap gap-3 sm:gap-4 mt-6">
                             {socialLinks.map((link) => (
                                 <SocialIcon
                                     key={link.label}
@@ -203,7 +216,7 @@ const Footer = () => {
 
                     <div className="order-2 sm:order-none">
                         <h3 className="text-lg sm:text-xl font-semibold mb-5 sm:mb-7 text-stone-900 font-outfit">Company</h3> {/* Larger heading, adjusted margin */}
-                        <ul className="space-y-3 sm:space-y-4"> {/* Increased spacing */}
+                        <ul className="space-y-3 sm:space-y-4">
                             {companyLinks.map((link) => (
                                 <FooterLink
                                     key={link.label}
@@ -218,8 +231,8 @@ const Footer = () => {
 
                     <div className="order-3 sm:order-none">
                         <h3 className="text-lg sm:text-xl font-semibold mb-5 sm:mb-7 text-stone-900 font-outfit">Get in Touch</h3> {/* Larger heading, adjusted margin */}
-                        <ul className="space-y-4 sm:space-y-5 text-stone-700"> {/* Increased spacing */}
-                            <li className="flex items-center gap-4"> {/* Adjusted gap */}
+                        <ul className="space-y-4 sm:space-y-5 text-stone-700"> 
+                            <li className="flex items-center gap-4">
                                 <div className="p-2.5 bg-stone-100 rounded-full flex-shrink-0 border border-stone-200 shadow-sm"> {/* Circular, softer icon background */}
                                     <Phone size={15} className="text-stone-700" /> {/* Icon color adjusted */}
                                 </div>
