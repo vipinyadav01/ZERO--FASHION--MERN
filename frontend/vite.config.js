@@ -9,12 +9,11 @@ export default defineConfig({
             registerType: 'autoUpdate',
             devOptions: {
                 enabled: true,
-                type: 'module',
             },
             manifest: {
                 name: 'ZERO FASHION',
                 short_name: 'Z-F',
-                description: 'A React PWA using Vite',
+                description: 'Zero Fashion is a platform for buying fashion products online with a wide range of products.',
                 theme_color: '#000000',
                 background_color: '#ffffff',
                 display: 'standalone',
@@ -37,35 +36,8 @@ export default defineConfig({
             },
             workbox: {
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}'],
-                runtimeCaching: [
-                    {
-                        urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-                        handler: 'CacheFirst',
-                        options: {
-                            cacheName: 'google-fonts-cache',
-                            expiration: {
-                                maxEntries: 10,
-                                maxAgeSeconds: 60 * 60 * 24 * 365 
-                            },
-                            cacheKeyWillBeUsed: async ({ request }) => {
-                                return `${request.url}`;
-                            }
-                        }
-                    },
-                    {
-                        urlPattern: /^https:\/\/checkout\.razorpay\.com\/.*/i,
-                        handler: 'NetworkFirst',
-                        options: {
-                            cacheName: 'razorpay-cache',
-                            expiration: {
-                                maxEntries: 10,
-                                maxAgeSeconds: 60 * 60 * 24 
-                            }
-                        }
-                    }
-                ]
             },
-            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+            includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
         }),
     ],
     server: { port: 5173 },
