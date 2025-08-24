@@ -1,150 +1,86 @@
-import { useState, useEffect, useContext, useCallback, memo } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Search,
-  User,
-  ShoppingBag,
-  Home,
-  Play,
-  Heart,
-  Info,
-  Phone,
-  UserCircle,
-  ListOrdered,
-  LogOut,
-  Camera,
+import { 
+  Search, 
+  User, 
+  ShoppingBag, 
+  Home, 
+  Play, 
+  Heart, 
+  UserCircle, 
+  ListOrdered, 
+  LogOut 
 } from "lucide-react";
 import PropTypes from "prop-types";
 import { ShopContext } from "../context/ShopContext";
+import CartItem from "./CartItem";
 
-const animations = {
-  dropdown: {
-    hidden: { opacity: 0, y: 10, scale: 0.95 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2, ease: "easeOut" } },
-    exit: { opacity: 0, y: 10, scale: 0.95, transition: { duration: 0.15 } },
-  },
-  slideUp: {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.4 } },
-  },
-  dock: {
-    hidden: { y: 100, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },
-  },
-};
-
-const DockSearchBar = ({ setShowSearchBar }) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate();
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
-      setShowSearchBar(false);
-    }
-  };
-
-  return (
-    <div className="bg-white/95 backdrop-blur-xl p-6 shadow-2xl rounded-2xl border border-stone-200/50">
-      <form onSubmit={handleSearch} className="flex items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-stone-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for Products"
-            className="w-full pl-12 pr-4 py-4 border-2 border-stone-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-stone-100 focus:border-stone-400 text-stone-800 placeholder-stone-500 bg-stone-50/50 hover:bg-white transition-all duration-300 font-outfit"
-            autoFocus
-          />
-        </div>
-        <button
-          type="button"
-          className="ml-3 p-4 text-stone-500 hover:text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all duration-200 border border-stone-200"
-        >
-          <Camera className="w-5 h-5" />
-        </button>
-      </form>
-    </div>
-  );
-};
-
-DockSearchBar.propTypes = {
-  setShowSearchBar: PropTypes.func.isRequired,
-};
-
-const CartItem = memo(({ item }) => {
-  return (
-    <motion.div
-      className="flex items-center p-4 border-b border-stone-100/80 hover:bg-stone-50/50 transition-colors duration-200 group"
-      variants={animations.slideUp}
-      initial="hidden"
-      animate="visible"
-    >
-      <div className="w-16 h-16 bg-stone-100 rounded-xl mr-4 overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-200">
-        <img
-          src={item.image || "/placeholder.svg"}
-          alt={item.name || "Product"}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-          onError={(e) => {
-            e.target.src = "/placeholder.svg";
-          }}
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-stone-800 truncate font-outfit">
-          {item.name || "Product"}
-        </p>
-        <div className="flex items-center gap-3 text-xs text-stone-600 mt-1">
-          <span className="bg-stone-100 px-2 py-1 rounded-md font-medium">
-            Size: {item.size}
-          </span>
-          <span className="bg-stone-100 px-2 py-1 rounded-md font-medium">
-            Qty: {item.quantity || 1}
-          </span>
-        </div>
-      </div>
-      <p className="text-sm font-bold text-stone-900 whitespace-nowrap ml-3">
-        ₹{item.price?.toFixed(2) || "0.00"}
-      </p>
-    </motion.div>
-  );
-});
-
-CartItem.displayName = "CartItem";
-CartItem.propTypes = {
-  item: PropTypes.object.isRequired,
-};
-
+//DesktopNavbar Component
 const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showCartDropdown, setShowCartDropdown] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
-  const { setToken, setCartItems, cartItems, setUser, backendUrl, products, getCartAmount } =
-    useContext(ShopContext) || {
-      setToken: () => {},
-      setCartItems: () => {},
-      cartItems: {},
-      setUser: () => {},
-      backendUrl: "",
-      products: [],
-      getCartAmount: () => 0,
-    };
+
+  // Get context with safe defaults
+  const context = useContext(ShopContext);
+  const {
+    setToken = () => {},
+    setCartItems = () => {},
+    cartItems = {},
+    setUser = () => {},
+    backendUrl = "",
+    products = [],
+    getCartAmount = () => 0,
+  } = context || {};
+
   const navigate = useNavigate();
   const location = useLocation();
 
-  const dockItems = [
-    { icon: Home, label: "Home", path: "/", type: "nav" },
-    { icon: Play, label: "Collection", path: "/collection", type: "nav" },
-    { icon: Heart, label: "Wishlist", path: "/wishlist", type: "nav" },
-    { icon: Search, label: "Search", path: "/search", type: "action", action: () => setShowSearch(true) },
-    { icon: User, label: "Profile", path: "/profile", type: "user" },
-    { icon: ShoppingBag, label: "Cart", path: "/cart", type: "cart" },
-  ];
+  // Navigation items configuration
+  const navItems = useCallback(() => [
+    {
+      icon: Home,
+      label: "Home",
+      path: "/",
+      type: "nav",
+    },
+    {
+      icon: Play,
+      label: "Collection",
+      path: "/collection",
+      type: "nav",
+    },
+    {
+      icon: Heart,
+      label: "Wishlist",
+      path: "/wishlist",
+      type: "nav",
+    },
+    {
+      icon: Search,
+      label: "Search",
+      type: "action",
+      action: () => {
+        console.log("Search button clicked, setting showSearch to true");
+        setShowSearch(true);
+      },
+    },
+    {
+      icon: User,
+      label: "Profile",
+      path: "/profile",
+      type: "user",
+    },
+    {
+      icon: ShoppingBag,
+      label: "Cart",
+      path: "/cart",
+      type: "cart",
+    },
+  ], [setShowSearch]);
 
-  const decodeToken = (token) => {
+  // Decode JWT token safely
+  const decodeToken = useCallback((token) => {
     try {
       const base64Url = token.split(".")[1];
       const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
@@ -155,48 +91,51 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
           .join("")
       );
       return JSON.parse(jsonPayload);
-    } catch (e) {
-      console.error("Invalid token format", e);
+    } catch (error) {
+      console.error("Invalid token format:", error);
       return null;
     }
-  };
+  }, []);
 
-  const fetchUserData = useCallback(
-    async (token) => {
-      try {
-        const res = await fetch(`${backendUrl}/api/user/user`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        const fetchedUserData = await res.json();
-        const userData = fetchedUserData?.user || {
-          username: "User",
-          email: "user@example.com",
-          avatar: null,
-        };
-        const finalUserData = {
-          ...userData,
-          username: userData.username || userData.name || "User",
-          name: userData.username || userData.name || "User",
-        };
-        localStorage.setItem("userData", JSON.stringify(finalUserData));
-        setUserInfo(finalUserData);
-        setUser?.(finalUserData);
-        return finalUserData;
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        return null;
+  // Fetch user data from API
+  const fetchUserData = useCallback(async (token) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/user/user`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    },
-    [backendUrl, setUser]
-  );
 
+      const fetchedUserData = await response.json();
+      const userData = fetchedUserData?.user || {
+        username: "User",
+        email: "user@example.com",
+        avatar: null,
+      };
+
+      const finalUserData = {
+        ...userData,
+        username: userData.username || userData.name || "User",
+        name: userData.username || userData.name || "User",
+      };
+
+      localStorage.setItem("userData", JSON.stringify(finalUserData));
+      setUserInfo(finalUserData);
+      setUser?.(finalUserData);
+      return finalUserData;
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      return null;
+    }
+  }, [backendUrl, setUser]);
+
+  // Handle user logout
   const handleLogout = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("tokenExpiry");
@@ -209,85 +148,103 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
     navigate("/login");
   }, [navigate, setToken, setCartItems, setUser]);
 
+  // Check token validity and load user data
   useEffect(() => {
     const checkTokenValidity = async () => {
       const storedToken = localStorage.getItem("token");
-      if (storedToken) {
-        const decodedToken = decodeToken(storedToken);
-        if (decodedToken) {
-          const currentTime = Math.floor(Date.now() / 1000);
-          if (decodedToken.exp && decodedToken.exp < currentTime) {
-            handleLogout();
-            return;
-          }
-          setToken(storedToken);
-          const storedUserData = localStorage.getItem("userData");
-          if (storedUserData) {
-            try {
-              const parsedUserData = JSON.parse(storedUserData);
-              const updatedUserData = {
-                ...parsedUserData,
-                name: parsedUserData.username || parsedUserData.name || "User",
-              };
-              setUserInfo(updatedUserData);
-              setUser?.(updatedUserData);
-            } catch (error) {
-              console.error("Error parsing user data:", error);
-              await fetchUserData(storedToken);
-            }
-          } else {
-            await fetchUserData(storedToken);
-          }
-        } else {
-          handleLogout();
+      if (!storedToken) return;
+
+      const decodedToken = decodeToken(storedToken);
+      if (!decodedToken) {
+        handleLogout();
+        return;
+      }
+
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (decodedToken.exp && decodedToken.exp < currentTime) {
+        handleLogout();
+        return;
+      }
+
+      setToken(storedToken);
+
+      // Try to load user data from localStorage first
+      const storedUserData = localStorage.getItem("userData");
+      if (storedUserData) {
+        try {
+          const parsedUserData = JSON.parse(storedUserData);
+          const updatedUserData = {
+            ...parsedUserData,
+            name: parsedUserData.username || parsedUserData.name || "User",
+          };
+          setUserInfo(updatedUserData);
+          setUser?.(updatedUserData);
+        } catch (error) {
+          console.error("Error parsing user data:", error);
+          await fetchUserData(storedToken);
         }
+      } else {
+        await fetchUserData(storedToken);
       }
     };
-    checkTokenValidity();
-  }, [setToken, setUser, handleLogout, fetchUserData]);
 
+    checkTokenValidity();
+  }, [setToken, setUser, handleLogout, fetchUserData, decodeToken]);
+
+  // Handle click outside dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest(".dock-container")) {
+      if (!event.target.closest(".navbar-container")) {
         setShowUserDropdown(false);
         setShowCartDropdown(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [setShowUserDropdown, setShowCartDropdown]);
 
-  const handleItemClick = (item) => {
+  // Handle navigation item clicks
+  const handleItemClick = useCallback((item) => {
     if (item.type === "action" && item.action) {
       item.action();
     } else if (item.type === "user") {
       if (token) {
         setShowUserDropdown((prev) => !prev);
+        setShowCartDropdown(false);
       } else {
         navigate("/login");
       }
     } else if (item.type === "cart") {
-      if (getCartCount() > 0) {
+      const cartCount = getCartCount ? getCartCount() : 0;
+      if (cartCount > 0) {
         setShowCartDropdown((prev) => !prev);
+        setShowUserDropdown(false);
       } else {
         navigate("/cart");
       }
     } else {
       navigate(item.path);
+      setShowUserDropdown(false);
+      setShowCartDropdown(false);
     }
-  };
+  }, [token, navigate, getCartCount]);
 
-  const isAuthenticated = () => !!token && !!userInfo;
+  // Check if user is authenticated
+  const isAuthenticated = useCallback(() => Boolean(token && userInfo), [token, userInfo]);
 
-  const isActive = (path) => {
+  // Check if path is active
+  const isActive = useCallback((path) => {
     if (path === "/") return location.pathname === "/";
     return location.pathname.startsWith(path);
-  };
+  }, [location.pathname]);
 
-  const getCartItemsForDisplay = () => {
+  // Get cart items for display
+  const getCartItemsForDisplay = useCallback(() => {
     if (!cartItems || !products || Object.keys(cartItems).length === 0) {
       return [];
     }
+
     const cartItemsArray = [];
     for (const itemId in cartItems) {
       const product = products.find((p) => p._id === itemId);
@@ -309,181 +266,167 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
       }
     }
     return cartItemsArray;
-  };
+  }, [cartItems, products]);
+
+  // Get cart count safely
+  const cartCount = getCartCount ? getCartCount() : 0;
 
   return (
-    <div className="dock-container hidden md:block">
-      <motion.div
-        className="fixed top-2 w-full transform -translate-x-1 z-[60]"
-        variants={animations.dock}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl px-6 py-4">
-          <div className="flex items-center justify-between w-full">
-            {/* Logo and Brand Name on the Left */}
+    <div className="navbar-container hidden lg:flex justify-center w-full">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between h-16">
+            
+            {/* Logo */}
             <Link to="/" className="flex items-center space-x-3 group">
-              <div className="w-12 h-12 bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 rounded-2xl flex items-center justify-center shadow-xl border border-stone-200/20 group-hover:shadow-2xl transition-all duration-300 group-hover:scale-110">
-                <motion.img
+              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                <img
                   src="/apple-touch-icon.png"
-                  alt="Zero Fashion Logo"
-                  className="w-8 h-8"
-                  whileHover={{ scale: 1.1 }}
+                  alt="Zero Fashion"
+                  className="w-6 h-6"
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-['Asterion'] font-bold text-stone-900 tracking-wider font-outfit">
+                <span className="text-lg font-bold text-black tracking-wide">
                   ZERO
                 </span>
-                <span className="text-xs font-['Asterion'] font-medium text-stone-600 tracking-widest">
+                <span className="text-xs text-gray-500 tracking-[0.2em] -mt-1">
                   FASHION
                 </span>
               </div>
             </Link>
 
-            {/* Icons on the Right */}
-            <div className="flex items-center space-x-2">
-              {dockItems.map((item) => (
-                <motion.button
-                  key={item.path}
+            {/* Navigation Items */}
+            <div className="flex items-center space-x-1">
+              {navItems().map((item) => (
+                <button
+                  key={item.label}
                   onClick={() => handleItemClick(item)}
-                  className={`relative group p-3 rounded-xl transition-all duration-300 ${
+                  className={`relative flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive(item.path)
-                      ? "bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 text-white shadow-lg"
-                      : "bg-stone-50 text-stone-700 hover:bg-stone-100 hover:text-stone-900 border border-stone-200"
+                      ? "bg-black text-white"
+                      : "text-gray-700 hover:text-black hover:bg-gray-50"
                   }`}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
                 >
-                  <item.icon className="w-5 h-5" />
-
-                  {/* Badge for cart count */}
-                  {item.type === "cart" && getCartCount() > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-semibold shadow-lg border-2 border-white">
-                      {getCartCount()}
+                  <item.icon className="w-4 h-4 mr-2" />
+                  {item.label}
+                  
+                  {/* Cart Badge */}
+                  {item.type === "cart" && cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-black text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-semibold">
+                      {cartCount > 99 ? "99+" : cartCount}
                     </span>
                   )}
-                  {/* Tooltip */}
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-3 px-3 py-1.5 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap shadow-xl font-medium">
-                    {item.label}
-                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-stone-900 rotate-45"></div>
-                  </div>
-                  {/* Active indicator */}
-                  {isActive(item.path) && (
-                    <motion.div
-                      className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-amber-100 rounded-full shadow-sm"
-                      layoutId="activeIndicator"
-                    />
-                  )}
-                </motion.button>
+                </button>
               ))}
             </div>
           </div>
         </div>
 
         {/* User Dropdown */}
-        <AnimatePresence>
-          {showUserDropdown && isAuthenticated() && (
-            <motion.div
-              variants={animations.dropdown}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="absolute top-full right-0 mt-4 w-64 bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden z-[70]"
-            >
-              <div className="px-6 py-4 border-b border-stone-100 bg-stone-50">
-                <p className="text-sm font-semibold text-stone-900 font-outfit">
-                  {userInfo?.username || userInfo?.name || "My Account"}
-                </p>
-                {userInfo?.email && (
-                  <p className="text-xs text-stone-600 mt-1 truncate">{userInfo.email}</p>
-                )}
-              </div>
+        {showUserDropdown && isAuthenticated() && (
+          <div className="absolute top-full right-6 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
+            {/* User Info */}
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+              <p className="font-semibold text-gray-900">
+                {userInfo?.username || userInfo?.name || "My Account"}
+              </p>
+              {userInfo?.email && (
+                <p className="text-sm text-gray-600 truncate">{userInfo.email}</p>
+              )}
+            </div>
+
+            {/* Menu Items */}
+            <div className="py-2">
               <Link
                 to="/profile"
-                className="flex items-center px-6 py-3 text-sm text-stone-700 hover:bg-stone-50 transition-colors duration-200 group"
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 onClick={() => setShowUserDropdown(false)}
               >
-                <UserCircle className="w-4 h-4 mr-3 text-stone-600 group-hover:text-stone-800" />
-                <span className="font-medium">My Profile</span>
+                <UserCircle className="w-4 h-4 mr-3" />
+                My Profile
               </Link>
+
               <Link
                 to="/order"
-                className="flex items-center px-6 py-3 text-sm text-stone-700 hover:bg-stone-50 transition-colors duration-200 group"
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                 onClick={() => setShowUserDropdown(false)}
               >
-                <ListOrdered className="w-4 h-4 mr-3 text-stone-600 group-hover:text-stone-800" />
-                <span className="font-medium">Orders</span>
+                <ListOrdered className="w-4 h-4 mr-3" />
+                Orders
               </Link>
+
               <button
                 onClick={handleLogout}
-                className="w-full text-left flex items-center px-6 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200 group border-t border-stone-100"
+                className="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100"
               >
-                <LogOut className="w-4 h-4 mr-3 group-hover:text-red-700" />
-                <span className="font-medium">Logout</span>
+                <LogOut className="w-4 h-4 mr-3" />
+                Logout
               </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </div>
+        )}
 
         {/* Cart Dropdown */}
-        <AnimatePresence>
-          {showCartDropdown && (
-            <motion.div
-              variants={animations.dropdown}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="absolute top-full right-0 mt-4 w-80 bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden z-[70]"
-            >
-              <div className="px-6 py-4 border-b border-stone-100 bg-stone-50">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-stone-900 font-outfit">
-                    Your Cart ({getCartCount()} items)
-                  </p>
-                  <p className="text-sm font-bold text-stone-900">₹{getCartAmount()}</p>
-                </div>
+        {showCartDropdown && (
+          <div className="absolute top-full right-6 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
+            {/* Cart Header */}
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-gray-900">
+                  Cart ({cartCount} {cartCount === 1 ? "item" : "items"})
+                </p>
+                <p className="font-bold text-black">
+                  ₹{getCartAmount()}
+                </p>
               </div>
-              {(() => {
-                const displayItems = getCartItemsForDisplay();
-                return displayItems.length > 0 ? (
-                  <div className="max-h-80 overflow-y-auto">
-                    {displayItems.slice(0, 3).map((item) => (
-                      <CartItem key={`${item._id}-${item.size}`} item={item} />
-                    ))}
-                    {displayItems.length > 3 && (
-                      <p className="text-xs text-center py-3 text-stone-600 bg-stone-50 font-medium">
-                        {displayItems.length - 3} more items in cart
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="p-8 text-center">
-                    <ShoppingBag className="w-16 h-16 text-stone-300 mx-auto mb-4" />
-                    <p className="text-stone-600 mb-4 font-medium">Your cart is empty</p>
-                    <button
-                      onClick={() => {
-                        setShowCartDropdown(false);
-                        navigate("/collection");
-                      }}
-                      className="px-6 py-3 bg-gradient-to-r from-stone-800 via-stone-900 to-stone-950 text-white rounded-xl text-sm font-semibold hover:from-stone-900 hover:to-black transition-all duration-300 transform hover:scale-105 shadow-lg"
-                    >
-                      Start Shopping
-                    </button>
-                  </div>
-                );
-              })()}
-              <Link
-                to="/cart"
-                className="block px-6 py-4 text-sm text-center text-white bg-gradient-to-r from-stone-800 via-stone-900 to-stone-950 hover:from-stone-900 hover:to-black transition-all duration-300 font-semibold"
-                onClick={() => setShowCartDropdown(false)}
-              >
-                View Full Cart
-              </Link>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+            </div>
+
+            {/* Cart Items */}
+            {(() => {
+              const displayItems = getCartItemsForDisplay();
+              return displayItems.length > 0 ? (
+                <div className="max-h-80 overflow-y-auto">
+                  {displayItems.slice(0, 3).map((item) => (
+                    <CartItem 
+                      key={`${item._id}-${item.size}`} 
+                      item={item} 
+                    />
+                  ))}
+                  {displayItems.length > 3 && (
+                    <p className="text-xs text-center py-2 text-gray-500 bg-gray-50">
+                      +{displayItems.length - 3} more {displayItems.length - 3 === 1 ? "item" : "items"}
+                    </p>
+                  )}
+                  
+                  {/* View Cart Button */}
+                  <Link
+                    to="/cart"
+                    className="block w-full py-3 text-center text-white bg-black hover:bg-gray-800 transition-colors font-medium"
+                    onClick={() => setShowCartDropdown(false)}
+                  >
+                    View Full Cart
+                  </Link>
+                </div>
+              ) : (
+                <div className="p-8 text-center">
+                  <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-600 mb-4">Your cart is empty</p>
+                  <button
+                    onClick={() => {
+                      setShowCartDropdown(false);
+                      navigate("/collection");
+                    }}
+                    className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
+                  >
+                    Start Shopping
+                  </button>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
