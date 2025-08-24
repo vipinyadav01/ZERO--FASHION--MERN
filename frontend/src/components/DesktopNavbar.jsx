@@ -98,6 +98,11 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
 
   // Fetch user data from API
   const fetchUserData = useCallback(async (token) => {
+    if (!backendUrl || !token) {
+      console.warn("Missing backendUrl or token for user data fetch");
+      return null;
+    }
+
     try {
       const response = await fetch(`${backendUrl}/api/user/user`, {
         method: "GET",
@@ -108,83 +113,145 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Token is invalid, logout user
+          handleLogout();
+          return null;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const fetchedUserData = await response.json();
-      const userData = fetchedUserData?.user || {
-        username: "User",
-        email: "user@example.com",
-        avatar: null,
-      };
+      const userData = fetchedUserData?.user;
 
-      const finalUserData = {
-        ...userData,
+      if (!userData) {
+        console.warn("No user data received from API");
+        return null;
+      }
+
+      // Normalize user data structure
+      const normalizedUserData = {
+        _id: userData._id || userData.id,
         username: userData.username || userData.name || "User",
-        name: userData.username || userData.name || "User",
+        name: userData.name || userData.username || "User",
+        email: userData.email || "",
+        avatar: userData.avatar || null,
+        phone: userData.phone || "",
+        address: userData.address || {},
       };
 
-      localStorage.setItem("userData", JSON.stringify(finalUserData));
-      setUserInfo(finalUserData);
-      setUser?.(finalUserData);
-      return finalUserData;
+      // Store in localStorage
+      localStorage.setItem("userData", JSON.stringify(normalizedUserData));
+      
+      // Update state
+      setUserInfo(normalizedUserData);
+      setUser?.(normalizedUserData);
+      
+      return normalizedUserData;
     } catch (error) {
       console.error("Error fetching user data:", error);
       return null;
     }
-  }, [backendUrl, setUser]);
+  }, [backendUrl, setUser, handleLogout]);
 
   // Handle user logout
   const handleLogout = useCallback(() => {
+    // Clear all stored data
     localStorage.removeItem("token");
     localStorage.removeItem("tokenExpiry");
     localStorage.removeItem("userData");
+    localStorage.removeItem("cartItems");
+    localStorage.removeItem("wishlistItems");
+    
+    // Reset all state
     setToken(null);
     setUserInfo(null);
     setUser?.(null);
     setCartItems([]);
+    
+    // Close dropdowns
     setShowUserDropdown(false);
+    setShowCartDropdown(false);
+    
+    // Navigate to login
     navigate("/login");
-  }, [navigate, setToken, setCartItems, setUser]);
+    
+    console.log("User logged out successfully");
+  }, [navigate, setToken, setCartItems, setUser, setShowCartDropdown]);
 
   // Check token validity and load user data
   useEffect(() => {
     const checkTokenValidity = async () => {
       const storedToken = localStorage.getItem("token");
-      if (!storedToken) return;
+      if (!storedToken) {
+        // No token, ensure user is logged out
+        setToken(null);
+        setUserInfo(null);
+        setUser?.(null);
+        return;
+      }
 
+      // Decode and validate token
       const decodedToken = decodeToken(storedToken);
       if (!decodedToken) {
+        console.warn("Invalid token format, logging out");
         handleLogout();
         return;
       }
 
+      // Check token expiration
       const currentTime = Math.floor(Date.now() / 1000);
       if (decodedToken.exp && decodedToken.exp < currentTime) {
+        console.warn("Token expired, logging out");
         handleLogout();
         return;
       }
 
+      // Token is valid, set it
       setToken(storedToken);
 
-      // Try to load user data from localStorage first
+      // Load user data
+      await loadUserData(storedToken);
+    };
+
+    const loadUserData = async (token) => {
+      // Try to load from localStorage first
       const storedUserData = localStorage.getItem("userData");
+      
       if (storedUserData) {
         try {
           const parsedUserData = JSON.parse(storedUserData);
-          const updatedUserData = {
-            ...parsedUserData,
-            name: parsedUserData.username || parsedUserData.name || "User",
-          };
-          setUserInfo(updatedUserData);
-          setUser?.(updatedUserData);
+          
+          // Validate stored user data
+          if (parsedUserData && typeof parsedUserData === 'object') {
+            const normalizedUserData = {
+              _id: parsedUserData._id || parsedUserData.id,
+              username: parsedUserData.username || parsedUserData.name || "User",
+              name: parsedUserData.name || parsedUserData.username || "User",
+              email: parsedUserData.email || "",
+              avatar: parsedUserData.avatar || null,
+              phone: parsedUserData.phone || "",
+              address: parsedUserData.address || {},
+            };
+            
+            setUserInfo(normalizedUserData);
+            setUser?.(normalizedUserData);
+            
+            // Optionally refresh from API in background
+            setTimeout(() => {
+              fetchUserData(token);
+            }, 1000);
+            
+            return;
+          }
         } catch (error) {
-          console.error("Error parsing user data:", error);
-          await fetchUserData(storedToken);
+          console.error("Error parsing stored user data:", error);
+          localStorage.removeItem("userData"); // Remove corrupted data
         }
-      } else {
-        await fetchUserData(storedToken);
       }
+
+      // No valid stored data, fetch from API
+      await fetchUserData(token);
     };
 
     checkTokenValidity();
@@ -230,7 +297,9 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
   }, [token, navigate, getCartCount]);
 
   // Check if user is authenticated
-  const isAuthenticated = useCallback(() => Boolean(token && userInfo), [token, userInfo]);
+  const isAuthenticated = useCallback(() => {
+    return Boolean(token && userInfo && userInfo._id);
+  }, [token, userInfo]);
 
   // Check if path is active
   const isActive = useCallback((path) => {
@@ -327,12 +396,30 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
           <div className="absolute top-full right-6 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
             {/* User Info */}
             <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-              <p className="font-semibold text-gray-900">
-                {userInfo?.username || userInfo?.name || "My Account"}
-              </p>
-              {userInfo?.email && (
-                <p className="text-sm text-gray-600 truncate">{userInfo.email}</p>
-              )}
+              <div className="flex items-center space-x-3">
+                {userInfo?.avatar ? (
+                  <img 
+                    src={userInfo.avatar} 
+                    alt={userInfo.name || "User"} 
+                    className="w-10 h-10 rounded-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                    <UserCircle className="w-6 h-6 text-gray-600" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 truncate">
+                    {userInfo?.name || userInfo?.username || "My Account"}
+                  </p>
+                  {userInfo?.email && (
+                    <p className="text-sm text-gray-600 truncate">{userInfo.email}</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Menu Items */}
