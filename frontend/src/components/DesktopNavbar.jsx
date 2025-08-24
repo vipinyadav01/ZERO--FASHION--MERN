@@ -114,8 +114,13 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          // Token is invalid, logout user
-          handleLogout();
+          // Token is invalid, clear data and redirect
+          localStorage.removeItem("token");
+          localStorage.removeItem("userData");
+          setToken(null);
+          setUserInfo(null);
+          setUser?.(null);
+          navigate("/login");
           return null;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -152,7 +157,7 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
       console.error("Error fetching user data:", error);
       return null;
     }
-  }, [backendUrl, setUser, handleLogout]);
+  }, [backendUrl, setUser, setToken, setUserInfo, navigate]);
 
   // Handle user logout
   const handleLogout = useCallback(() => {
@@ -177,7 +182,7 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
     navigate("/login");
     
     console.log("User logged out successfully");
-  }, [navigate, setToken, setCartItems, setUser, setShowCartDropdown]);
+  }, [navigate, setToken, setCartItems, setUser, setShowUserDropdown, setShowCartDropdown]);
 
   // Check token validity and load user data
   useEffect(() => {
