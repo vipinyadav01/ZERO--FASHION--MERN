@@ -61,8 +61,7 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
       label: "Search",
       type: "action",
       action: () => {
-        console.log("Search button clicked, setting showSearch to true");
-        setShowSearch(true);
+        setShowSearch(prev => !prev);
       },
     },
     {
