@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { Link } from "react-router-dom";
+import WishlistButton from "./WishlistButton";
 
 const ProductItem = ({ id, image, name, price, category, isNew, rating }) => {
   const { currency } = useContext(ShopContext);
@@ -36,6 +37,11 @@ const ProductItem = ({ id, image, name, price, category, isNew, rating }) => {
               </span>
             </div>
           )}
+
+          {/* Wishlist Button */}
+          <div className="absolute top-2 right-2">
+            <WishlistButton productId={id} size="sm" />
+          </div>
         </div>
 
         {/* Product Details */}

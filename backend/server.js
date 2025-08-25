@@ -8,6 +8,7 @@ import productRouter from "./routes/productRoutes.js";
 import cartRouter from "./routes/cartRoute.js";
 import orderRouter from "./routes/orderRoute.js";
 import newsletterRouter from "./routes/newsletterRoute.js";
+import wishlistRouter from "./routes/wishlistRoute.js";
 
 // App config
 const app = express();
@@ -35,6 +36,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
+app.use("/api/wishlist", wishlistRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

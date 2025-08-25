@@ -5,15 +5,25 @@ import { useParams } from "react-router-dom"
 import { ShopContext } from "../context/ShopContext"
 import { assets } from "../assets/assets"
 import RelatedProducts from "../components/RelatedProducts"
+import { Heart, ShoppingCart } from "lucide-react"
 
 const Product = () => {
   const { productId } = useParams()
-  const { products, currency, addMultipleSizesToCart } = useContext(ShopContext)
+  const { 
+    products, 
+    currency, 
+    addMultipleSizesToCart, 
+    addToWishlist, 
+    removeFromWishlist, 
+    checkWishlistStatus,
+    isLoading 
+  } = useContext(ShopContext)
   const [productData, setProductData] = useState(null) 
   const [image, setImage] = useState("")
   const [selectedSizes, setSelectedSizes] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("description")
+  const [isInWishlist, setIsInWishlist] = useState(false)
 
   const fetchProductData = () => {
     setLoading(true)
@@ -30,6 +40,33 @@ const Product = () => {
   useEffect(() => {
     fetchProductData()
   }, [productId, products])
+
+  // Check wishlist status when product data is available
+  useEffect(() => {
+    const checkWishlist = async () => {
+      if (productData && productData._id) {
+        const status = await checkWishlistStatus(productData._id)
+        setIsInWishlist(status)
+      }
+    }
+    checkWishlist()
+  }, [productData, checkWishlistStatus])
+
+  const handleWishlistToggle = async () => {
+    if (!productData) return
+    
+    try {
+      if (isInWishlist) {
+        await removeFromWishlist(productData._id)
+        setIsInWishlist(false)
+      } else {
+        await addToWishlist(productData._id)
+        setIsInWishlist(true)
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error)
+    }
+  }
 
   const handleSizeToggle = (size) => {
     if (selectedSizes.includes(size)) {
@@ -128,17 +165,34 @@ const Product = () => {
             <p className="mt-2 text-xs text-gray-500">Select multiple sizes as needed</p>
           </div>
 
-          <button
-            onClick={handleAddToCart}
-            disabled={selectedSizes.length === 0}
-            className={`w-full py-4 uppercase text-sm tracking-widest font-medium transition-all duration-300 ${
-              selectedSizes.length === 0
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-black text-white hover:bg-gray-800"
-            }`}
-          >
-            {selectedSizes.length === 0 ? "SELECT A SIZE" : `ADD ${selectedSizes.length} ITEM${selectedSizes.length > 1 ? 'S' : ''} TO CART`}
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleAddToCart}
+              disabled={selectedSizes.length === 0}
+              className={`flex-1 py-4 uppercase text-sm tracking-widest font-medium transition-all duration-300 ${
+                selectedSizes.length === 0
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-black text-white hover:bg-gray-800"
+              }`}
+            >
+              {selectedSizes.length === 0 ? "SELECT A SIZE" : `ADD ${selectedSizes.length} ITEM${selectedSizes.length > 1 ? 'S' : ''} TO CART`}
+            </button>
+
+            <button
+              onClick={handleWishlistToggle}
+              disabled={isLoading}
+              className={`p-4 border-2 transition-all duration-300 ${
+                isInWishlist
+                  ? "border-red-500 bg-red-50 text-red-500 hover:bg-red-100"
+                  : "border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
+              }`}
+              title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+            >
+              <Heart 
+                className={`w-5 h-5 ${isInWishlist ? "fill-current" : ""}`} 
+              />
+            </button>
+          </div>
 
           <div className="h-px w-full bg-gray-200 my-8"></div>
 

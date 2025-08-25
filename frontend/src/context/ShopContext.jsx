@@ -307,27 +307,136 @@ const ShopContextProvider = ({ children }) => {
   }, [token, backendUrl]);
 
   // Wishlist management functions
-  const toggleWishlistItem = useCallback(
-    (itemId) => {
-      try {
-        if (!itemId) {
-          toast.error("Invalid item ID");
-          return;
-        }
-
-        const updatedWishlist = wishlistItems.includes(itemId)
-          ? wishlistItems.filter((id) => id !== itemId)
-          : [...wishlistItems, itemId];
-
-        setWishlistItems(updatedWishlist);
-        localStorage.setItem("wishlistItems", JSON.stringify(updatedWishlist));
-      } catch (error) {
-        console.error("Error toggling wishlist item:", error);
-        toast.error("Failed to update wishlist");
+  const addToWishlist = useCallback(async (productId) => {
+    try {
+      if (!token) {
+        toast.error("Please login to add items to wishlist");
+        return;
       }
-    },
-    [wishlistItems]
-  );
+
+      if (!productId) {
+        toast.error("Invalid product ID");
+        return;
+      }
+
+      setIsLoading(true);
+      const response = await axios.post(
+        `${backendUrl}/api/wishlist/add`,
+        { productId },
+        { headers: getAuthHeader() }
+      );
+
+      if (response?.data?.message) {
+        toast.success("Added to wishlist successfully");
+        // Refresh wishlist data
+        await getUserWishlist();
+      }
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+      const errorMessage = error?.response?.data?.message || "Failed to add to wishlist";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token, backendUrl]);
+
+  const removeFromWishlist = useCallback(async (productId) => {
+    try {
+      if (!token) {
+        toast.error("Please login to manage wishlist");
+        return;
+      }
+
+      if (!productId) {
+        toast.error("Invalid product ID");
+        return;
+      }
+
+      setIsLoading(true);
+      const response = await axios.delete(
+        `${backendUrl}/api/wishlist/remove/${productId}`,
+        { headers: getAuthHeader() }
+      );
+
+      if (response?.data?.message) {
+        toast.success("Removed from wishlist successfully");
+        // Refresh wishlist data
+        await getUserWishlist();
+      }
+    } catch (error) {
+      console.error("Error removing from wishlist:", error);
+      const errorMessage = error?.response?.data?.message || "Failed to remove from wishlist";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token, backendUrl]);
+
+  const getUserWishlist = useCallback(async () => {
+    if (!token) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await axios.get(
+        `${backendUrl}/api/wishlist`,
+        { headers: getAuthHeader() }
+      );
+
+      if (response?.data?.wishlist) {
+        setWishlistItems(response.data.wishlist);
+      } else {
+        setWishlistItems([]);
+      }
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+      toast.error("Failed to load wishlist");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token, backendUrl]);
+
+  const checkWishlistStatus = useCallback(async (productId) => {
+    if (!token || !productId) return false;
+
+    try {
+      const response = await axios.get(
+        `${backendUrl}/api/wishlist/check/${productId}`,
+        { headers: getAuthHeader() }
+      );
+
+      return response?.data?.isInWishlist || false;
+    } catch (error) {
+      console.error("Error checking wishlist status:", error);
+      return false;
+    }
+  }, [token, backendUrl]);
+
+  const clearWishlist = useCallback(async () => {
+    if (!token) {
+      toast.error("Please login to manage wishlist");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await axios.delete(
+        `${backendUrl}/api/wishlist/clear`,
+        { headers: getAuthHeader() }
+      );
+
+      if (response?.data?.message) {
+        toast.success("Wishlist cleared successfully");
+        setWishlistItems([]);
+      }
+    } catch (error) {
+      console.error("Error clearing wishlist:", error);
+      toast.error("Failed to clear wishlist");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token, backendUrl]);
 
   // API Functions
   const getProductsData = useCallback(async () => {
@@ -465,8 +574,9 @@ const ShopContextProvider = ({ children }) => {
   useEffect(() => {
     if (token) {
       getUserCart();
+      getUserWishlist();
     }
-  }, [token, getUserCart]);
+  }, [token, getUserCart, getUserWishlist]);
 
   const contextValue = {
     // Config
@@ -504,7 +614,11 @@ const ShopContextProvider = ({ children }) => {
     clearCart,
 
     // Wishlist functions
-    toggleWishlistItem,
+    addToWishlist,
+    removeFromWishlist,
+    getUserWishlist,
+    checkWishlistStatus,
+    clearWishlist,
 
     // Auth functions
     login,
