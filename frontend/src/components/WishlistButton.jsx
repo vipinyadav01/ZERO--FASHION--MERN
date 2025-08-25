@@ -1,30 +1,23 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useMemo } from 'react';
 import { Heart } from 'lucide-react';
 import { ShopContext } from '../context/ShopContext';
 
 const WishlistButton = ({ productId, className = "", size = "md" }) => {
-    const { addToWishlist, removeFromWishlist, checkWishlistStatus, isLoading } = useContext(ShopContext);
+    const { addToWishlist, removeFromWishlist, wishlistItems, isLoading } = useContext(ShopContext);
     const [isInWishlist, setIsInWishlist] = useState(false);
-    const [isChecking, setIsChecking] = useState(true);
 
-    // Check wishlist status on mount
+    // Check if product is in wishlist using existing wishlist data
+    const checkWishlistStatus = useMemo(() => {
+        if (!productId || !wishlistItems || wishlistItems.length === 0) {
+            return false;
+        }
+        return wishlistItems.some(item => item.productId === productId);
+    }, [productId, wishlistItems]);
+
+    // Update local state when wishlist data changes
     useEffect(() => {
-        const checkStatus = async () => {
-            if (productId) {
-                try {
-                    setIsChecking(true);
-                    const status = await checkWishlistStatus(productId);
-                    setIsInWishlist(status);
-                } catch (error) {
-                    console.error('Error checking wishlist status:', error);
-                } finally {
-                    setIsChecking(false);
-                }
-            }
-        };
-
-        checkStatus();
-    }, [productId, checkWishlistStatus]);
+        setIsInWishlist(checkWishlistStatus);
+    }, [checkWishlistStatus]);
 
     const handleToggle = async (e) => {
         e.preventDefault();
@@ -61,7 +54,7 @@ const WishlistButton = ({ productId, className = "", size = "md" }) => {
     return (
         <button
             onClick={handleToggle}
-            disabled={isLoading || isChecking}
+            disabled={isLoading}
             className={`
                 ${buttonSizeClasses[size]}
                 rounded-full transition-all duration-200
@@ -69,7 +62,7 @@ const WishlistButton = ({ productId, className = "", size = "md" }) => {
                     ? "bg-red-500 text-white hover:bg-red-600 shadow-md"
                     : "bg-white/90 backdrop-blur-sm text-gray-600 hover:text-red-500 hover:bg-white shadow-sm"
                 }
-                ${isLoading || isChecking ? "opacity-50 cursor-not-allowed" : "hover:scale-110"}
+                ${isLoading ? "opacity-50 cursor-not-allowed" : "hover:scale-110"}
                 ${className}
             `}
             title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
