@@ -1,6 +1,7 @@
 import validator from "validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import fs from "fs";
 import UserModel from "../models/userModel.js";
 import OrderModel from "../models/orderModel.js";
 import { processStripeRefund, processRazorPayRefund } from "./orderController.js";
@@ -42,6 +43,7 @@ const loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
         isAdmin: user.isAdmin,
+        profileImage: user.profileImage,
       },
     });
   } catch (error) {
@@ -92,6 +94,7 @@ const registerUser = async (req, res) => {
         email: user.email,
         role: user.role,
         isAdmin: user.isAdmin,
+        profileImage: user.profileImage,
       },
     });
   } catch (error) {
@@ -205,7 +208,7 @@ const updateProfile = async (req, res) => {
     const { name } = req.body; // Only accept name changes
     let profileImageUrl = "";
 
-    console.log("Update profile request received:", { name, hasFile: !!req.file });
+
 
     // Validate input
     if (!name && !req.file) {
@@ -222,16 +225,22 @@ const updateProfile = async (req, res) => {
     // Handle profile image upload to Cloudinary
     if (req.file) {
       try {
-        console.log("Processing image upload...");
         
         // Check if Cloudinary is properly configured
         if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY) {
           console.error("Cloudinary credentials missing in environment variables");
+          // Clean up uploaded file
+          if (req.file.path) {
+            fs.unlink(req.file.path, (err) => {
+              if (err) console.error("Error deleting temp file:", err);
+            });
+          }
           return res.status(500).json({ 
             success: false, 
             message: "Image upload service is not configured. Please update only your name or contact support." 
           });
         }
+
 
         const result = await cloudinary.uploader.upload(req.file.path, {
           resource_type: "image",
@@ -242,22 +251,31 @@ const updateProfile = async (req, res) => {
           ]
         });
         profileImageUrl = result.secure_url;
-        console.log("Image uploaded successfully:", profileImageUrl);
+
+        // Clean up the temporary file after successful upload
+        fs.unlink(req.file.path, (err) => {
+          if (err) console.error("Error deleting temp file:", err);
+        });
 
         // Delete old profile image if exists
-        try {
-          const currentUser = await UserModel.findById(req.user._id);
-          if (currentUser.profileImage) {
-            const publicId = currentUser.profileImage.split('/').pop().split('.')[0];
-            await cloudinary.uploader.destroy(`user_profiles/${publicId}`);
-            console.log("Old image deleted successfully");
-          }
-        } catch (deleteError) {
-          console.warn("Could not delete old profile image:", deleteError.message);
-          // Don't fail the update if we can't delete the old image
-        }
+                 try {
+           const currentUser = await UserModel.findById(req.user._id);
+           if (currentUser.profileImage && currentUser.profileImage.includes('cloudinary')) {
+             const publicId = currentUser.profileImage.split('/').pop().split('.')[0];
+             await cloudinary.uploader.destroy(`user_profiles/${publicId}`);
+           }
+         } catch (deleteError) {
+           console.warn("Could not delete old profile image:", deleteError.message);
+           // Don't fail the update if we can't delete the old image
+         }
       } catch (cloudinaryError) {
         console.error("Cloudinary upload error:", cloudinaryError);
+        // Clean up uploaded file on error
+        if (req.file.path) {
+          fs.unlink(req.file.path, (err) => {
+            if (err) console.error("Error deleting temp file:", err);
+          });
+        }
         return res.status(500).json({ 
           success: false, 
           message: "Failed to upload profile image. Please try again or update without image." 
@@ -278,7 +296,7 @@ const updateProfile = async (req, res) => {
       });
     }
 
-    console.log("Updating user with data:", updateData);
+
 
     const updatedUser = await UserModel.findByIdAndUpdate(
       req.user._id, 
@@ -293,7 +311,7 @@ const updateProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    console.log("User updated successfully");
+
 
     res.status(200).json({ 
       success: true, 

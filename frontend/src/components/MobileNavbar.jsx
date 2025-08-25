@@ -15,9 +15,10 @@ import {
 import PropTypes from "prop-types";
 import { ShopContext } from "../context/ShopContext";
 
-const MobileNavbar = ({ token, setShowSearch, getCartCount }) => {
+const MobileNavbar = ({ token, getCartCount }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, setShowSearch = () => {} } = useContext(ShopContext);
 
   // Check if user is authenticated
   const isAuthenticated = () => Boolean(token);
@@ -52,9 +53,7 @@ const MobileNavbar = ({ token, setShowSearch, getCartCount }) => {
 
   // Handle search input click
   const handleSearchClick = () => {
-    if (setShowSearch) {
-      setShowSearch(true);
-    }
+    setShowSearch(true);
   };
 
   // Get cart count safely
@@ -125,7 +124,18 @@ const MobileNavbar = ({ token, setShowSearch, getCartCount }) => {
             className="flex flex-col items-center border border-black bg-white px-4 py-2 rounded-lg hover:bg-stone-100 transition-colors duration-200 shadow-sm hover:shadow-md group"
             aria-label={isAuthenticated() ? "View profile" : "Login"}
           >
-            <UserCircle className="w-4 h-4 text-stone-700 group-hover:text-stone-900" />
+            {isAuthenticated() && user?.profileImage ? (
+              <img 
+                src={user.profileImage} 
+                alt={user.name || "Profile"} 
+                className="w-5 h-5 rounded-full object-cover"
+                                 onError={(e) => {
+                   e.target.style.display = 'none';
+                 }}
+              />
+            ) : (
+              <UserCircle className="w-4 h-4 text-stone-700 group-hover:text-stone-900" />
+            )}
             <span className="text-xs mt-1 font-medium text-stone-700 group-hover:text-stone-900">
               Profile
             </span>
@@ -216,7 +226,6 @@ const MobileNavbar = ({ token, setShowSearch, getCartCount }) => {
 // PropTypes for type checking
 MobileNavbar.propTypes = {
   token: PropTypes.string,
-  setShowSearch: PropTypes.func.isRequired,
   getCartCount: PropTypes.func.isRequired,
 };
 

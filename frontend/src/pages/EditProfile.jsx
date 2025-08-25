@@ -5,7 +5,7 @@ import axios from "axios"
 import { toast } from "react-toastify"
 
 const EditProfile = () => {
-  const { backendUrl, navigate } = useContext(ShopContext)
+  const { backendUrl, navigate, updateUserData } = useContext(ShopContext)
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
@@ -164,6 +164,8 @@ const EditProfile = () => {
         toast.success("Profile updated successfully!")
         // Update user state with new data
         setUser(response.data.user)
+        // Update user data in context
+        updateUserData(response.data.user)
         setProfileImage(null)
         // Navigate back to profile page
         navigate("/profile")

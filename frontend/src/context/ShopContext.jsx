@@ -498,6 +498,9 @@ const ShopContextProvider = ({ children }) => {
       
       setToken(authToken);
       setUser(userData);
+      
+
+      
       toast.success("Login successful");
       navigate("/");
     } catch (error) {
@@ -528,6 +531,14 @@ const ShopContextProvider = ({ children }) => {
       toast.error("Failed to logout properly");
     }
   }, [navigate]);
+
+  // Update user data in context
+  const updateUserData = useCallback((newUserData) => {
+    setUser(newUserData);
+    localStorage.setItem("userData", JSON.stringify(newUserData));
+  }, []);
+
+
 
   // Load products on initial render
   useEffect(() => {
@@ -623,6 +634,7 @@ const ShopContextProvider = ({ children }) => {
     // Auth functions
     login,
     logout,
+    updateUserData,
 
     // Navigation
     navigate,

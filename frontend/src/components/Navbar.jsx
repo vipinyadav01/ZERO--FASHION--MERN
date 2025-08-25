@@ -19,7 +19,6 @@ const Navbar = () => {
       <SearchBar />
       <MobileNavbar 
         token={token}
-        setShowSearch={setShowSearch}
         getCartCount={getCartCount}
       />
       <DesktopNavbar 

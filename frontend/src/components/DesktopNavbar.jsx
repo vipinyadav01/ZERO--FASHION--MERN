@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useCallback } from "react";
+import { useState, useContext, useCallback, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
   Search, 
@@ -19,7 +19,6 @@ import CartItem from "./CartItem";
 const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showCartDropdown, setShowCartDropdown] = useState(false);
-  const [userInfo, setUserInfo] = useState(null);
 
   // Get context with safe defaults
   const context = useContext(ShopContext);
@@ -28,136 +27,59 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
     setCartItems = () => {},
     cartItems = {},
     setUser = () => {},
-    backendUrl = "",
     products = [],
     getCartAmount = () => 0,
+    user = null,
   } = context || {};
 
   const navigate = useNavigate();
   const location = useLocation();
 
   // Navigation items configuration
-  const navItems = useCallback(() => [
-    {
-      icon: Home,
-      label: "Home",
-      path: "/",
-      type: "nav",
-    },
-    {
-      icon: Play,
-      label: "Collection",
-      path: "/collection",
-      type: "nav",
-    },
-    {
-      icon: Heart,
-      label: "Wishlist",
-      path: "/wishlist",
-      type: "nav",
-    },
-    {
-      icon: Search,
-      label: "Search",
-      type: "action",
-      action: () => {
-        setShowSearch(prev => !prev);
+  const navItems = useCallback(() => {
+    return [
+      {
+        icon: Home,
+        label: "Home",
+        path: "/",
+        type: "nav",
       },
-    },
-    {
-      icon: User,
-      label: "Profile",
-      path: "/profile",
-      type: "user",
-    },
-    {
-      icon: ShoppingBag,
-      label: "Cart",
-      path: "/cart",
-      type: "cart",
-    },
-  ], [setShowSearch]);
-
-  // Decode JWT token safely
-  const decodeToken = useCallback((token) => {
-    try {
-      const base64Url = token.split(".")[1];
-      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split("")
-          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-          .join("")
-      );
-      return JSON.parse(jsonPayload);
-    } catch (error) {
-      console.error("Invalid token format:", error);
-      return null;
-    }
-  }, []);
-
-  // Fetch user data from API
-  const fetchUserData = useCallback(async (token) => {
-    if (!backendUrl || !token) {
-      console.warn("Missing backendUrl or token for user data fetch");
-      return null;
-    }
-
-    try {
-      const response = await fetch(`${backendUrl}/api/user/user`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      {
+        icon: Play,
+        label: "Collection",
+        path: "/collection",
+        type: "nav",
+      },
+      {
+        icon: Heart,
+        label: "Wishlist",
+        path: "/wishlist",
+        type: "nav",
+      },
+      {
+        icon: null,
+        label: "Search",
+        type: "search",
+        action: () => {
+          setShowSearch(true);
         },
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          // Token is invalid, clear data and redirect
-          localStorage.removeItem("token");
-          localStorage.removeItem("userData");
-          setToken(null);
-          setUserInfo(null);
-          setUser?.(null);
-          navigate("/login");
-          return null;
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const fetchedUserData = await response.json();
-      const userData = fetchedUserData?.user;
-
-      if (!userData) {
-        console.warn("No user data received from API");
-        return null;
-      }
-
-      // Normalize user data structure
-      const normalizedUserData = {
-        _id: userData._id || userData.id,
-        username: userData.username || userData.name || "User",
-        name: userData.name || userData.username || "User",
-        email: userData.email || "",
-        avatar: userData.avatar || null,
-        phone: userData.phone || "",
-        address: userData.address || {},
-      };
-
-      // Store in localStorage
-      localStorage.setItem("userData", JSON.stringify(normalizedUserData));
-      
-      // Update state
-      setUserInfo(normalizedUserData);
-      setUser?.(normalizedUserData);
-      
-      return normalizedUserData;
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      return null;
-    }
-  }, [backendUrl, setUser, setToken, setUserInfo, navigate]);
+      },
+      {
+        icon: User,
+        label: "Profile",
+        path: "/profile",
+        type: "user",
+        profileImage: user?.profileImage,
+        userName: user?.name,
+      },
+      {
+        icon: ShoppingBag,
+        label: "Cart",
+        path: "/cart",
+        type: "cart",
+      },
+    ];
+  }, [user, setShowSearch]);
 
   // Handle user logout
   const handleLogout = useCallback(() => {
@@ -170,7 +92,6 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
     
     // Reset all state
     setToken(null);
-    setUserInfo(null);
     setUser?.(null);
     setCartItems([]);
     
@@ -181,86 +102,8 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
     // Navigate to login
     navigate("/login");
     
-    console.log("User logged out successfully");
+
   }, [navigate, setToken, setCartItems, setUser, setShowUserDropdown, setShowCartDropdown]);
-
-  // Check token validity and load user data
-  useEffect(() => {
-    const checkTokenValidity = async () => {
-      const storedToken = localStorage.getItem("token");
-      if (!storedToken) {
-        // No token, ensure user is logged out
-        setToken(null);
-        setUserInfo(null);
-        setUser?.(null);
-        return;
-      }
-
-      // Decode and validate token
-      const decodedToken = decodeToken(storedToken);
-      if (!decodedToken) {
-        console.warn("Invalid token format, logging out");
-        handleLogout();
-        return;
-      }
-
-      // Check token expiration
-      const currentTime = Math.floor(Date.now() / 1000);
-      if (decodedToken.exp && decodedToken.exp < currentTime) {
-        console.warn("Token expired, logging out");
-        handleLogout();
-        return;
-      }
-
-      // Token is valid, set it
-      setToken(storedToken);
-
-      // Load user data
-      await loadUserData(storedToken);
-    };
-
-    const loadUserData = async (token) => {
-      // Try to load from localStorage first
-      const storedUserData = localStorage.getItem("userData");
-      
-      if (storedUserData) {
-        try {
-          const parsedUserData = JSON.parse(storedUserData);
-          
-          // Validate stored user data
-          if (parsedUserData && typeof parsedUserData === 'object') {
-            const normalizedUserData = {
-              _id: parsedUserData._id || parsedUserData.id,
-              username: parsedUserData.username || parsedUserData.name || "User",
-              name: parsedUserData.name || parsedUserData.username || "User",
-              email: parsedUserData.email || "",
-              avatar: parsedUserData.avatar || null,
-              phone: parsedUserData.phone || "",
-              address: parsedUserData.address || {},
-            };
-            
-            setUserInfo(normalizedUserData);
-            setUser?.(normalizedUserData);
-            
-            // Optionally refresh from API in background
-            setTimeout(() => {
-              fetchUserData(token);
-            }, 1000);
-            
-            return;
-          }
-        } catch (error) {
-          console.error("Error parsing stored user data:", error);
-          localStorage.removeItem("userData"); // Remove corrupted data
-        }
-      }
-
-      // No valid stored data, fetch from API
-      await fetchUserData(token);
-    };
-
-    checkTokenValidity();
-  }, [setToken, setUser, handleLogout, fetchUserData, decodeToken]);
 
   // Handle click outside dropdowns
   useEffect(() => {
@@ -275,9 +118,13 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [setShowUserDropdown, setShowCartDropdown]);
 
+
+
   // Handle navigation item clicks
   const handleItemClick = useCallback((item) => {
     if (item.type === "action" && item.action) {
+      item.action();
+    } else if (item.type === "search" && item.action) {
       item.action();
     } else if (item.type === "user") {
       if (token) {
@@ -303,8 +150,8 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
 
   // Check if user is authenticated
   const isAuthenticated = useCallback(() => {
-    return Boolean(token && userInfo && userInfo._id);
-  }, [token, userInfo]);
+    return Boolean(token && user && user._id);
+  }, [token, user]);
 
   // Check if path is active
   const isActive = useCallback((path) => {
@@ -381,7 +228,22 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
                       : "text-gray-700 hover:text-black hover:bg-gray-50"
                   }`}
                 >
-                  <item.icon className="w-4 h-4 mr-2" />
+                  {item.type === "user" && item.profileImage ? (
+                    <img 
+                      src={item.profileImage} 
+                      alt={item.userName || "Profile"} 
+                      className="w-4 h-4 mr-2 rounded-full object-cover"
+                                             onError={(e) => {
+                         e.target.style.display = 'none';
+                       }}
+                    />
+                  ) : item.type === "search" ? (
+                    <div className="w-4 h-4 mr-2 bg-gray-300 rounded-full flex items-center justify-center">
+                      <Search className="w-2.5 h-2.5 text-gray-600" />
+                    </div>
+                  ) : (
+                    <item.icon className="w-4 h-4 mr-2" />
+                  )}
                   {item.label}
                   
                   {/* Cart Badge */}
@@ -400,44 +262,41 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
         {showUserDropdown && isAuthenticated() && (
           <div className="absolute top-full right-6 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
             {/* User Info */}
-            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+            <Link
+              to="/profile"
+              className="block px-4 py-3 border-b border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors"
+              onClick={() => setShowUserDropdown(false)}
+            >
               <div className="flex items-center space-x-3">
-                {userInfo?.avatar ? (
+                {user?.profileImage ? (
                   <img 
-                    src={userInfo.avatar} 
-                    alt={userInfo.name || "User"} 
+                    src={user.profileImage} 
+                    alt={user.name || "User"} 
                     className="w-10 h-10 rounded-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
+                                         onError={(e) => {
+                       e.target.style.display = 'none';
+                     }}
                   />
                 ) : (
                   <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                    <UserCircle className="w-6 h-6 text-gray-600" />
+                    <span className="text-sm font-semibold text-gray-600">
+                      {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    </span>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-900 truncate">
-                    {userInfo?.name || userInfo?.username || "My Account"}
+                    {user?.name || "My Account"}
                   </p>
-                  {userInfo?.email && (
-                    <p className="text-sm text-gray-600 truncate">{userInfo.email}</p>
+                  {user?.email && (
+                    <p className="text-sm text-gray-600 truncate">{user.email}</p>
                   )}
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* Menu Items */}
             <div className="py-2">
-              <Link
-                to="/profile"
-                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                onClick={() => setShowUserDropdown(false)}
-              >
-                <UserCircle className="w-4 h-4 mr-3" />
-                My Profile
-              </Link>
-
               <Link
                 to="/order"
                 className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -517,6 +376,8 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
             })()}
           </div>
         )}
+
+
       </div>
     </div>
   );
