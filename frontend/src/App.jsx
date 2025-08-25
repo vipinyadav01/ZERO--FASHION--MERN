@@ -1,10 +1,9 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Page components
 import Home from "./pages/Home";
 import Collection from "./pages/Collection";
 import About from "./pages/About";
@@ -23,48 +22,55 @@ import Wishlist from "./pages/Wishlist";
 import Notification from "./pages/Notification";
 import Support from "./pages/Support";
 
-// Layout components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
 const App = () => {
     const [toastPosition, setToastPosition] = useState("top-right");
+    const [isMobile, setIsMobile] = useState(false);
 
-    useEffect(() => {
-        const handleResize = () => {
-            setToastPosition(window.innerWidth > 768 ? "top-right" : "bottom-center");
-        };
-
-        handleResize();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
+    const handleResize = useCallback(() => {
+        const width = window.innerWidth;
+        const mobile = width <= 768;
+        setIsMobile(mobile);
+        setToastPosition(mobile ? "bottom-center" : "top-right");
     }, []);
 
-    return (
-        <div className="min-h-screen flex flex-col">
-            <ToastContainer
-                position={toastPosition}
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                limit={3}
-                theme="colored"
-                style={{
-                    width: toastPosition === "top-right" ? "400px" : "90%",
-                    fontSize: window.innerWidth < 640 ? "14px" : "16px",
-                    padding: window.innerWidth < 640 ? "10px" : "15px"
-                }}
-            />
+    useEffect(() => {
+        handleResize();
+        
+        window.addEventListener("resize", handleResize);
+        
+        return () => window.removeEventListener("resize", handleResize);
+    }, [handleResize]);
 
-            <div className="flex-grow">
+    const toastConfig = {
+        position: toastPosition,
+        autoClose: 3000,
+        hideProgressBar: false,
+        newestOnTop: true,
+        closeOnClick: true,
+        rtl: false,
+        pauseOnFocusLoss: true,
+        draggable: true,
+        pauseOnHover: true,
+        limit: 3,
+        theme: "colored",
+        style: {
+            width: isMobile ? "90%" : "400px",
+            fontSize: isMobile ? "14px" : "16px",
+            padding: isMobile ? "10px" : "15px"
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex flex-col bg-gray-50">
+            <ToastContainer {...toastConfig} />
+
+            <div className="flex-grow flex flex-col">
                 <Navbar />
 
-                <main className="sm:py-4 px-4 ">
+                <main className="flex-grow px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/collection" element={<Collection />} />
@@ -73,20 +79,37 @@ const App = () => {
                         <Route path="/product/:productId" element={<Product />} />
                         <Route path="/cart" element={<Cart />} />
                         <Route path="/login" element={<Login />} />
+                        <Route path="/verify" element={<Verify />} />
+                        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                        <Route path="/support" element={<Support />} />
+                        <Route path="/TrackOrder" element={<TrackOrder />} />
+                        
                         <Route path="/place-order" element={<PlaceOrder />} />
                         <Route path="/order" element={<Orders />} />
-                        <Route path="/verify" element={<Verify />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/edit-profile" element={<EditProfile />} />
-                        <Route path="/TrackOrder" element={<TrackOrder />} />
-                        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                         <Route path="/wishlist" element={<Wishlist />} />
                         <Route path="/notifications" element={<Notification />} />
-                        <Route path="/support" element={<Support />} />
+                        
+                        {/* Catch-all route for 404 */}
+                        <Route path="*" element={
+                            <div className="flex items-center justify-center min-h-[60vh]">
+                                <div className="text-center">
+                                    <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+                                    <p className="text-gray-600 mb-6">Page not found</p>
+                                    <a 
+                                        href="/" 
+                                        className="inline-block bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
+                                    >
+                                        Go Home
+                                    </a>
+                                </div>
+                            </div>
+                        } />
                     </Routes>
                 </main>
 
-                <Footer  />
+                <Footer />
             </div>
 
             <SpeedInsights />
