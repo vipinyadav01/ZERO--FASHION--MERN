@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { backendUrl } from "../App";
 import {
     BarChart3,
     PlusCircle,
@@ -18,11 +21,45 @@ const Sidebar = () => {
     });
     const [isHovered, setIsHovered] = useState(false);
 
-    const user = {
-        name: "Vipin Yadav",
-        email: import.meta.env.ADMIN_EMAIL || "admin@zerofashion.com",
-        role: "Administrator",
-    };
+    const [user, setUser] = useState({
+        name: "",
+        email: "",
+        role: ""
+    });
+
+    useEffect(() => {
+        const controller = new AbortController();
+        const fetchUser = async () => {
+            try {
+                const token = sessionStorage.getItem("token");
+                if (!token) return;
+                const res = await axios.get(`${backendUrl}/api/user/user`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    signal: controller.signal
+                });
+                if (res.data?.success && res.data?.user) {
+                    const u = res.data.user;
+                    setUser({
+                        name: u.name || "",
+                        email: u.email || "",
+                        role: u.role || ""
+                    });
+                } else {
+                    throw new Error(res.data?.message || "Failed to load user");
+                }
+            } catch (err) {
+                const message = err.response?.data?.message || err.message || "Failed to load user";
+                toast.error(message);
+                setUser({
+                    name: "Admin",
+                    email: "admin@zerofashion.com",
+                    role: "Administrator"
+                });
+            }
+        };
+        fetchUser();
+        return () => controller.abort();
+    }, []);
 
     useEffect(() => {
         localStorage.setItem("sidebar-collapsed", JSON.stringify(isCollapsed));
@@ -36,7 +73,6 @@ const Sidebar = () => {
     }, [isCollapsed]);
 
     const toggleSidebar = () => {
-        // Explicitly set isHovered to false when collapsing to prevent expanded state
         setIsHovered(false);
         setIsCollapsed(prev => !prev);
     };
@@ -139,7 +175,7 @@ const Sidebar = () => {
                                     transform group-hover/profile:scale-105 transition-all duration-300
                                     shadow-lg shadow-indigo-500/20">
                                     <span className="text-base font-bold text-white">
-                                        {user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+                                        {(user.name || "Admin").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
                                     </span>
                                 </div>
                                 <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 
@@ -150,14 +186,14 @@ const Sidebar = () => {
                                 ${isExpanded ? "opacity-100" : "opacity-0 group-hover:opacity-100"}
                             `}>
                                 <h4 className="text-sm font-semibold text-white truncate tracking-wide">
-                                    {user.name}
+                                    {user.name || "Admin"}
                                 </h4>
                                 <p className="text-xs font-medium text-slate-400 truncate">
-                                    {user.role}
+                                    {user.role || "Administrator"}
                                 </p>
                                 <p className="text-xs text-slate-500 truncate hover:text-indigo-400 
                                     transition-colors duration-300">
-                                    {user.email}
+                                    {user.email || "admin@zerofashion.com"}
                                 </p>
                             </div>
                         </div>
@@ -179,11 +215,6 @@ const Sidebar = () => {
                     </button>
                 )}
             </aside>
-
-            {/* Main Content Padding */}
-            <div 
-                className={`pt-16 ${isMobile ? "ml-16" : isExpanded ? "ml-64" : "ml-16"} transition-all duration-300`}
-            ></div>
         </>
     );
 };

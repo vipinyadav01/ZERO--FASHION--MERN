@@ -437,26 +437,21 @@ const deleteUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "User ID is required" });
     }
 
-    const adminCount = await UserModel.countDocuments({ role: "admin" });
     const userToDelete = await UserModel.findById(userId);
     if (!userToDelete) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
-    if (adminCount <= 1 && userToDelete.role === "admin") {
-      return res.status(400).json({ success: false, message: "Cannot delete the last admin" });
-    }
 
-    const deletedUser = await UserModel.findByIdAndDelete(userId);
-    if (!deletedUser) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
+    // Admin can delete any user, including other admins
+    await UserModel.findByIdAndDelete(userId);
 
     res.status(200).json({
       success: true,
+      message: "User deleted successfully",
       deletedUser: {
-        _id: deletedUser._id,
-        name: deletedUser.name,
-        email: deletedUser.email,
+        _id: userToDelete._id,
+        name: userToDelete.name,
+        email: userToDelete.email,
       },
     });
   } catch (error) {

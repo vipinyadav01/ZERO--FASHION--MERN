@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { LogOut, Menu, X, ChevronDown, Bell, Search, User, Settings, HelpCircle, Command } from "lucide-react";
-import { assets } from "../assets/assets";
 
-const Navbar = ({ setToken }) => {
+const Navbar = ({ onLogout }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -16,13 +15,14 @@ const Navbar = ({ setToken }) => {
     const searchInputRef = useRef(null);
 
     const handleLogout = () => {
+        if (isLoading) return;
         setIsLoading(true);
-        setTimeout(() => {
-            sessionStorage.removeItem("token");
-            setToken("");
-            setIsLoading(false);
-            setIsMenuOpen(false);
-        }, 1000);
+        Promise.resolve(onLogout?.())
+            .finally(() => {
+                setIsLoading(false);
+                setIsMenuOpen(false);
+                setIsDropdownOpen(false);
+            });
     };
 
     const toggleMenu = () => {
@@ -43,7 +43,6 @@ const Navbar = ({ setToken }) => {
         }, 100);
     };
 
-    // Sample notifications with more variety
     const notifications = [
         { id: 1, title: "New order received", desc: "Order #1247 from customer John D.", time: "5 min ago", read: false, type: "order" },
         { id: 2, title: "Product inventory low", desc: "Winter Jacket - Only 3 items left", time: "2 hours ago", read: false, type: "warning" },
@@ -52,7 +51,6 @@ const Navbar = ({ setToken }) => {
         { id: 5, title: "New user registered", desc: "Welcome new customer Sarah M.", time: "1 day ago", read: true, type: "user" },
     ];
 
-    // Handle scroll effect
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 10);
@@ -61,7 +59,6 @@ const Navbar = ({ setToken }) => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Close dropdown and notifications when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -75,7 +72,6 @@ const Navbar = ({ setToken }) => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Close mobile menu when screen size changes
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth >= 768) {
@@ -87,7 +83,6 @@ const Navbar = ({ setToken }) => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    // Handle keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (event) => {
             if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
@@ -105,7 +100,6 @@ const Navbar = ({ setToken }) => {
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    // Count unread notifications
     const unreadCount = notifications.filter(n => !n.read).length;
 
     const getNotificationIcon = (type) => {
@@ -130,50 +124,51 @@ const Navbar = ({ setToken }) => {
                     <div className={`flex items-center justify-between transition-all duration-300 ${
                         isScrolled ? 'h-14 lg:h-16' : 'h-16 lg:h-20'
                     }`}>
-                        {/* Enhanced Logo and branding */}
+                        {/* Logo + Brand from public logo */}
                         <Link 
                             to="/dashboard" 
-                            className="flex items-center gap-2 sm:gap-3 hover:scale-105 transition-all duration-300 group relative"
+                            className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity"
                         >
-                            <div className="relative">
-                                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 opacity-20 blur-lg group-hover:opacity-40 transition-opacity duration-500"></div>
-                                <div className="relative bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 w-9 h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-indigo-500/30 transition-all duration-300 group-hover:rotate-3">
-                                    <span className="text-lg sm:text-xl lg:text-2xl font-bold text-white drop-shadow-sm">ZF</span>
-                                </div>
-                            </div>
+                            <img
+                                src="/zero.ico"
+                                alt="Zero Fashion Logo"
+                                className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg"
+                                loading="eager"
+                                decoding="async"
+                            />
                             <div className="hidden sm:block">
                                 <div className="flex items-baseline">
-                                    <span className="text-base sm:text-lg lg:text-xl font-bold text-white mr-1 group-hover:text-slate-100 transition-colors">ZERO</span>
-                                    <span className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:from-indigo-300 group-hover:via-purple-300 group-hover:to-pink-300 transition-all duration-300">
+                                    <span className="text-base sm:text-lg lg:text-xl font-bold text-white mr-1">ZERO</span>
+                                    <span className="text-lg sm:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                                         FASHION
                                     </span>
                                 </div>
-                                <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-slate-400 tracking-widest uppercase -mt-1 group-hover:text-slate-300 transition-colors">
+                                <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-slate-400 tracking-widest uppercase -mt-1">
                                     Admin Portal
                                 </div>
                             </div>
                         </Link>
 
-                        {/* Enhanced Search bar - Desktop */}
+                        {/* Search bar - Desktop */}
                         <div className="hidden lg:flex flex-1 max-w-xl mx-6 xl:mx-8">
-                            <div className="relative w-full group">
+                            <div className="relative w-full">
                                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                    <Search className="w-5 h-5 text-slate-400 group-focus-within:text-indigo-400 transition-colors duration-300" />
+                                    <Search className="w-5 h-5 text-slate-400" />
                                 </div>
                                 <input
                                     type="search"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="block w-full py-3 px-5 pl-12 pr-20 text-sm bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-600/50 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 text-white placeholder-slate-400 outline-none transition-all duration-300 hover:bg-slate-800/80 focus:bg-slate-800/90"
+                                    className="block w-full py-3 px-5 pl-12 pr-20 text-sm bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-600/50 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 text-white placeholder-slate-400 outline-none transition-all duration-300"
                                     placeholder="Search products, orders, users..."
                                 />
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-4 gap-2">
                                     {searchQuery && (
                                         <button
                                             onClick={() => setSearchQuery("")}
-                                            className="p-1 rounded-lg hover:bg-slate-700/50 transition-colors duration-200"
+                                            className="p-1 rounded-lg hover:bg-slate-700/50"
                                         >
-                                            <X className="w-4 h-4 text-slate-400 hover:text-white transition-colors duration-200" />
+                                            <X className="w-4 h-4 text-slate-400 hover:text-white" />
                                         </button>
                                     )}
                                     <div className="hidden xl:flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-700/50 border border-slate-600/30">
@@ -184,56 +179,53 @@ const Navbar = ({ setToken }) => {
                             </div>
                         </div>
 
-                        {/* Enhanced Desktop Action buttons */}
+                        {/* Desktop Action buttons */}
                         <div className="hidden md:flex items-center space-x-1 lg:space-x-2 xl:space-x-3">
-                            {/* Search button for medium screens */}
                             <button 
                                 onClick={toggleMobileSearch}
-                                className="lg:hidden p-2.5 text-slate-400 hover:text-indigo-400 rounded-xl hover:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-300 hover:scale-105"
+                                className="lg:hidden p-2.5 text-slate-400 hover:text-indigo-400 rounded-xl hover:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             >
                                 <Search className="w-5 h-5" />
                             </button>
 
-                            {/* Enhanced Notifications */}
                             <div className="relative" ref={notificationsRef}>
                                 <button
                                     onClick={toggleNotifications}
-                                    className="relative p-2.5 text-slate-400 hover:text-indigo-400 rounded-xl hover:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-300 group hover:scale-105"
+                                    className="relative p-2.5 text-slate-400 hover:text-indigo-400 rounded-xl hover:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                                     aria-label="Notifications"
                                 >
                                     <Bell className="w-5 h-5" />
                                     {unreadCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full ring-2 ring-slate-900 animate-pulse shadow-lg">
+                                        <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full ring-2 ring-slate-900">
                                             {unreadCount > 9 ? '9+' : unreadCount}
                                         </span>
                                     )}
                                 </button>
 
-                                {/* Enhanced Notifications dropdown */}
                                 {isNotificationsOpen && (
-                                    <div className="origin-top-right absolute right-0 mt-3 w-80 lg:w-96 xl:w-[400px] rounded-2xl shadow-2xl bg-slate-800/98 backdrop-blur-2xl border border-slate-700/60 focus:outline-none transform transition-all duration-300 scale-100 opacity-100 overflow-hidden">
-                                        <div className="px-6 py-4 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/60 to-slate-700/60">
+                                    <div className="origin-top-right absolute right-0 mt-3 w-80 lg:w-96 xl:w-[400px] rounded-2xl shadow-2xl bg-slate-800/98 backdrop-blur-2xl border border-slate-700/60 focus:outline-none overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-slate-700/50">
                                             <div className="flex items-center justify-between">
                                                 <h3 className="text-base font-semibold text-white">Notifications</h3>
-                                                <span className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 font-medium border border-indigo-500/20">
+                                                <span className="text-xs px-3 py-1 rounded-full bg-slate-700/60 text-slate-300 font-medium border border-slate-600/40">
                                                     {unreadCount} new
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+                                        <div className="max-h-96 overflow-y-auto">
                                             {notifications.slice(0, 5).map((item) => (
                                                 <div
                                                     key={item.id}
                                                     className={`px-6 py-4 hover:bg-slate-700/30 cursor-pointer border-l-3 ${
                                                         item.read ? "border-transparent" : "border-indigo-500"
-                                                    } transition-all duration-200 group/item hover:translate-x-1`}
+                                                    } transition-all duration-200`}
                                                 >
                                                     <div className="flex items-start gap-3">
                                                         <div className="text-lg mt-0.5 flex-shrink-0">
                                                             {getNotificationIcon(item.type)}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-medium text-white group-hover/item:text-indigo-200 transition-colors truncate">
+                                                            <p className="text-sm font-medium text-white truncate">
                                                                 {item.title}
                                                             </p>
                                                             <p className="text-xs text-slate-400 mt-1 leading-relaxed">
@@ -241,77 +233,50 @@ const Navbar = ({ setToken }) => {
                                                             </p>
                                                             <p className="text-xs text-slate-500 mt-1">{item.time}</p>
                                                         </div>
-                                                        {!item.read && (
-                                                            <div className="w-2 h-2 bg-indigo-500 rounded-full flex-shrink-0 mt-2"></div>
-                                                        )}
                                                     </div>
                                                 </div>
                                             ))}
-                                        </div>
-                                        <div className="px-6 py-4 border-t border-slate-700/50 bg-gradient-to-r from-slate-800/60 to-slate-700/60">
-                                            <div className="flex items-center justify-between">
-                                                <button className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors duration-200">
-                                                    View all notifications
-                                                </button>
-                                                <button className="text-xs text-slate-500 hover:text-slate-400 transition-colors duration-200">
-                                                    Mark all as read
-                                                </button>
-                                            </div>
                                         </div>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Enhanced User dropdown */}
                             <div className="relative" ref={dropdownRef}>
                                 <button
                                     onClick={toggleDropdown}
                                     type="button"
-                                    className="flex items-center text-sm px-3 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-300 border border-slate-700/50 hover:border-slate-600/50 hover:scale-[1.02]"
+                                    className="flex items-center text-sm px-3 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 border border-slate-700/50"
                                     aria-label="User menu"
                                 >
                                     <div className="relative">
                                         <img
                                             className="h-8 w-8 lg:h-9 lg:w-9 rounded-xl border-2 border-indigo-500/30 object-cover"
-                                            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtRs_rWILOMx5-v3aXwJu7LWUhnPceiKvvDg&s"
+                                            src="/zero.ico"
                                             alt="User avatar"
                                         />
-                                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-800 shadow-sm">
-                                            <div className="w-full h-full bg-emerald-400 rounded-full animate-pulse"></div>
-                                        </div>
                                     </div>
                                     <span className="ml-3 text-white font-medium hidden lg:inline">Admin</span>
                                     <ChevronDown
                                         size={16}
-                                        className={`ml-2 text-slate-400 transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : ""}`}
+                                        className={`ml-2 text-slate-400 ${isDropdownOpen ? "rotate-180" : ""}`}
                                     />
                                 </button>
 
-                                {/* Enhanced Dropdown menu */}
                                 {isDropdownOpen && (
                                     <div
-                                        className="origin-top-right absolute right-0 mt-3 w-64 lg:w-72 xl:w-80 rounded-2xl shadow-2xl bg-slate-800/98 backdrop-blur-2xl border border-slate-700/60 ring-1 ring-white/5 focus:outline-none transition-all duration-300 overflow-hidden"
+                                        className="origin-top-right absolute right-0 mt-3 w-64 lg:w-72 xl:w-80 rounded-2xl shadow-2xl bg-slate-800/98 backdrop-blur-2xl border border-slate-700/60 ring-1 ring-white/5 focus:outline-none overflow-hidden"
                                         role="menu"
                                     >
-                                        <div className="py-5 px-6 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/60 to-slate-700/60">
+                                        <div className="py-5 px-6 border-b border-slate-700/50">
                                             <div className="flex items-center gap-3">
-                                                <div className="relative">
-                                                    <img
-                                                        className="h-12 w-12 rounded-xl border-2 border-indigo-500/30 object-cover"
-                                                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtRs_rWILOMx5-v3aXwJu7LWUhnPceiKvvDg&s"
-                                                        alt="User avatar"
-                                                    />
-                                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-slate-800 shadow-sm">
-                                                        <div className="w-full h-full bg-emerald-400 rounded-full animate-pulse"></div>
-                                                    </div>
-                                                </div>
+                                                <img
+                                                    className="h-12 w-12 rounded-xl border-2 border-indigo-500/30 object-cover"
+                                                    src="/zero.ico"
+                                                    alt="User avatar"
+                                                />
                                                 <div className="flex-1">
                                                     <div className="text-base font-semibold text-white">Admin User</div>
                                                     <div className="text-sm text-slate-300 opacity-80 truncate">admin@zerofashion.com</div>
-                                                    <div className="flex items-center gap-1 mt-1">
-                                                        <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                                                        <span className="text-xs text-emerald-400 font-medium">Online</span>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -319,10 +284,10 @@ const Navbar = ({ setToken }) => {
                                             <button
                                                 onClick={handleLogout}
                                                 disabled={isLoading}
-                                                className="flex w-full items-center px-6 py-3 text-sm text-white hover:bg-slate-700/30 hover:text-red-300 transition-all duration-200 group disabled:opacity-50 hover:translate-x-1"
+                                                className="flex w-full items-center px-6 py-3 text-sm text-white hover:bg-slate-700/30 transition-all duration-200 group disabled:opacity-50"
                                                 role="menuitem"
                                             >
-                                                <div className="p-2 rounded-lg bg-red-500/20 mr-3 group-hover:bg-red-500/30 transition-colors">
+                                                <div className="p-2 rounded-lg bg-red-500/20 mr-3">
                                                     <LogOut size={16} className="text-red-400" />
                                                 </div>
                                                 <div className="flex-1 text-left">
@@ -345,18 +310,18 @@ const Navbar = ({ setToken }) => {
                             </div>
                         </div>
 
-                        {/* Enhanced Mobile menu button */}
+                        {/* Mobile actions */}
                         <div className="flex items-center gap-2 md:hidden">
                             <button
                                 onClick={toggleMobileSearch}
-                                className="p-2.5 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-300"
+                                className="p-2.5 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             >
                                 <Search className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={toggleMenu}
                                 type="button"
-                                className="inline-flex items-center justify-center p-2.5 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-300"
+                                className="inline-flex items-center justify-center p-2.5 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                                 aria-expanded={isMenuOpen}
                             >
                                 <span className="sr-only">{isMenuOpen ? "Close menu" : "Open menu"}</span>
@@ -382,7 +347,7 @@ const Navbar = ({ setToken }) => {
                                 type="search"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="block w-full py-3 px-5 pl-12 pr-12 text-sm bg-slate-800/60 rounded-2xl border border-slate-600/50 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 text-white placeholder-slate-400 outline-none transition-all duration-300"
+                                className="block w-full py-3 px-5 pl-12 pr-12 text-sm bg-slate-800/60 rounded-2xl border border-slate-600/50 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 text-white placeholder-slate-400 outline-none"
                                 placeholder="Search products, orders, users..."
                                 autoFocus
                             />
@@ -391,7 +356,7 @@ const Navbar = ({ setToken }) => {
                                     onClick={() => setSearchQuery("")}
                                     className="absolute inset-y-0 right-0 flex items-center pr-4"
                                 >
-                                    <X className="w-4 h-4 text-slate-400 hover:text-white transition-colors duration-200" />
+                                    <X className="w-4 h-4 text-slate-400 hover:text-white" />
                                 </button>
                             )}
                         </div>
@@ -399,23 +364,21 @@ const Navbar = ({ setToken }) => {
                 )}
             </nav>
 
-            {/* Enhanced Mobile menu overlay */}
+            {/* Mobile menu overlay */}
             {isMenuOpen && (
                 <div className="fixed inset-0 z-40 md:hidden">
                     <div 
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={() => setIsMenuOpen(false)}
                     />
-                    <div className="fixed top-16 left-0 right-0 bottom-0 bg-slate-900/98 backdrop-blur-2xl border-t border-slate-700/50 transition-transform duration-300 transform translate-y-0">
+                    <div className="fixed top-16 left-0 right-0 bottom-0 bg-slate-900/98 backdrop-blur-2xl border-t border-slate-700/50">
                         <div className="flex flex-col h-full">
-                            {/* Enhanced Mobile menu content */}
-                            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
-                                {/* Enhanced Notifications in mobile menu */}
+                            <div className="flex-1 overflow-y-auto">
                                 <div className="p-6 border-b border-slate-700/50">
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="text-lg font-semibold text-white">Notifications</h3>
                                         {unreadCount > 0 && (
-                                            <span className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 font-medium border border-indigo-500/20">
+                                            <span className="text-xs px-3 py-1 rounded-full bg-slate-700/60 text-slate-300 font-medium border border-slate-600/40">
                                                 {unreadCount} new
                                             </span>
                                         )}
@@ -441,31 +404,18 @@ const Navbar = ({ setToken }) => {
                                             </div>
                                         ))}
                                     </div>
-                                    <button className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors duration-200 mt-4 w-full text-center p-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50">
-                                        View all notifications
-                                    </button>
                                 </div>
 
-                                {/* Enhanced User profile section in mobile menu */}
                                 <div className="p-6">
                                     <div className="flex items-center mb-6 p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-                                        <div className="flex-shrink-0 relative">
-                                            <img
-                                                className="h-14 w-14 rounded-xl border-2 border-indigo-500/30"
-                                                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRtRs_rWILOMx5-v3aXwJu7LWUhnPceiKvvDg&s"
-                                                alt="User avatar"
-                                            />
-                                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-slate-800 shadow-sm">
-                                                <div className="w-full h-full bg-emerald-400 rounded-full animate-pulse"></div>
-                                            </div>
-                                        </div>
+                                        <img
+                                            className="h-14 w-14 rounded-xl border-2 border-indigo-500/30"
+                                            src="/zero.ico"
+                                            alt="User avatar"
+                                        />
                                         <div className="ml-4 flex-1">
                                             <div className="text-lg font-semibold text-white">Admin User</div>
                                             <div className="text-sm font-medium text-slate-400 truncate">admin@zerofashion.com</div>
-                                            <div className="flex items-center gap-1 mt-1">
-                                                <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                                                <span className="text-xs text-emerald-400 font-medium">Online</span>
-                                            </div>
                                         </div>
                                     </div>
                                     <button

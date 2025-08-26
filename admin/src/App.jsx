@@ -30,8 +30,8 @@ const ProtectedRoute = ({ children }) => {
 const DashboardLayout = ({ children, handleLogout }) => (
   <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
     <Sidebar />
-    <Navbar setToken={handleLogout} />
-    <main className="min-h-screen">
+    <Navbar onLogout={handleLogout} />
+    <main className="min-h-screen pt-16 pl-16 md:pl-64 transition-all duration-300">
       {children}
     </main>
   </div>

@@ -5,11 +5,9 @@ import Stripe from "stripe";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 
-// Global variables
 const currency = "inr";
 const deliveryFee = 10;
 
-// Stripe instance
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Validate Stripe configuration
@@ -65,9 +63,9 @@ const placeOrderStripe = async (req, res) => {
 
     // Validate required fields
     if (!items?.length || !amount || !address) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Missing required order information" 
+      return res.status(400).json({
+        success: false,
+        message: "Missing required order information"
       });
     }
 
@@ -78,32 +76,30 @@ const placeOrderStripe = async (req, res) => {
       amount,
       paymentMethod: "Stripe",
       payment: false,
-      status: "Pending", // Initial status
+      status: "Pending",
       date: Date.now(),
     };
 
     const newOrder = new OrderModel(orderData);
     await newOrder.save();
 
-    // Create line items for Stripe checkout
     const line_items = items.map((item) => ({
       price_data: {
         currency: currency,
-        product_data: { 
+        product_data: {
           name: item.name,
-          images: item.image ? [item.image] : [] 
+          images: item.image ? [item.image] : []
         },
         unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
     }));
 
-    // Add delivery fee as separate line item
     line_items.push({
       price_data: {
         currency: currency,
         product_data: { name: "Delivery Fee" },
-        unit_amount: deliveryFee * 100, 
+        unit_amount: deliveryFee * 100,
       },
       quantity: 1,
     });
@@ -122,8 +118,6 @@ const placeOrderStripe = async (req, res) => {
 
     newOrder.stripeSessionId = session.id;
     await newOrder.save();
-
-    // Update user's orders
     await UserModel.findByIdAndUpdate(userId, {
       $push: { orders: newOrder._id },
     });
@@ -135,7 +129,6 @@ const placeOrderStripe = async (req, res) => {
   }
 };
 
-// Verify Stripe Payment
 const verifyStripe = async (req, res) => {
   try {
     const { orderId, success } = req.query;
@@ -146,8 +139,6 @@ const verifyStripe = async (req, res) => {
       userId: req.user?._id,
       headers: req.headers.authorization ? 'Present' : 'Missing'
     });
-
-    // Check if user token exists
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -156,36 +147,34 @@ const verifyStripe = async (req, res) => {
     }
 
     const userId = req.user._id;
-
-    // Validate orderId
     if (!orderId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Order ID is required" 
+      return res.status(400).json({
+        success: false,
+        message: "Order ID is required"
       });
     }
 
     // Validate orderId format (MongoDB ObjectId)
     if (!orderId.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid order ID format" 
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order ID format"
       });
     }
 
     // Validate success parameter
     if (success !== "true" && success !== "false") {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid success parameter" 
+      return res.status(400).json({
+        success: false,
+        message: "Invalid success parameter"
       });
     }
 
     const order = await OrderModel.findOne({ _id: orderId, userId });
     if (!order) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Order not found or unauthorized" 
+      return res.status(404).json({
+        success: false,
+        message: "Order not found or unauthorized"
       });
     }
 
@@ -200,15 +189,15 @@ const verifyStripe = async (req, res) => {
     if (success === "true") {
       // Check if order has Stripe session ID
       if (!order.stripeSessionId) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Order does not have a valid Stripe session ID" 
+        return res.status(400).json({
+          success: false,
+          message: "Order does not have a valid Stripe session ID"
         });
       }
 
       try {
         console.log("Retrieving Stripe session:", order.stripeSessionId);
-        
+
         const session = await stripe.checkout.sessions.retrieve(
           order.stripeSessionId,
           {
@@ -231,43 +220,43 @@ const verifyStripe = async (req, res) => {
           // Clear user's cart
           await UserModel.findByIdAndUpdate(userId, { cartData: {} });
 
-          return res.status(200).json({ 
-            success: true, 
-            message: "Payment successful" 
+          return res.status(200).json({
+            success: true,
+            message: "Payment successful"
           });
         } else {
           order.status = "Payment Failed";
           await order.save();
-          return res.status(400).json({ 
-            success: false, 
-            message: "Payment incomplete" 
+          return res.status(400).json({
+            success: false,
+            message: "Payment incomplete"
           });
         }
-              } catch (stripeError) {
-          console.error("Stripe session retrieval error:", stripeError);
-          
-          let errorMessage = "Payment verification failed";
-          if (stripeError.code === 'resource_missing') {
-            errorMessage = "Stripe session not found. Payment may have expired.";
-          } else if (stripeError.type === 'StripeConnectionError') {
-            errorMessage = "Unable to connect to payment service. Please try again.";
-          } else if (stripeError.message) {
-            errorMessage = `Stripe error: ${stripeError.message}`;
-          }
-          
-          order.status = "Payment Failed";
-          await order.save();
-          return res.status(400).json({ 
-            success: false, 
-            message: errorMessage
-          });
+      } catch (stripeError) {
+        console.error("Stripe session retrieval error:", stripeError);
+
+        let errorMessage = "Payment verification failed";
+        if (stripeError.code === 'resource_missing') {
+          errorMessage = "Stripe session not found. Payment may have expired.";
+        } else if (stripeError.type === 'StripeConnectionError') {
+          errorMessage = "Unable to connect to payment service. Please try again.";
+        } else if (stripeError.message) {
+          errorMessage = `Stripe error: ${stripeError.message}`;
         }
+
+        order.status = "Payment Failed";
+        await order.save();
+        return res.status(400).json({
+          success: false,
+          message: errorMessage
+        });
+      }
     } else {
       order.status = "Cancelled";
       await order.save();
-      return res.status(200).json({ 
-        success: false, 
-        message: "Payment cancelled" 
+      return res.status(200).json({
+        success: false,
+        message: "Payment cancelled"
       });
     }
   } catch (error) {
@@ -277,18 +266,18 @@ const verifyStripe = async (req, res) => {
       message: error.message,
       stack: error.stack
     });
-    
+
     // If it's a validation error from MongoDB
     if (error.name === 'CastError') {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid order ID format" 
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order ID format"
       });
     }
-    
-    res.status(500).json({ 
-      success: false, 
-      message: "Internal server error during payment verification" 
+
+    res.status(500).json({
+      success: false,
+      message: "Internal server error during payment verification"
     });
   }
 };
@@ -390,10 +379,10 @@ const userOrders = async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
-    
+
     // Sort orders by date in descending order (most recent first)
     const sortedOrders = user.orders.sort((a, b) => new Date(b.date) - new Date(a.date));
-    
+
     res.status(200).json({ success: true, orders: sortedOrders });
   } catch (error) {
     console.error("Error in userOrders:", error);
@@ -406,11 +395,11 @@ const updateStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const { orderId } = req.params;
-    
+
     // Validate status
     const validStatuses = [
       "Pending",
-      "Order Placed", 
+      "Order Placed",
       "Packing",
       "Shipped",
       "Out for Delivery",
@@ -418,25 +407,25 @@ const updateStatus = async (req, res) => {
       "Cancelled",
       "Payment Failed"
     ];
-    
+
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid status value" 
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status value"
       });
     }
 
     const order = await OrderModel.findById(orderId);
     if (!order) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Order not found" 
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
       });
     }
 
     order.status = status;
     await order.save();
-    
+
     res.status(200).json({ success: true, message: "Status updated successfully" });
   } catch (error) {
     console.error("Error in updateStatus:", error);
