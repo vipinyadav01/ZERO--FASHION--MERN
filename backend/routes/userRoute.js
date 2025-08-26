@@ -11,6 +11,7 @@ import {
   deleteUser,
   cancelOrder,
   getUserProfile,
+  adminResetPassword,
 } from "../controllers/userController.js";
 import authUser from "../middleware/auth.js";
 import adminAuth from "../middleware/adminAuth.js";
@@ -51,6 +52,7 @@ const handleUpload = (req, res, next) => {
 
 userRouter.post("/update", authUser, handleUpload, updateProfile);
 userRouter.post("/admin-update", adminAuth, adminUpdateUser);
+userRouter.post("/admin-reset-password", adminAuth, adminResetPassword);
 userRouter.delete("/delete/:id", adminAuth, deleteUser);
 userRouter.post("/cancel-order", authUser, cancelOrder);
 

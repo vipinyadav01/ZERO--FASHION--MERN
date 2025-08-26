@@ -511,6 +511,36 @@ const cancelOrder = async (req, res) => {
   }
 };
 
+// Admin reset user password (admin only)
+const adminResetPassword = async (req, res) => {
+  try {
+    const { userId, newPassword } = req.body;
+    if (!userId || !newPassword) {
+      return res.status(400).json({ success: false, message: "userId and newPassword are required" });
+    }
+
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });
+    }
+
+    const user = await UserModel.findById(userId).select("_id email name");
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await UserModel.findByIdAndUpdate(userId, { password: hashed });
+
+    // Basic audit log (console). For production, persist to a collection.
+    console.log(`AdminResetPassword: Admin ${req.user?._id?.toString?.() || 'unknown'} reset password for user ${userId} (${user.email}) at ${new Date().toISOString()}`);
+
+    return res.status(200).json({ success: true, message: "Password reset successfully" });
+  } catch (error) {
+    console.error("Admin reset password error:", error.message);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 export {
   loginUser,
   registerUser,
@@ -522,4 +552,5 @@ export {
   deleteUser,
   cancelOrder,
   getUserProfile,
+  adminResetPassword,
 };

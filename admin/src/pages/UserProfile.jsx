@@ -122,11 +122,11 @@ const UserProfile = ({ token }) => {
     setIsSubmitting(true);
 
     const sampleUsers = [
-      { name: "John Doe", email: "john@example.com", password: "password123" },
-      { name: "Jane Smith", email: "jane@example.com", password: "password123" },
-      { name: "Mike Johnson", email: "mike@example.com", password: "password123" },
-      { name: "Sarah Wilson", email: "sarah@example.com", password: "password123" },
-      { name: "Test Admin", email: "testadmin@example.com", password: "password123" },
+      { name: "Amit Sharma", email: "amit.sharma@example.com", password: "password123" },
+      { name: "Priya Singh", email: "priya.singh@example.com", password: "password123" },
+      { name: "Rahul Verma", email: "rahul.verma@example.com", password: "password123" },
+      { name: "Sneha Patel", email: "sneha.patel@example.com", password: "password123" },
+      { name: "Vikram Rao", email: "vikram.rao@example.com", password: "password123" },
     ];
 
     try {
@@ -147,7 +147,7 @@ const UserProfile = ({ token }) => {
 
           if (registerResponse.data.success) {
             createdCount++;
-            if (userData.email === "testadmin@example.com") {
+            if (userData.email === "testadmin@zerofashion.com") {
               await axios.post(
                 `${backendUrl}/api/user/admin-update`,
                 {
@@ -168,7 +168,7 @@ const UserProfile = ({ token }) => {
           }
         } catch (userError) {
           if (userError.response?.data?.message?.includes("already exists")) {
-            // Skip duplicate users
+            
           } else {
             throw userError;
           }

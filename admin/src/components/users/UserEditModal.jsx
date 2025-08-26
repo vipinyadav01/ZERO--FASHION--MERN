@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { X, Loader2, Check, Shield } from "lucide-react";
 
 const UserEditModal = ({ isOpen, onClose, editForm, setEditForm, onSave, isSubmitting }) => {
+  const [showPassword, setShowPassword] = useState(false);
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -50,6 +52,27 @@ const UserEditModal = ({ isOpen, onClose, editForm, setEditForm, onSave, isSubmi
                   <span className="text-sm font-medium text-slate-300">Admin Role</span>
                 </div>
               </label>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-slate-300">New Password (optional)</label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-xs text-indigo-300 hover:text-indigo-200"
+                  disabled={isSubmitting}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              <input
+                type={showPassword ? "text" : "password"}
+                value={editForm.newPassword || ""}
+                onChange={(e) => setEditForm({ ...editForm, newPassword: e.target.value })}
+                placeholder="Leave blank to keep current password"
+                className="w-full px-3 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+                disabled={isSubmitting}
+              />
             </div>
           </div>
           <div className="flex gap-3 mt-6">
