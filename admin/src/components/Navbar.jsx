@@ -65,29 +65,39 @@ const Navbar = ({ onLogout }) => {
     // Fetch current user
     useEffect(() => {
         const controller = new AbortController();
-        const loadUser = async () => {
+        const fetchUser = async () => {
             try {
                 const token = sessionStorage.getItem("token");
                 if (!token) return;
                 const res = await axios.get(`${backendUrl}/api/user/user`, {
                     headers: { Authorization: `Bearer ${token}` },
-                    signal: controller.signal,
+                    signal: controller.signal
                 });
                 if (res.data?.success && res.data?.user) {
                     const u = res.data.user;
                     setUser({
                         name: u.name || "",
                         email: u.email || "",
-                        profileImage: u.profileImage || "",
                         role: u.role || "",
+                        profileImage: u.profileImage || "" 
                     });
+                } else {
+                    throw new Error(res.data?.message || "Failed to load user");
                 }
-            } catch (_) {
-                // silent fail; keep defaults
+            } catch (err) {
+                const message = err.response?.data?.message || err.message || "Failed to load user";
+                toast.error(message);
+                setUser({
+                    name: "Admin",
+                    email: "admin@zerofashion.com",
+                    role: "Administrator",
+                    profileImage: "" 
+                });
             }
         };
-        loadUser();
+        fetchUser();
         return () => controller.abort();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -144,7 +154,7 @@ const Navbar = ({ onLogout }) => {
         }
     };
 
-    const avatarSrc = user.profileImage || "/zero.ico";
+    const avatarSrc = user.profileImage || "/zero.png";
     const displayName = user.name || "Admin";
     const displayEmail = user.email || "admin@zerofashion.com";
 

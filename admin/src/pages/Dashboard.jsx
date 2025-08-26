@@ -40,7 +40,6 @@ const Dashboard = () => {
         satisfaction: 0
     });
 
-    // Real data state
     const [dashboardData, setDashboardData] = useState({
         totalRevenue: 0,
         totalOrders: 0,
@@ -61,10 +60,8 @@ const Dashboard = () => {
 
     useEffect(() => {
         updateDateTime();
-        setCurrentUser(sessionStorage.getItem("user") || "Admin");
         setGreeting(getGreeting());
-        
-        // Fetch real data
+        fetchCurrentUser();
         fetchDashboardData();
 
         const timer = setInterval(() => {
@@ -75,85 +72,85 @@ const Dashboard = () => {
         return () => clearInterval(timer);
     }, []);
 
+    const fetchCurrentUser = async () => {
+        try {
+            const token = sessionStorage.getItem("token");
+            if (!token) return;
+            const res = await axios.get(`${backendUrl}/api/user/user`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.data?.success && res.data?.user?.name) {
+                setCurrentUser(res.data.user.name);
+            } else {
+                setCurrentUser("Admin");
+            }
+        } catch (_) {
+            setCurrentUser("Admin");
+        }
+    };
+
     const fetchDashboardData = async () => {
         try {
             setIsLoading(true);
             setDataError(null);
-            
             const token = sessionStorage.getItem("token");
             if (!token) {
                 throw new Error("Authentication required");
             }
-
-            // Fetch orders, products, and users data in parallel
             const [ordersResponse, productsResponse] = await Promise.all([
                 axios.get(`${backendUrl}/api/order/list`, {
                     headers: { Authorization: `Bearer ${token}` }
                 }).catch(err => ({ data: { success: false, orders: [] } })),
-                
                 axios.get(`${backendUrl}/api/product/list`).catch(err => ({ data: { success: false, products: [] } }))
             ]);
 
             const orders = ordersResponse.data.success ? ordersResponse.data.orders : [];
             const products = productsResponse.data.success ? productsResponse.data.products : [];
 
-            // Calculate real metrics
             const now = new Date();
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
             const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
             const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
-            // Current month data
             const currentMonthOrders = orders.filter(order => {
                 const orderDate = new Date(order.date);
                 return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
             });
 
-            // Last month data
             const lastMonthOrders = orders.filter(order => {
                 const orderDate = new Date(order.date);
                 return orderDate.getMonth() === lastMonth && orderDate.getFullYear() === lastMonthYear;
             });
 
-            // Today's data
             const today = now.toDateString();
             const todayOrders = orders.filter(order => 
                 new Date(order.date).toDateString() === today
             );
 
-            // Calculate metrics
             const totalRevenue = orders.reduce((sum, order) => sum + (order.amount || 0), 0);
             const currentMonthRevenue = currentMonthOrders.reduce((sum, order) => sum + (order.amount || 0), 0);
             const lastMonthRevenue = lastMonthOrders.reduce((sum, order) => sum + (order.amount || 0), 0);
-            
             const revenueGrowth = lastMonthRevenue > 0 
                 ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue * 100)
                 : currentMonthRevenue > 0 ? 100 : 0;
-
             const orderGrowth = lastMonthOrders.length > 0 
                 ? ((currentMonthOrders.length - lastMonthOrders.length) / lastMonthOrders.length * 100)
                 : currentMonthOrders.length > 0 ? 100 : 0;
 
-            // Unique customers from orders
             const uniqueCustomers = new Set(orders.map(order => order.userId?.email || order.userId?._id).filter(Boolean));
             const currentMonthCustomers = new Set(currentMonthOrders.map(order => order.userId?.email || order.userId?._id).filter(Boolean));
             const lastMonthCustomers = new Set(lastMonthOrders.map(order => order.userId?.email || order.userId?._id).filter(Boolean));
-            
             const customerGrowth = lastMonthCustomers.size > 0 
                 ? ((currentMonthCustomers.size - lastMonthCustomers.size) / lastMonthCustomers.size * 100)
                 : currentMonthCustomers.size > 0 ? 100 : 0;
 
-            // Calculate pending tasks and low stock
             const pendingOrders = orders.filter(order => 
                 order.status === 'Order Placed' || order.status === 'Packing'
             ).length;
 
-            // Mock views data (you can replace with real analytics data)
             const viewsToday = todayOrders.length * 15 + Math.floor(Math.random() * 100);
-
-            // Calculate monthly target progress (based on current month performance)
-            const monthlyTargetRevenue = 100000; // You can make this configurable
+            const monthlyTargetRevenue = 100000;
             const monthlyTargetProgress = (currentMonthRevenue / monthlyTargetRevenue * 100);
 
             const calculatedData = {
@@ -167,14 +164,12 @@ const Dashboard = () => {
                 viewsToday,
                 salesGrowth: Math.round(revenueGrowth * 10) / 10,
                 monthlyTarget: Math.min(100, Math.round(monthlyTargetProgress)),
-                customerSatisfaction: 4.8, // You can calculate this from order feedback
+                customerSatisfaction: 4.8,
                 pendingTasks: pendingOrders,
-                lowStockProducts: 0 // You can calculate this if you have stock data
+                lowStockProducts: 0
             };
 
             setDashboardData(calculatedData);
-
-            // Animate the values
             setTimeout(() => {
                 animateNumbers(calculatedData.salesGrowth, calculatedData.monthlyTarget, calculatedData.customerSatisfaction);
             }, 300);
@@ -317,7 +312,7 @@ const Dashboard = () => {
                             <div className="space-y-1 sm:space-y-2 mb-4 sm:mb-6">
                                 {/* Mobile-first typography */}
                                 <h1 className="text-xl leading-tight sm:text-2xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
-                                    {greeting}, {currentUser.split(' ')[0]}!
+                                    {greeting}, {(currentUser || 'Admin').split(' ')[0]}!
                                 </h1>
                                 <p className="text-sm sm:text-base lg:text-xl text-slate-300 font-medium">
                                     Welcome to your command center
@@ -338,7 +333,7 @@ const Dashboard = () => {
                             { 
                                 icon: DollarSign, 
                                 label: "Revenue", 
-                                value: formatCurrency(dashboardData.totalRevenue), 
+                                value: `$${dashboardData.totalRevenue.toLocaleString()}`, 
                                 fullValue: `$${dashboardData.totalRevenue.toLocaleString()}`,
                                 color: "emerald", 
                                 trend: `${dashboardData.revenueGrowth >= 0 ? '+' : ''}${dashboardData.revenueGrowth}%` 
@@ -347,23 +342,25 @@ const Dashboard = () => {
                                 icon: Package, 
                                 label: "Orders", 
                                 value: dashboardData.totalOrders.toLocaleString(), 
+                                fullValue: dashboardData.totalOrders.toLocaleString(),
                                 color: "blue", 
                                 trend: `${dashboardData.orderGrowth >= 0 ? '+' : ''}${dashboardData.orderGrowth}%` 
                             },
                             { 
                                 icon: Users, 
                                 label: "Customers", 
-                                value: dashboardData.totalCustomers.toString(), 
+                                value: dashboardData.totalCustomers.toLocaleString(), 
+                                fullValue: dashboardData.totalCustomers.toLocaleString(),
                                 color: "purple", 
                                 trend: `${dashboardData.customerGrowth >= 0 ? '+' : ''}${dashboardData.customerGrowth}%` 
                             },
                             { 
                                 icon: Eye, 
                                 label: "Views", 
-                                value: formatNumber(dashboardData.viewsToday), 
+                                value: dashboardData.viewsToday.toLocaleString(), 
                                 fullValue: dashboardData.viewsToday.toLocaleString(),
                                 color: "orange", 
-                                trend: "+23%" // You can calculate this from real analytics data
+                                trend: "+23%" 
                             }
                         ].map((stat, index) => (
                             <div 
@@ -372,7 +369,7 @@ const Dashboard = () => {
                             >
                                 <div className="space-y-2 sm:space-y-3">
                                     {/* Mobile-first icon layout */}
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex items-centered justify-between">
                                         <div className={`p-2 rounded-lg bg-${stat.color}-500/20 group-hover:bg-${stat.color}-500/30 transition-colors`}>
                                             <stat.icon className={`h-4 w-4 sm:h-5 sm:w-5 text-${stat.color}-400`} />
                                         </div>
@@ -388,7 +385,7 @@ const Dashboard = () => {
                                     <div>
                                         <p className="text-xs text-slate-400 mb-1 font-medium">{stat.label}</p>
                                         <p className="text-lg sm:text-xl lg:text-2xl font-bold text-white leading-none" title={stat.fullValue}>
-                                            {stat.value}
+                                            {stat.fullValue}
                                         </p>
                                     </div>
                                 </div>

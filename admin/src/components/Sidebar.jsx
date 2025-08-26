@@ -53,7 +53,8 @@ const Sidebar = ({ onWidthChange }) => {
                     setUser({
                         name: u.name || "",
                         email: u.email || "",
-                        role: u.role || ""
+                        role: u.role || "",
+                        profileImage: u.profileImage || "" 
                     });
                 } else {
                     throw new Error(res.data?.message || "Failed to load user");
@@ -64,7 +65,8 @@ const Sidebar = ({ onWidthChange }) => {
                 setUser({
                     name: "Admin",
                     email: "admin@zerofashion.com",
-                    role: "Administrator"
+                    role: "Administrator",
+                    profileImage: "" 
                 });
             }
         };
@@ -190,14 +192,24 @@ const Sidebar = ({ onWidthChange }) => {
                     `}>
                         <div className="flex items-center gap-3 group/profile">
                             <div className="relative flex-shrink-0">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600
-                                    flex items-center justify-center
-                                    transform group-hover/profile:scale-105 transition-all duration-300
-                                    shadow-lg shadow-indigo-500/20">
-                                    <span className="text-base font-bold text-white">
-                                        {(user.name || "Admin").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
-                                    </span>
-                                </div>
+                                {user.profileImage ? (
+                                    <img
+                                        src={user.profileImage}
+                                        alt={user.name || "Admin"}
+                                        className="w-10 h-10 rounded-xl object-cover bg-slate-700
+                                            transform group-hover/profile:scale-105 transition-all duration-300
+                                            shadow-lg shadow-indigo-500/20"
+                                    />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600
+                                        flex items-center justify-center
+                                        transform group-hover/profile:scale-105 transition-all duration-300
+                                        shadow-lg shadow-indigo-500/20">
+                                        <span className="text-base font-bold text-white">
+                                            {(user.name || "Admin").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+                                        </span>
+                                    </div>
+                                )}
                                 <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 
                                     rounded-full border-2 border-slate-800"></div>
                             </div>
