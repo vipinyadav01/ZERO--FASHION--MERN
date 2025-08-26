@@ -27,15 +27,21 @@ const ProtectedRoute = ({ children }) => {
 };
 
 // Modern Mobile-First Layout Component
-const DashboardLayout = ({ children, handleLogout }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-    <Sidebar />
-    <Navbar onLogout={handleLogout} />
-    <main className="min-h-screen pt-16 pl-16 md:pl-64 transition-all duration-300">
-      {children}
-    </main>
-  </div>
-);
+const DashboardLayout = ({ children, handleLogout }) => {
+  const [sidebarWidth, setSidebarWidth] = useState(64); // px
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <Sidebar onWidthChange={setSidebarWidth} />
+      <Navbar onLogout={handleLogout} />
+      <main
+        className="min-h-screen pt-16 transition-all duration-300"
+        style={{ paddingLeft: `${sidebarWidth}px` }}
+      >
+        {children}
+      </main>
+    </div>
+  );
+};
 
 // Modern Loading Component
 const LoadingSpinner = () => (

@@ -15,7 +15,7 @@ import {
     HelpCircle
 } from "lucide-react";
 
-const Sidebar = () => {
+const Sidebar = ({ onWidthChange }) => {
     const [isCollapsed, setIsCollapsed] = useState(() => {
         return window.innerWidth < 768 ? true : JSON.parse(localStorage.getItem("sidebar-collapsed")) ?? false;
     });
@@ -26,6 +26,17 @@ const Sidebar = () => {
         email: "",
         role: ""
     });
+
+    const computeWidth = () => {
+        const isMobile = window.innerWidth < 768;
+        const isExpanded = !isCollapsed || isHovered;
+        return isMobile ? 64 : isExpanded ? 256 : 64; 
+    };
+    useEffect(() => {
+        if (typeof onWidthChange === "function") {
+            onWidthChange(computeWidth());
+        }
+    }, [isCollapsed, isHovered]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -59,6 +70,7 @@ const Sidebar = () => {
         };
         fetchUser();
         return () => controller.abort();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -67,24 +79,32 @@ const Sidebar = () => {
             if (window.innerWidth < 768) {
                 setIsCollapsed(true);
             }
+            if (typeof onWidthChange === "function") {
+                onWidthChange(computeWidth());
+            }
         };
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
-    }, [isCollapsed]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isCollapsed, isHovered]);
 
     const toggleSidebar = () => {
         setIsHovered(false);
         setIsCollapsed(prev => !prev);
+        if (typeof onWidthChange === "function") {
+            // width will also update via effect; call immediately for snappier UI
+            onWidthChange(isCollapsed ? 256 : 64);
+        }
     };
 
     const handleMouseEnter = () => {
-        if (isCollapsed) {
+        if (window.innerWidth >= 768 && isCollapsed) {
             setIsHovered(true);
         }
     };
     
     const handleMouseLeave = () => {
-        if (isCollapsed) {
+        if (window.innerWidth >= 768 && isCollapsed) {
             setIsHovered(false);
         }
     };
