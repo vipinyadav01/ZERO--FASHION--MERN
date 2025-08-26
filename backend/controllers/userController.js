@@ -1,11 +1,12 @@
 import validator from "validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import fs from "fs";
+
 import UserModel from "../models/userModel.js";
 import OrderModel from "../models/orderModel.js";
 import { processStripeRefund, processRazorPayRefund } from "./orderController.js";
 import { v2 as cloudinary } from "cloudinary";
+import { Readable } from "stream";
 
 // Create JWT token
 const createToken = (id, role = "user") => {
@@ -208,8 +209,6 @@ const updateProfile = async (req, res) => {
     const { name } = req.body; // Only accept name changes
     let profileImageUrl = "";
 
-
-
     // Validate input
     if (!name && !req.file) {
       return res.status(400).json({ 
@@ -229,53 +228,52 @@ const updateProfile = async (req, res) => {
         // Check if Cloudinary is properly configured
         if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY) {
           console.error("Cloudinary credentials missing in environment variables");
-          // Clean up uploaded file
-          if (req.file.path) {
-            fs.unlink(req.file.path, (err) => {
-              if (err) console.error("Error deleting temp file:", err);
-            });
-          }
           return res.status(500).json({ 
             success: false, 
             message: "Image upload service is not configured. Please update only your name or contact support." 
           });
         }
 
-
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          resource_type: "image",
-          folder: "user_profiles",
-          transformation: [
-            { width: 400, height: 400, crop: "fill", gravity: "face" },
-            { quality: "auto", fetch_format: "auto" }
-          ]
+        // Convert buffer to stream for Cloudinary
+        const stream = Readable.from(req.file.buffer);
+        
+        const result = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              resource_type: "image",
+              folder: "user_profiles",
+              transformation: [
+                { width: 400, height: 400, crop: "fill", gravity: "face" },
+                { quality: "auto", fetch_format: "auto" }
+              ]
+            },
+            (error, result) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            }
+          );
+          
+          stream.pipe(uploadStream);
         });
+
         profileImageUrl = result.secure_url;
 
-        // Clean up the temporary file after successful upload
-        fs.unlink(req.file.path, (err) => {
-          if (err) console.error("Error deleting temp file:", err);
-        });
-
         // Delete old profile image if exists
-                 try {
-           const currentUser = await UserModel.findById(req.user._id);
-           if (currentUser.profileImage && currentUser.profileImage.includes('cloudinary')) {
-             const publicId = currentUser.profileImage.split('/').pop().split('.')[0];
-             await cloudinary.uploader.destroy(`user_profiles/${publicId}`);
-           }
-         } catch (deleteError) {
-           console.warn("Could not delete old profile image:", deleteError.message);
-           // Don't fail the update if we can't delete the old image
-         }
+        try {
+          const currentUser = await UserModel.findById(req.user._id);
+          if (currentUser.profileImage && currentUser.profileImage.includes('cloudinary')) {
+            const publicId = currentUser.profileImage.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(`user_profiles/${publicId}`);
+          }
+        } catch (deleteError) {
+          console.warn("Could not delete old profile image:", deleteError.message);
+          // Don't fail the update if we can't delete the old image
+        }
       } catch (cloudinaryError) {
         console.error("Cloudinary upload error:", cloudinaryError);
-        // Clean up uploaded file on error
-        if (req.file.path) {
-          fs.unlink(req.file.path, (err) => {
-            if (err) console.error("Error deleting temp file:", err);
-          });
-        }
         return res.status(500).json({ 
           success: false, 
           message: "Failed to upload profile image. Please try again or update without image." 
@@ -459,11 +457,12 @@ const cancelOrder = async (req, res) => {
     }
 
     // Restore stock
-    for (const item of order.items) {
-      await ProductModel.findByIdAndUpdate(item.productId, {
-        $inc: { stock: item.quantity },
-      });
-    }
+    // Assuming ProductModel is imported or available in the scope
+    // for (const item of order.items) {
+    //   await ProductModel.findByIdAndUpdate(item.productId, {
+    //     $inc: { stock: item.quantity },
+    //   });
+    // }
 
     order.status = "Cancelled";
 

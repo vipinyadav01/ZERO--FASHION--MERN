@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import ProductModel from "../models/productModel.js";
+import { Readable } from "stream";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -35,10 +36,25 @@ const addProduct = async (req, res) => {
 
     let imageUrl = await Promise.all(
       images.map(async (item) => {
-        let result = await cloudinary.uploader.upload(item.path, {
-          resource_type: "image",
+        // Convert buffer to stream for Cloudinary
+        const stream = Readable.from(item.buffer);
+        
+        return new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              resource_type: "image",
+            },
+            (error, result) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result.secure_url);
+              }
+            }
+          );
+          
+          stream.pipe(uploadStream);
         });
-        return result.secure_url;
       })
     );
 
