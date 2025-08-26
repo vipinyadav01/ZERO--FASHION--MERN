@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { backendUrl } from "../App";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Shield } from "lucide-react";
+import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Shield, Zap } from "lucide-react";
 
 const useTokenExpiration = (setToken) => {
     useEffect(() => {
@@ -123,76 +123,98 @@ const Login = ({ setToken }) => {
     const getInputErrorClass = (field) => {
         if (touched[field]) {
             if (field === "email" && !validateEmail(formData.email)) {
-                return "border-red-400 focus:ring-red-400 focus:border-red-400";
+                return "border-red-500/50 focus:ring-red-500/30 focus:border-red-500 bg-red-500/5";
             }
             if (field === "password" && formData.password.length < 6) {
-                return "border-red-400 focus:ring-red-400 focus:border-red-400";
+                return "border-red-500/50 focus:ring-red-500/30 focus:border-red-500 bg-red-500/5";
             }
         }
-        return "border-gray-700 focus:ring-indigo-500 focus:border-indigo-500";
+        return "border-white/10 focus:ring-emerald-500/30 focus:border-emerald-400 bg-white/5 hover:bg-white/10";
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center w-full bg-gradient-to-br from-slate-900 to-slate-800 p-4 sm:p-6 md:p-8">
-            <div className="flex overflow-hidden rounded-3xl shadow-2xl max-w-5xl w-full bg-slate-800 border border-slate-700 backdrop-blur-sm">
-                {/* Left Panel - Decorative */}
-                <div className="hidden lg:block lg:w-1/2 bg-gradient-to-br from-indigo-600/20 via-purple-600/20 to-slate-900 text-white p-12 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?q=80&w=1887')] bg-cover bg-center opacity-10"></div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/40 to-slate-900/90"></div>
+        <div className="min-h-screen flex items-center justify-center w-full bg-black p-4 sm:p-6 md:p-8 relative overflow-hidden">
+            {/* Animated background elements */}
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
+            </div>
+
+            <div className="flex overflow-hidden rounded-3xl shadow-2xl max-w-6xl w-full bg-white/5 backdrop-blur-xl border border-white/10 relative z-10">
+                {/* Left Panel */}
+                <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-black via-gray-900 to-black text-white p-12 relative overflow-hidden flex-col justify-between">
+                    {/* Subtle pattern overlay */}
+                    <div className="absolute inset-0 opacity-10">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+                        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_48%,rgba(255,255,255,0.05)_49%,rgba(255,255,255,0.05)_51%,transparent_52%)]"></div>
+                    </div>
                     
-                    <div className="relative z-10 h-full flex flex-col justify-between">
-                        <div>
-                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mb-8 shadow-xl">
-                                <span className="text-2xl font-bold text-white">ZF</span>
-                            </div>
-                            <h2 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">ZeroFashion Admin</h2>
-                            <p className="text-slate-300 mb-8 text-lg">
-                                Manage your inventory, track orders, and boost your sales with our powerful admin dashboard.
-                            </p>
+                    <div className="relative z-10">
+                        <div className="w-16 h-16 bg-gradient-to-br from-white to-gray-300 rounded-2xl flex items-center justify-center mb-8 shadow-2xl">
+                            <img 
+                                src="/logo.png" 
+                                alt="ZeroFashion Logo" 
+                                className="w-12 h-12 object-contain"
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'block';
+                                }}
+                            />
                         </div>
                         
-                        <div className="space-y-6 backdrop-blur-sm bg-slate-800/30 p-6 rounded-2xl border border-slate-700/50">
-                            <div className="flex items-center space-x-4">
-                                <div className="bg-indigo-500/20 p-3 rounded-xl">
-                                    <Shield className="h-6 w-6 text-indigo-400" />
-                                </div>
-                                <div>
-                                    <h3 className="font-medium text-white">Secure Access</h3>
-                                    <p className="text-slate-300 text-sm">End-to-end encrypted connection</p>
-                                </div>
+                        <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                            ZeroFashion
+                        </h2>
+                        <h3 className="text-2xl font-light mb-4 text-emerald-400">Admin Portal</h3>
+                        <p className="text-gray-300 mb-8 text-lg leading-relaxed">
+                            Experience next-generation fashion management with our sophisticated admin dashboard. 
+                            Streamline operations, analyze trends, and drive growth.
+                        </p>
+                    </div>
+                    
+                    <div className="space-y-6 relative z-10">
+                        <div className="flex items-center space-x-4 group">
+                            <div className="bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 p-4 rounded-2xl border border-emerald-500/20 group-hover:border-emerald-400/40 transition-all duration-300">
+                                <Shield className="h-6 w-6 text-emerald-400" />
                             </div>
-                            <div className="flex items-center space-x-4">
-                                <div className="bg-purple-500/20 p-3 rounded-xl">
-                                    <LogIn className="h-6 w-6 text-purple-400" />
-                                </div>
-                                <div>
-                                    <h3 className="font-medium text-white">Easy Management</h3>
-                                    <p className="text-slate-300 text-sm">Control your store from anywhere</p>
-                                </div>
+                            <div>
+                                <h3 className="font-semibold text-white">Enterprise Security</h3>
+                                <p className="text-gray-400 text-sm">Bank-grade encryption & protection</p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-4 group">
+                            <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 p-4 rounded-2xl border border-blue-500/20 group-hover:border-blue-400/40 transition-all duration-300">
+                                <Zap className="h-6 w-6 text-blue-400" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-white">Lightning Fast</h3>
+                                <p className="text-gray-400 text-sm">Real-time data & instant updates</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Panel - Login Form */}
-                <div className="w-full lg:w-1/2 p-6 sm:p-8 md:p-12">
+                <div className="w-full lg:w-1/2 p-6 sm:p-8 md:p-12 bg-gradient-to-b from-white/5 to-transparent">
                     <div className="max-w-md mx-auto">
-                        <div className="text-center mb-8">
-                            <h1 className="text-3xl font-bold text-white mb-3 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+                        <div className="text-center mb-10">
+                            <h1 className="text-4xl font-bold text-white mb-4">
                                 Welcome Back
                             </h1>
-                            <p className="text-slate-400 text-lg">
-                                Please enter your credentials to continue
+                            <p className="text-gray-400 text-lg">
+                                Sign in to continue to your dashboard
                             </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <label className="block text-sm font-medium text-slate-300" htmlFor="email">
+                                <label className="block text-sm font-medium text-gray-300" htmlFor="email">
                                     Email Address
                                 </label>
                                 <div className="relative group">
-                                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-indigo-400 group-hover:text-indigo-300 transition-colors duration-300">
+                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-400 transition-colors duration-300">
                                         <Mail className="h-5 w-5" />
                                     </div>
                                     <input
@@ -202,15 +224,15 @@ const Login = ({ setToken }) => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         onBlur={() => handleBlur("email")}
-                                        className={`w-full pl-10 pr-3 py-3.5 bg-slate-700 text-white border rounded-xl outline-none transition-all duration-300 hover:bg-slate-600 ${getInputErrorClass("email")}`}
-                                        placeholder="admin@example.com"
+                                        className={`w-full pl-12 pr-4 py-4 bg-black/20 backdrop-blur-sm text-white border rounded-2xl outline-none transition-all duration-300 placeholder-gray-500 ${getInputErrorClass("email")}`}
+                                        placeholder="admin@zerofashion.com"
                                         required
                                         disabled={isLoading}
                                     />
                                 </div>
                                 {touched.email && !validateEmail(formData.email) && (
-                                    <p className="text-red-400 text-sm mt-1.5 flex items-center">
-                                        <AlertCircle className="h-4 w-4 mr-1" />
+                                    <p className="text-red-400 text-sm mt-2 flex items-center bg-red-500/10 rounded-lg p-2">
+                                        <AlertCircle className="h-4 w-4 mr-2" />
                                         Please enter a valid email address
                                     </p>
                                 )}
@@ -218,19 +240,19 @@ const Login = ({ setToken }) => {
 
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center">
-                                    <label className="block text-sm font-medium text-slate-300" htmlFor="password">
+                                    <label className="block text-sm font-medium text-gray-300" htmlFor="password">
                                         Password
                                     </label>
                                     <button
                                         type="button"
-                                        className="text-sm text-indigo-400 hover:text-indigo-300 font-medium focus:outline-none transition-colors duration-300"
+                                        className="text-sm text-emerald-400 hover:text-emerald-300 font-medium focus:outline-none transition-colors duration-300"
                                         onClick={() => toast.info("Contact your administrator to reset your password.")}
                                     >
                                         Forgot password?
                                     </button>
                                 </div>
                                 <div className="relative group">
-                                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-indigo-400 group-hover:text-indigo-300 transition-colors duration-300">
+                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-400 transition-colors duration-300">
                                         <Lock className="h-5 w-5" />
                                     </div>
                                     <input
@@ -240,7 +262,7 @@ const Login = ({ setToken }) => {
                                         value={formData.password}
                                         onChange={handleChange}
                                         onBlur={() => handleBlur("password")}
-                                        className={`w-full pl-10 pr-10 py-3.5 bg-slate-700 text-white border rounded-xl outline-none transition-all duration-300 hover:bg-slate-600 ${getInputErrorClass("password")}`}
+                                        className={`w-full pl-12 pr-12 py-4 bg-black/20 backdrop-blur-sm text-white border rounded-2xl outline-none transition-all duration-300 placeholder-gray-500 ${getInputErrorClass("password")}`}
                                         placeholder="••••••••"
                                         required
                                         disabled={isLoading}
@@ -248,39 +270,39 @@ const Login = ({ setToken }) => {
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-indigo-300 focus:outline-none transition-colors duration-300"
+                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-emerald-300 focus:outline-none transition-colors duration-300"
                                         aria-label={showPassword ? "Hide password" : "Show password"}
                                     >
                                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                     </button>
                                 </div>
                                 {touched.password && formData.password.length < 6 && (
-                                    <p className="text-red-400 text-sm mt-1.5 flex items-center">
-                                        <AlertCircle className="h-4 w-4 mr-1" />
+                                    <p className="text-red-400 text-sm mt-2 flex items-center bg-red-500/10 rounded-lg p-2">
+                                        <AlertCircle className="h-4 w-4 mr-2" />
                                         Password must be at least 6 characters
                                     </p>
                                 )}
                             </div>
 
                             {error && (
-                                <div className="text-sm text-red-400 bg-red-400/10 rounded-xl p-4 flex items-start">
+                                <div className="text-sm text-red-400 bg-red-500/10 backdrop-blur-sm rounded-2xl p-4 flex items-start border border-red-500/20">
                                     <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
                                     <span>{error}</span>
                                 </div>
                             )}
 
                             <button
-                                className={`w-full py-3.5 px-4 rounded-xl text-white bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center space-x-2 transition-all duration-300 shadow-lg shadow-indigo-500/20 ${
+                                className={`w-full py-4 px-6 rounded-2xl text-black bg-gradient-to-r from-white to-gray-200 flex items-center justify-center space-x-3 transition-all duration-300 shadow-lg font-semibold ${
                                     isLoading 
                                     ? "opacity-75 cursor-not-allowed" 
-                                    : "hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98]"
+                                    : "hover:shadow-white/20 hover:scale-[1.02] active:scale-[0.98] hover:from-emerald-400 hover:to-emerald-300"
                                 }`}
                                 type="submit"
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
                                     <>
-                                        <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                                        <div className="w-5 h-5 border-t-2 border-b-2 border-black rounded-full animate-spin"></div>
                                         <span>Authenticating...</span>
                                     </>
                                 ) : (
@@ -291,12 +313,12 @@ const Login = ({ setToken }) => {
                                 )}
                             </button>
 
-                            <div className="text-center">
-                                <p className="text-sm text-slate-400 mt-6">
+                            <div className="text-center pt-6">
+                                <p className="text-sm text-gray-400">
                                     Having trouble logging in?{" "}
                                     <button
                                         type="button"
-                                        className="text-indigo-400 hover:text-indigo-300 font-medium focus:outline-none transition-colors duration-300"
+                                        className="text-emerald-400 hover:text-emerald-300 font-medium focus:outline-none transition-colors duration-300"
                                         onClick={() => toast.info("Please contact your administrator for assistance.")}
                                     >
                                         Get Help

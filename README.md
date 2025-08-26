@@ -265,7 +265,7 @@ Create `.env` file in the `frontend` directory:
 
 ```env
 # API Configuration
-VITE_BACKEND_URL=http://localhost:5000
+VITE_BACKEND_URL=http://localhost:4000
 
 # Payment Gateway Configuration
 VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
@@ -275,7 +275,7 @@ Create `.env` file in the `admin` directory:
 
 ```env
 # API Configuration  
-VITE_BACKEND_URL=http://localhost:5000
+VITE_BACKEND_URL=http://localhost:4000
 ```
 
 </details>
@@ -332,7 +332,7 @@ npm run dev
 |-------------|-----|---------|
 | 🛍️ **Customer App** | http://localhost:5173 | Shopping website |
 | ⚡ **Admin Dashboard** | http://localhost:5174 | Management panel |
-| 🔧 **API Server** | http://localhost:5000 | Backend services |
+| 🔧 **API Server** | http://localhost:4000 | Backend services |
 
 ---
 

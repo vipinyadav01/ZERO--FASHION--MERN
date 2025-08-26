@@ -100,7 +100,7 @@ const Newsletter = memo(() => {
         const email = e.target.email.value;
         try {
             const response = await axios.post(
-                `${import.meta.env.VITE_BACKEND_URL || "http://localhost:5000"}/api/newsletter/subscribe`,
+                `${import.meta.env.VITE_BACKEND_URL || "http://localhost:4000"}/api/newsletter/subscribe`,
                 { email }
             );
             if (response.data.success) {

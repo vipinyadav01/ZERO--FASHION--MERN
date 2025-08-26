@@ -120,10 +120,10 @@ const adminLogin = async (req, res) => {
     // Find or create admin user in UserModel for consistency
     let adminUser = await UserModel.findOne({ email });
     if (!adminUser) {
-      const hashedPassword = await bcrypt.hash(password, 10); // Hash for DB storage
+      const hashedPassword = await bcrypt.hash(password, 10);
       adminUser = new UserModel({
-        name: "Admin",
-        email,
+        name: "vipinYadav",
+        email: "admin@zerofashion.com",
         password: hashedPassword,
         role: "admin",
         isAdmin: true,
