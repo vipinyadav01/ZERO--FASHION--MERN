@@ -9,14 +9,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "server.js",
-      "headers": {
-        "Access-Control-Allow-Origin": "https://zerofashion.vercel.app",
-        "Access-Control-Allow-Origin": "https://zeroadmin.vercel.app",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Accept, Origin",
-        "Access-Control-Allow-Credentials": "true"
-      }
+      "dest": "server.js"
     }
   ]
 }

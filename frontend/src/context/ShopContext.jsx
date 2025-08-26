@@ -12,7 +12,7 @@ const ShopContextProvider = ({ children }) => {
   // Configuration constants
   const currency = "₹";
   const delivery_fee = 10;
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || "https://zero-fashion-backend.vercel.app";
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   // Auth-related state
   const [token, setToken] = useState(null);
