@@ -250,9 +250,8 @@ const UserProfile = ({ token }) => {
 
     setIsSubmitting(true);
     try {
-      const response = await axios.post(
-        `${backendUrl}/api/user/delete`,
-        { userId: selectedUser._id },
+      const response = await axios.delete(
+        `${backendUrl}/api/user/delete/${selectedUser._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -264,14 +263,16 @@ const UserProfile = ({ token }) => {
       if (!isMounted.current) return;
 
       if (response.data.success) {
-        setUsers(users.filter((u) => u._id !== selectedUser._id));
+        await fetchUsers(page);
         toast.success("User deleted successfully.");
         closeModal();
+      } else {
+        throw new Error(response.data.message || "Delete failed");
       }
     } catch (err) {
       if (!isMounted.current) return;
-      const message = err.response?.data?.message || "Failed to delete user.";
-      toast.error(message);
+      const message = err.response?.data?.message || err.message || "Failed to delete user.";
+      toast.error(`Failed to delete user: ${message}`);
       if (err.response?.status === 401 || err.response?.status === 403) {
         navigate("/login");
       }
