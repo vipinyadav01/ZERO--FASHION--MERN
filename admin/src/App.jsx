@@ -5,7 +5,8 @@ import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Login from "./components/Login";
-import { AlertCircle } from "lucide-react";
+import LoadingSpinner from "./components/LoadingSpinner";
+import NotFound from "./components/NotFound";
 
 // Lazy load pages
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
@@ -43,56 +44,6 @@ const DashboardLayout = ({ children, handleLogout }) => {
   );
 };
 
-// Modern Loading Component
-const LoadingSpinner = () => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
-    <div className="text-center space-y-4">
-      <div className="relative h-12 w-12 mx-auto">
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 animate-pulse"></div>
-        <div className="absolute inset-1 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-40 animate-pulse animation-delay-75"></div>
-        <div className="absolute inset-2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-spin"></div>
-      </div>
-      <div className="space-y-1">
-        <p className="text-white font-semibold text-lg">Loading</p>
-        <p className="text-slate-400 text-sm">Please wait...</p>
-      </div>
-    </div>
-  </div>
-);
-
-// Modern 404 Component
-const NotFound = () => {
-  const navigate = useNavigate();
-  const isAuthenticated = !!sessionStorage.getItem("token");
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-3 py-6">
-      <div className="max-w-md w-full">
-        <div className="relative overflow-hidden rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-6 text-center">
-          <div className="space-y-4">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-red-500/20 to-red-600/20 flex items-center justify-center">
-              <AlertCircle className="w-8 h-8 text-red-400" />
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-4xl font-bold text-white">404</h1>
-              <h2 className="text-lg font-semibold text-slate-300">Page Not Found</h2>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                The page you're looking for doesn't exist or has been moved.
-              </p>
-            </div>
-            <button
-              onClick={() => navigate(isAuthenticated ? "/dashboard" : "/login")}
-              className="w-full mt-6 py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 active:scale-95"
-            >
-              Go to {isAuthenticated ? "Dashboard" : "Login"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const App = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState(sessionStorage.getItem("token") || "");
@@ -120,7 +71,6 @@ const App = () => {
       return;
     }
     setToken(newToken);
-    toast.success("Logged in successfully");
   };
 
   return (
