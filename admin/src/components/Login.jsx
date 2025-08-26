@@ -38,7 +38,6 @@ const Login = ({ setToken }) => {
 
     useEffect(() => {
         const handleBeforeUnload = () => {
-            // Optional: Only clear token on explicit logout, not refresh
         };
 
         window.addEventListener("beforeunload", handleBeforeUnload);
@@ -92,7 +91,7 @@ const Login = ({ setToken }) => {
 
         try {
             const response = await axios.post(
-                `${backendUrl}/api/user/admin/login`,
+                `${backendUrl}/api/user/admin-login`,
                 formData,
                 {
                     headers: {
@@ -134,7 +133,6 @@ const Login = ({ setToken }) => {
 
     return (
         <div className="min-h-screen flex items-center justify-center w-full bg-black p-4 sm:p-6 md:p-8 relative overflow-hidden">
-            {/* Animated background elements */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
@@ -142,9 +140,7 @@ const Login = ({ setToken }) => {
             </div>
 
             <div className="flex overflow-hidden rounded-3xl shadow-2xl max-w-6xl w-full bg-white/5 backdrop-blur-xl border border-white/10 relative z-10">
-                {/* Left Panel */}
                 <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-black via-gray-900 to-black text-white p-12 relative overflow-hidden flex-col justify-between">
-                    {/* Subtle pattern overlay */}
                     <div className="absolute inset-0 opacity-10">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
                         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_48%,rgba(255,255,255,0.05)_49%,rgba(255,255,255,0.05)_51%,transparent_52%)]"></div>
@@ -196,7 +192,6 @@ const Login = ({ setToken }) => {
                     </div>
                 </div>
 
-                {/* Right Panel - Login Form */}
                 <div className="w-full lg:w-1/2 p-6 sm:p-8 md:p-12 bg-gradient-to-b from-white/5 to-transparent">
                     <div className="max-w-md mx-auto">
                         <div className="text-center mb-10">

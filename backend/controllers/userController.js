@@ -392,11 +392,36 @@ const adminUpdateUser = async (req, res) => {
 // Get all users (admin only)
 const getAllUsers = async (req, res) => {
   try {
-    const users = await UserModel.find().select("-password");
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
+    const skip = (page - 1) * limit;
+    const search = (req.query.search || "").trim();
+
+    const query = {};
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      UserModel.find(query)
+        .select("name email role isAdmin profileImage createdAt")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      UserModel.countDocuments(query),
+    ]);
+
     res.status(200).json({
       success: true,
       users,
-      total: users.length,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit) || 1,
     });
   } catch (error) {
     console.error("Get all users error:", error.message);
