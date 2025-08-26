@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { backendUrl } from "../App";
 import { LogOut, Menu, X, ChevronDown, Bell, Search, User, Settings, HelpCircle, Command } from "lucide-react";
 
 const Navbar = ({ onLogout }) => {
@@ -10,6 +12,7 @@ const Navbar = ({ onLogout }) => {
     const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [isScrolled, setIsScrolled] = useState(false);
+    const [user, setUser] = useState({ name: "", email: "", profileImage: "", role: "" });
     const dropdownRef = useRef(null);
     const notificationsRef = useRef(null);
     const searchInputRef = useRef(null);
@@ -57,6 +60,34 @@ const Navbar = ({ onLogout }) => {
         };
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    // Fetch current user
+    useEffect(() => {
+        const controller = new AbortController();
+        const loadUser = async () => {
+            try {
+                const token = sessionStorage.getItem("token");
+                if (!token) return;
+                const res = await axios.get(`${backendUrl}/api/user/user`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    signal: controller.signal,
+                });
+                if (res.data?.success && res.data?.user) {
+                    const u = res.data.user;
+                    setUser({
+                        name: u.name || "",
+                        email: u.email || "",
+                        profileImage: u.profileImage || "",
+                        role: u.role || "",
+                    });
+                }
+            } catch (_) {
+                // silent fail; keep defaults
+            }
+        };
+        loadUser();
+        return () => controller.abort();
     }, []);
 
     useEffect(() => {
@@ -113,6 +144,10 @@ const Navbar = ({ onLogout }) => {
         }
     };
 
+    const avatarSrc = user.profileImage || "/zero.ico";
+    const displayName = user.name || "Admin";
+    const displayEmail = user.email || "admin@zerofashion.com";
+
     return (
         <>
             <nav className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-500 ${
@@ -124,13 +159,13 @@ const Navbar = ({ onLogout }) => {
                     <div className={`flex items-center justify-between transition-all duration-300 ${
                         isScrolled ? 'h-14 lg:h-16' : 'h-16 lg:h-20'
                     }`}>
-                        {/* Logo + Brand from public logo */}
+                        
                         <Link 
                             to="/dashboard" 
                             className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity"
                         >
                             <img
-                                src="/zero.ico"
+                                src="/zero.png"
                                 alt="Zero Fashion Logo"
                                 className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg"
                                 loading="eager"
@@ -251,11 +286,11 @@ const Navbar = ({ onLogout }) => {
                                     <div className="relative">
                                         <img
                                             className="h-8 w-8 lg:h-9 lg:w-9 rounded-xl border-2 border-indigo-500/30 object-cover"
-                                            src="/zero.ico"
+                                            src={avatarSrc}
                                             alt="User avatar"
                                         />
                                     </div>
-                                    <span className="ml-3 text-white font-medium hidden lg:inline">Admin</span>
+                                    <span className="ml-3 text-white font-medium hidden lg:inline">{displayName}</span>
                                     <ChevronDown
                                         size={16}
                                         className={`ml-2 text-slate-400 ${isDropdownOpen ? "rotate-180" : ""}`}
@@ -271,12 +306,12 @@ const Navbar = ({ onLogout }) => {
                                             <div className="flex items-center gap-3">
                                                 <img
                                                     className="h-12 w-12 rounded-xl border-2 border-indigo-500/30 object-cover"
-                                                    src="/zero.ico"
+                                                    src={avatarSrc}
                                                     alt="User avatar"
                                                 />
                                                 <div className="flex-1">
-                                                    <div className="text-base font-semibold text-white">Admin User</div>
-                                                    <div className="text-sm text-slate-300 opacity-80 truncate">admin@zerofashion.com</div>
+                                                    <div className="text-base font-semibold text-white">{displayName}</div>
+                                                    <div className="text-sm text-slate-300 opacity-80 truncate">{displayEmail}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -410,12 +445,12 @@ const Navbar = ({ onLogout }) => {
                                     <div className="flex items-center mb-6 p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                                         <img
                                             className="h-14 w-14 rounded-xl border-2 border-indigo-500/30"
-                                            src="/zero.ico"
+                                            src={avatarSrc}
                                             alt="User avatar"
                                         />
                                         <div className="ml-4 flex-1">
-                                            <div className="text-lg font-semibold text-white">Admin User</div>
-                                            <div className="text-sm font-medium text-slate-400 truncate">admin@zerofashion.com</div>
+                                            <div className="text-lg font-semibold text-white">{displayName}</div>
+                                            <div className="text-sm font-medium text-slate-400 truncate">{displayEmail}</div>
                                         </div>
                                     </div>
                                     <button
