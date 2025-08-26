@@ -570,6 +570,52 @@ const adminResetPassword = async (req, res) => {
   }
 };
 
+// Admin create user with admin role (admin only)
+const adminCreateUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: "Name, email and password are required" });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ success: false, message: "Invalid email format" });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });
+    }
+
+    const exists = await UserModel.findOne({ email });
+    if (exists) {
+      return res.status(400).json({ success: false, message: "User already exists" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+    const newAdmin = await UserModel.create({
+      name,
+      email,
+      password: hashed,
+      role: "admin",
+      isAdmin: true,
+    });
+
+    console.log(`AdminCreateUser: Admin ${req.user?._id?.toString?.() || 'unknown'} created admin ${newAdmin._id} (${email}) at ${new Date().toISOString()}`);
+
+    return res.status(201).json({
+      success: true,
+      user: {
+        _id: newAdmin._id,
+        name: newAdmin.name,
+        email: newAdmin.email,
+        role: newAdmin.role,
+        isAdmin: newAdmin.isAdmin,
+      }
+    });
+  } catch (error) {
+    console.error("Admin create user error:", error.message);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 export {
   loginUser,
   registerUser,
@@ -582,4 +628,5 @@ export {
   cancelOrder,
   getUserProfile,
   adminResetPassword,
+  adminCreateUser,
 };
