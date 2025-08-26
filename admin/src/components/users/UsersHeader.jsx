@@ -1,6 +1,7 @@
 import { Users, RefreshCw } from "lucide-react";
 
 const UsersHeader = ({ total, loading, onRefresh, onAddSample, isSubmitting }) => {
+  const isProd = import.meta.env.PROD;
   return (
     <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-4 sm:p-6">
       <div className="space-y-4">
@@ -15,13 +16,15 @@ const UsersHeader = ({ total, loading, onRefresh, onAddSample, isSubmitting }) =
             </div>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={onAddSample}
-              disabled={isSubmitting}
-              className="p-2 sm:p-3 rounded-xl bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600 disabled:opacity-50 transition-all text-xs sm:text-sm font-medium px-3"
-            >
-              Add Sample Users
-            </button>
+            {!isProd && (
+              <button
+                onClick={onAddSample}
+                disabled={isSubmitting}
+                className="p-2 sm:p-3 rounded-xl bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600 disabled:opacity-50 transition-all text-xs sm:text-sm font-medium px-3"
+              >
+                Add Sample Users
+              </button>
+            )}
             <button
               onClick={onRefresh}
               disabled={loading}
