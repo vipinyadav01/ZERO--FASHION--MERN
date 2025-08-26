@@ -112,39 +112,68 @@ const adminLogin = async (req, res) => {
       return res.status(400).json({ success: false, message: "Email and password are required" });
     }
 
-    // Check .env credentials (plaintext comparison)
-    if (email !== process.env.ADMIN_EMAIL || password !== process.env.ADMIN_PASSWORD) {
-      return res.status(401).json({ success: false, message: "Invalid admin credentials" });
-    }
-
-    // Find or create admin user in UserModel for consistency
-    let adminUser = await UserModel.findOne({ email });
-    if (!adminUser) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      adminUser = new UserModel({
-        name: "vipinYadav",
-        email: "admin@zerofashion.com",
-        password: hashedPassword,
-        role: "admin",
-        isAdmin: true,
+    // Prefer DB-based admin authentication
+    let user = await UserModel.findOne({ email }).select("+password role isAdmin name email");
+    if (user) {
+      if (user.role !== "admin" && !user.isAdmin) {
+        return res.status(403).json({ success: false, message: "User is not an admin" });
+      }
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(401).json({ success: false, message: "Invalid admin credentials" });
+      }
+      const token = createToken(user._id, user.role || (user.isAdmin ? "admin" : "user"));
+      return res.status(200).json({
+        success: true,
+        token,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role || (user.isAdmin ? "admin" : "user"),
+          isAdmin: user.isAdmin || user.role === "admin",
+        },
       });
-      await adminUser.save();
-    } else if (adminUser.role !== "admin") {
-      return res.status(403).json({ success: false, message: "User is not an admin" });
     }
 
-    const token = createToken(adminUser._id, adminUser.role);
-    res.status(200).json({
-      success: true,
-      token,
-      user: {
-        _id: adminUser._id,
-        name: adminUser.name,
-        email: adminUser.email,
-        role: adminUser.role,
-        isAdmin: adminUser.isAdmin,
-      },
-    });
+    // Fallback: env-based admin (legacy)
+    if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+      if (email !== process.env.ADMIN_EMAIL || password !== process.env.ADMIN_PASSWORD) {
+        return res.status(401).json({ success: false, message: "Invalid admin credentials" });
+      }
+
+      // Ensure a DB admin exists for the env admin for consistency
+      let adminUser = await UserModel.findOne({ email: process.env.ADMIN_EMAIL });
+      if (!adminUser) {
+        const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+        adminUser = await UserModel.create({
+          name: "Admin",
+          email: process.env.ADMIN_EMAIL,
+          password: hashed,
+          role: "admin",
+          isAdmin: true,
+        });
+      } else if (adminUser.role !== "admin") {
+        adminUser.role = "admin";
+        adminUser.isAdmin = true;
+        await adminUser.save();
+      }
+
+      const token = createToken(adminUser._id, "admin");
+      return res.status(200).json({
+        success: true,
+        token,
+        user: {
+          _id: adminUser._id,
+          name: adminUser.name,
+          email: adminUser.email,
+          role: adminUser.role,
+          isAdmin: adminUser.isAdmin,
+        },
+      });
+    }
+
+    return res.status(401).json({ success: false, message: "Invalid admin credentials" });
   } catch (error) {
     console.error("Admin login error:", error.message);
     res.status(500).json({ success: false, message: "Internal server error" });
