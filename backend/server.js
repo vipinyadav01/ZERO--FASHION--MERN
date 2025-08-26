@@ -13,13 +13,6 @@ import wishlistRouter from "./routes/wishlistRoute.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
-try {
-  await connectDB();
-  await connectCloudinary();
-} catch (error) {
-  console.error('Error during initialization:', error);
-}
-
 app.use(cors());
 app.use(express.json());
 
@@ -30,6 +23,7 @@ app.use("/api/newsletter", newsletterRouter);
 app.get("/", (req, res) => {
   res.send("API Working correctly");
 });
+
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/wishlist", wishlistRouter);
@@ -38,6 +32,10 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ success: false, message: "Internal Server Error" });
 });
+
+// Connect to database and cloudinary
+connectDB();
+connectCloudinary();
 
 export default app;
 
