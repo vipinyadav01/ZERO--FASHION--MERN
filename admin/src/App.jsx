@@ -7,6 +7,7 @@ import Sidebar from "./components/Sidebar";
 import Login from "./components/Login";
 import LoadingSpinner from "./components/LoadingSpinner";
 import NotFound from "./components/NotFound";
+import CreateAdmin from "./pages/CreateAdmin";
 
 // Lazy load pages
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
@@ -109,6 +110,7 @@ const App = () => {
           { path: "/orders", Component: Order },
           { path: "/order-charts", Component: OrderCharts },
           { path: "/userprofile", Component: Users },
+          { path: "/admin-create", Component: CreateAdmin},
         ].map(({ path, Component }) => (
           <Route
             key={path}
