@@ -175,7 +175,7 @@ const Navbar = ({ onLogout }) => {
                             className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity"
                         >
                             <img
-                                src="/zero.png"
+                                src="/logo.png"
                                 alt="Zero Fashion Logo"
                                 className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg"
                                 loading="eager"
