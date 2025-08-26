@@ -26,34 +26,23 @@ const CreateAdmin = ({ token }) => {
       toast.error("Passwords do not match");
       return;
     }
-    if (!token) {
+
+    const authToken = token || sessionStorage.getItem("token");
+    if (!authToken) {
       toast.error("Unauthorized");
       return;
     }
 
     setSubmitting(true);
     try {
-      // Step 1: Register the user
-      const registerRes = await axios.post(
-        `${backendUrl}/api/user/register`,
+      const res = await axios.post(
+        `${backendUrl}/api/user/admin-create`,
         { name: form.name.trim(), email: form.email.trim(), password: form.password },
-        { headers: { "Content-Type": "application/json" } }
+        { headers: { Authorization: `Bearer ${authToken}`, "Content-Type": "application/json" } }
       );
 
-      if (!registerRes.data?.success || !registerRes.data?.user?._id) {
-        throw new Error(registerRes.data?.message || "Failed to register user");
-      }
-
-      // Step 2: Promote to admin via adminUpdateUser
-      const userId = registerRes.data.user._id;
-      const promoteRes = await axios.post(
-        `${backendUrl}/api/user/admin-update`,
-        { userId, name: form.name.trim(), email: form.email.trim(), role: "admin" },
-        { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
-      );
-
-      if (!promoteRes.data?.success) {
-        throw new Error(promoteRes.data?.message || "Failed to promote user to admin");
+      if (!res.data?.success || !res.data?.user?._id) {
+        throw new Error(res.data?.message || "Failed to create admin");
       }
 
       toast.success("Admin created successfully");
