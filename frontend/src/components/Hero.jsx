@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { ArrowRight, ShoppingBag, Heart, Clock } from "lucide-react";
-import { assets } from "../assets/assets";
 
-// Use Asterion font everywhere
 const fontAsterion = "font-['Asterion',sans-serif]";
 
 const HeroStats = ({ icon: Icon, label, value }) => (
@@ -36,8 +34,8 @@ const Hero = () => {
     },
     {
       id: 3,
-      image: assets?.hero_img || "https://via.placeholder.com/600",
-      title: "Autumn Styles",
+      image: "https://www.mojolondon.co.uk/wp-content/uploads/2022/09/autumn-fashion-for-men-960x1000.jpeg",
+      title: "Autumn Collection",
       subtitle: "Trending Now"
     }
   ];
