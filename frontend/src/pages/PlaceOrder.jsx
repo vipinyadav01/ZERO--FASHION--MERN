@@ -23,6 +23,7 @@ function PlaceOrder() {
   const [validatedCartItems, setValidatedCartItems] = useState([]);
   const [isValidating, setIsValidating] = useState(true);
   const [cartError, setCartError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load user data from localStorage
   useEffect(() => {
@@ -56,6 +57,32 @@ function PlaceOrder() {
       }
     };
   }, []);
+  const isStripeConfigured = true; 
+  const isRazorpayConfigured = import.meta.env.VITE_RAZORPAY_KEY_ID && 
+    import.meta.env.VITE_RAZORPAY_KEY_ID.trim() !== '';
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log('Payment Gateway Configuration:', {
+        stripe: {
+          configured: isStripeConfigured,
+          note: 'Handled by backend with secret key'
+        },
+        razorpay: {
+          configured: isRazorpayConfigured,
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID ? 'Present' : 'Missing'
+        }
+      });
+    }
+  }, [isStripeConfigured, isRazorpayConfigured]);
+  useEffect(() => {
+    if (!isStripeConfigured && !isRazorpayConfigured) {
+      setMethod("cod");
+    } else if (!isStripeConfigured && isRazorpayConfigured) {
+      setMethod("razorpay");
+    } else if (isStripeConfigured && !isRazorpayConfigured) {
+      setMethod("stripe");
+    }
+  }, [isStripeConfigured, isRazorpayConfigured]);
 
   // Validate cart items
   useEffect(() => {
@@ -276,6 +303,11 @@ function PlaceOrder() {
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      return;
+    }
+
     const authToken = getAuthToken();
     if (!authToken || !(await validateToken())) {
       toast.error("Please log in to place an order");
@@ -304,6 +336,8 @@ function PlaceOrder() {
       toast.error("Your cart is empty");
       return;
     }
+
+    setIsSubmitting(true);
 
     try {
       const cartTotal = typeof getCartAmount === "function" ? getCartAmount() : 0;
@@ -341,24 +375,46 @@ function PlaceOrder() {
 
         case "stripe": {
           try {
+            // Show loading state
+            toast.info("Initializing payment...");
+            
             const response = await axios.post(
               `${backendUrl}/api/order/stripe`,
               orderData,
-              { headers: { Authorization: `Bearer ${authToken}` } }
+              { 
+                headers: { Authorization: `Bearer ${authToken}` },
+                timeout: 30000 // 30 second timeout
+              }
             );
             
             if (response.data.success && response.data.session_url) {
+              // Clear any existing toasts
+              toast.dismiss();
+              
+              // Redirect to Stripe checkout
               window.location.href = response.data.session_url;
             } else {
               throw new Error(response.data.message || "Failed to create Stripe session");
             }
           } catch (error) {
             console.error("Stripe payment error:", error);
+            
+            // Clear loading toast
+            toast.dismiss();
+            
             if (error.response?.status === 401) {
               toast.error("Authentication failed. Please log in again.");
               logout();
+            } else if (error.response?.status === 400) {
+              toast.error(error.response?.data?.message || "Invalid payment request");
+            } else if (error.response?.status === 500) {
+              toast.error("Payment service error. Please try again later.");
+            } else if (error.code === 'ECONNABORTED') {
+              toast.error("Request timeout. Please check your connection and try again.");
+            } else if (error.response?.data?.message) {
+              toast.error(error.response.data.message);
             } else {
-              toast.error(error.response?.data?.message || error.message || "Payment initialization failed");
+              toast.error("Payment initialization failed. Please try again.");
             }
           }
           break;
@@ -390,6 +446,8 @@ function PlaceOrder() {
       } else {
         toast.error(error.response?.data?.message || "Something went wrong");
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -598,50 +656,88 @@ function PlaceOrder() {
           <div>
             <Title text1="PAYMENT" text2="METHOD" />
             <div className="flex flex-col gap-4 mt-4">
-              <div
-                onClick={() => setMethod("stripe")}
-                className="payment-option bg-white p-3 border rounded-md flex items-center cursor-pointer transition-all hover:border-black"
-              >
+              {isStripeConfigured ? (
                 <div
-                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                    method === "stripe" ? "border-2 border-green-500" : "border-gray-300"
-                  }`}
+                  onClick={() => setMethod("stripe")}
+                  className="payment-option bg-white p-3 border rounded-md flex items-center cursor-pointer transition-all hover:border-black"
                 >
-                  {method === "stripe" && <div className="w-3 h-3 rounded-full bg-green-500"></div>}
+                  <div
+                    className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                      method === "stripe" ? "border-2 border-green-500" : "border-gray-300"
+                    }`}
+                  >
+                    {method === "stripe" && <div className="w-3 h-3 rounded-full bg-green-500"></div>}
+                  </div>
+                  <img
+                    className="h-6 mx-4"
+                    src={assets?.stripe_logo || ""}
+                    alt="Stripe Logo"
+                    onError={(e) => {
+                      e.target.src = "";
+                      e.target.alt = "Stripe";
+                      e.target.onerror = null;
+                    }}
+                  />
                 </div>
-                <img
-                  className="h-6 mx-4"
-                  src={assets?.stripe_logo || ""}
-                  alt="Stripe Logo"
-                  onError={(e) => {
-                    e.target.src = "";
-                    e.target.alt = "Stripe";
-                    e.target.onerror = null;
-                  }}
-                />
-              </div>
-              <div
-                onClick={() => setMethod("razorpay")}
-                className="payment-option bg-white p-3 border rounded-md flex items-center cursor-pointer transition-all hover:border-black"
-              >
+              ) : (
+                <div className="bg-gray-100 p-3 border rounded-md flex items-center opacity-50 cursor-not-allowed">
+                  <div className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center">
+                  </div>
+                  <img
+                    className="h-6 mx-4"
+                    src={assets?.stripe_logo || ""}
+                    alt="Stripe Logo"
+                    onError={(e) => {
+                      e.target.src = "";
+                      e.target.alt = "Stripe";
+                      e.target.onerror = null;
+                    }}
+                  />
+                  <span className="text-xs text-gray-500 ml-2">(Not configured)</span>
+                </div>
+              )}
+              
+              {isRazorpayConfigured ? (
                 <div
-                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                    method === "razorpay" ? "border-2 border-green-500" : "border-gray-300"
-                  }`}
+                  onClick={() => setMethod("razorpay")}
+                  className="payment-option bg-white p-3 border rounded-md flex items-center cursor-pointer transition-all hover:border-black"
                 >
-                  {method === "razorpay" && <div className="w-3 h-3 rounded-full bg-green-500"></div>}
+                  <div
+                    className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                      method === "razorpay" ? "border-2 border-green-500" : "border-gray-300"
+                    }`}
+                  >
+                    {method === "razorpay" && <div className="w-3 h-3 rounded-full bg-green-500"></div>}
+                  </div>
+                  <img
+                    className="h-6 mx-4"
+                    src={assets?.razorpay_logo || ""}
+                    alt="Razorpay Logo"
+                    onError={(e) => {
+                      e.target.src = "";
+                      e.target.alt = "Razorpay";
+                      e.target.onerror = null;
+                    }}
+                  />
                 </div>
-                <img
-                  className="h-6 mx-4"
-                  src={assets?.razorpay_logo || ""}
-                  alt="Razorpay Logo"
-                  onError={(e) => {
-                    e.target.src = "";
-                    e.target.alt = "Razorpay";
-                    e.target.onerror = null;
-                  }}
-                />
-              </div>
+              ) : (
+                <div className="bg-gray-100 p-3 border rounded-md flex items-center opacity-50 cursor-not-allowed">
+                  <div className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center">
+                  </div>
+                  <img
+                    className="h-6 mx-4"
+                    src={assets?.razorpay_logo || ""}
+                    alt="Razorpay Logo"
+                    onError={(e) => {
+                      e.target.src = "";
+                      e.target.alt = "Razorpay";
+                      e.target.onerror = null;
+                    }}
+                  />
+                  <span className="text-xs text-gray-500 ml-2">(Not configured)</span>
+                </div>
+              )}
+              
               <div
                 onClick={() => setMethod("cod")}
                 className="payment-option bg-white p-3 border rounded-md flex items-center cursor-pointer transition-all hover:border-black"
@@ -659,9 +755,17 @@ function PlaceOrder() {
             <div className="w-full flex flex-col gap-3 mt-8">
               <button
                 type="submit"
-                className="bg-black text-white text-sm px-8 py-4 w-full hover:bg-gray-800 transition-colors rounded flex items-center justify-center"
+                className="bg-black text-white text-sm px-8 py-4 w-full hover:bg-gray-800 transition-colors rounded flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmitting}
               >
-                PLACE ORDER
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
+                    PROCESSING...
+                  </>
+                ) : (
+                  "PLACE ORDER"
+                )}
               </button>
               <button
                 type="button"

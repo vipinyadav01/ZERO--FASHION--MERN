@@ -8,18 +8,32 @@ import crypto from "crypto";
 const currency = "inr";
 const deliveryFee = 10;
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-// Validate Stripe configuration
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.error("STRIPE_SECRET_KEY is not configured");
+// Initialize Stripe with proper error handling
+let stripe;
+try {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.error("STRIPE_SECRET_KEY is not configured");
+  } else {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
+} catch (error) {
+  console.error("Failed to initialize Stripe:", error);
 }
 
-// Razorpay instance
-const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Initialize Razorpay with both key_id and key_secret
+let razorpayInstance;
+try {
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    console.error("RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is not configured");
+  } else {
+    razorpayInstance = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  }
+} catch (error) {
+  console.error("Failed to initialize Razorpay:", error);
+}
 
 // Place order using Cash on Delivery Method
 const placeOrder = async (req, res) => {
@@ -57,6 +71,14 @@ const placeOrder = async (req, res) => {
 // Place order using Stripe Method
 const placeOrderStripe = async (req, res) => {
   try {
+    // Check if Stripe is properly configured
+    if (!stripe) {
+      return res.status(500).json({
+        success: false,
+        message: "Payment service is not configured"
+      });
+    }
+
     const { items, amount, address } = req.body;
     const userId = req.user._id;
     const { origin } = req.headers;
@@ -66,6 +88,14 @@ const placeOrderStripe = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Missing required order information"
+      });
+    }
+
+    // Validate amount
+    if (amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order amount"
       });
     }
 
@@ -83,27 +113,35 @@ const placeOrderStripe = async (req, res) => {
     const newOrder = new OrderModel(orderData);
     await newOrder.save();
 
+    // Calculate line items with proper amount conversion
     const line_items = items.map((item) => ({
       price_data: {
-        currency: currency,
+        currency: currency.toLowerCase(), // Ensure lowercase currency
         product_data: {
           name: item.name,
           images: item.image ? [item.image] : []
         },
-        unit_amount: Math.round(item.price * 100),
+        unit_amount: Math.round(item.price * 100), // Convert to cents
       },
       quantity: item.quantity,
     }));
 
-    line_items.push({
-      price_data: {
-        currency: currency,
-        product_data: { name: "Delivery Fee" },
-        unit_amount: deliveryFee * 100,
-      },
-      quantity: 1,
-    });
+    // Add delivery fee if not already included in items
+    const itemsTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const deliveryFeeAmount = Math.max(0, amount - itemsTotal);
+    
+    if (deliveryFeeAmount > 0) {
+      line_items.push({
+        price_data: {
+          currency: currency.toLowerCase(),
+          product_data: { name: "Delivery Fee" },
+          unit_amount: Math.round(deliveryFeeAmount * 100),
+        },
+        quantity: 1,
+      });
+    }
 
+    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       customer_email: req.user.email,
       success_url: `${origin}/verify?success=true&orderId=${newOrder._id}`,
@@ -113,19 +151,53 @@ const placeOrderStripe = async (req, res) => {
       metadata: {
         orderId: newOrder._id.toString(),
         userId: userId.toString()
+      },
+      payment_method_types: ['card'],
+      billing_address_collection: 'required',
+      shipping_address_collection: {
+        allowed_countries: ['IN', 'US', 'CA', 'GB', 'AU'], // Add more countries as needed
       }
     });
 
+    // Save session ID to order
     newOrder.stripeSessionId = session.id;
     await newOrder.save();
+    
+    // Update user's orders
     await UserModel.findByIdAndUpdate(userId, {
       $push: { orders: newOrder._id },
     });
 
-    res.status(200).json({ success: true, session_url: session.url });
+    res.status(200).json({ 
+      success: true, 
+      session_url: session.url,
+      session_id: session.id
+    });
   } catch (error) {
     console.error("Error in placeOrderStripe:", error);
-    res.status(500).json({ success: false, message: "Payment failed" });
+    
+    // Handle specific Stripe errors
+    if (error.type === 'StripeCardError') {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    } else if (error.type === 'StripeInvalidRequestError') {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid payment request"
+      });
+    } else if (error.type === 'StripeAPIError') {
+      return res.status(500).json({
+        success: false,
+        message: "Payment service error"
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: "Payment initialization failed" 
+    });
   }
 };
 
@@ -285,8 +357,32 @@ const verifyStripe = async (req, res) => {
 // Place order using RazorPay Method
 const placeOrderRazorPay = async (req, res) => {
   try {
+    // Check if Razorpay is properly configured
+    if (!razorpayInstance) {
+      return res.status(500).json({
+        success: false,
+        message: "Payment service is not configured"
+      });
+    }
+
     const { items, amount, address } = req.body;
     const userId = req.user._id;
+
+    // Validate required fields
+    if (!items?.length || !amount || !address) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required order information"
+      });
+    }
+
+    // Validate amount
+    if (amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order amount"
+      });
+    }
 
     const orderData = {
       userId,
@@ -303,7 +399,7 @@ const placeOrderRazorPay = async (req, res) => {
     await newOrder.save();
 
     const options = {
-      amount: amount * 100,
+      amount: Math.round(amount * 100), // Convert to paise and ensure integer
       currency: currency.toUpperCase(),
       receipt: newOrder._id.toString(),
     };
@@ -320,42 +416,103 @@ const placeOrderRazorPay = async (req, res) => {
     res.status(200).json({ success: true, order });
   } catch (error) {
     console.error("Error in placeOrderRazorPay:", error);
-    res.status(500).json({ success: false, message: "Something went wrong" });
+    
+    // Handle specific Razorpay errors
+    if (error.error && error.error.description) {
+      return res.status(400).json({
+        success: false,
+        message: error.error.description
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: "Payment initialization failed" 
+    });
   }
 };
 
 // Verify RazorPay Payment
 const verifyRazorPay = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-    const order = await OrderModel.findOne({ razorpayOrderId: razorpay_order_id });
-    if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
+    // Check if Razorpay is properly configured
+    if (!razorpayInstance) {
+      return res.status(500).json({
+        success: false,
+        message: "Payment service is not configured"
+      });
     }
 
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    
+    // Validate required fields
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing payment verification data"
+      });
+    }
+
+    const order = await OrderModel.findOne({ razorpayOrderId: razorpay_order_id });
+    if (!order) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Order not found" 
+      });
+    }
+
+    // Verify signature
     const generatedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
     if (generatedSignature !== razorpay_signature) {
-      return res.status(400).json({ success: false, message: "Invalid signature" });
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid payment signature" 
+      });
     }
 
+    // Verify payment with Razorpay
     const payment = await razorpayInstance.payments.fetch(razorpay_payment_id);
     if (payment.status === "captured") {
       order.payment = true;
       order.status = "Order Placed";
       order.razorpayPaymentId = razorpay_payment_id;
       await order.save();
+      
+      // Clear user's cart
       await UserModel.findByIdAndUpdate(order.userId, { cartData: {} });
-      res.status(200).json({ success: true, message: "Payment successful" });
+      
+      res.status(200).json({ 
+        success: true, 
+        message: "Payment successful" 
+      });
     } else {
-      res.status(400).json({ success: false, message: "Payment failed" });
+      order.status = "Payment Failed";
+      await order.save();
+      
+      res.status(400).json({ 
+        success: false, 
+        message: "Payment incomplete" 
+      });
     }
   } catch (error) {
     console.error("Error in verifyRazorPay:", error);
-    res.status(500).json({ success: false, message: "Something went wrong" });
+    
+    // Handle specific Razorpay errors
+    if (error.error && error.error.description) {
+      return res.status(400).json({
+        success: false,
+        message: error.error.description
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: "Payment verification failed" 
+    });
   }
 };
 
