@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom"
 import { ShopContext } from "../context/ShopContext"
 import { assets } from "../assets/assets"
 import RelatedProducts from "../components/RelatedProducts"
+import Title from "../components/Title"
 import { Heart, ShoppingCart } from "lucide-react"
 
 const Product = () => {
@@ -273,11 +274,13 @@ const Product = () => {
         </div>
       </div>
 
-      {/*----------- Related Products----------*/}
-      <div className="mt-20">
-        <h2 className="text-2xl font-medium text-black mb-8">Related Products</h2>
-        <RelatedProducts category={productData.category} subCategory={productData.subCategory} />
-      </div>
+              {/*----------- Related Products----------*/}
+        <div className="mt-20">
+          <div className="text-center mb-6">
+            <Title text1="RELATED" text2="PRODUCTS" />
+          </div>
+          <RelatedProducts category={productData.category} subCategory={productData.subCategory} />
+        </div>
     </div>
   )
 }
