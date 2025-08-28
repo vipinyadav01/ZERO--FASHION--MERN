@@ -207,10 +207,10 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold text-black tracking-wide">
+                <span className="text-lg font-bold text-black tracking-wide font-['Asterion']">
                   ZERO
                 </span>
-                <span className="text-xs text-gray-500 tracking-[0.2em] -mt-1">
+                <span className="text-xs text-gray-500 tracking-[0.2em] -mt-1 font-['Asterion']">
                   FASHION
                 </span>
               </div>
