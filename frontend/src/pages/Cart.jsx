@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
 import CartTotal from "../components/CartTotal";
+import Title from "../components/Title"
 
 function Cart() {
   const { 
@@ -85,7 +86,7 @@ function Cart() {
   return (
     <div className="border-t pt-14 pb-10 min-h-[60vh]">
       <div className="text-2xl mb-6 border-b pb-3">
-        <h2 className="font-medium">YOUR CART</h2>
+        <Title text1="YOUR" text2="CART" />
       </div>
       <div>
         {!cartData || cartData.length === 0 ? (
