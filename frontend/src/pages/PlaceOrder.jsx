@@ -398,6 +398,12 @@ function PlaceOrder() {
             }
           } catch (error) {
             console.error("Stripe payment error:", error);
+            console.error("Error details:", {
+              message: error.message,
+              response: error.response?.data,
+              status: error.response?.status,
+              code: error.code
+            });
             
             // Clear loading toast
             toast.dismiss();
@@ -408,11 +414,13 @@ function PlaceOrder() {
             } else if (error.response?.status === 400) {
               toast.error(error.response?.data?.message || "Invalid payment request");
             } else if (error.response?.status === 500) {
-              toast.error("Payment service error. Please try again later.");
+              toast.error(error.response?.data?.message || "Payment service error. Please try again later.");
             } else if (error.code === 'ECONNABORTED') {
               toast.error("Request timeout. Please check your connection and try again.");
             } else if (error.response?.data?.message) {
               toast.error(error.response.data.message);
+            } else if (error.message) {
+              toast.error(error.message);
             } else {
               toast.error("Payment initialization failed. Please try again.");
             }

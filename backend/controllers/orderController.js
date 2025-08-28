@@ -81,7 +81,8 @@ const placeOrderStripe = async (req, res) => {
 
     const { items, amount, address } = req.body;
     const userId = req.user._id;
-    const { origin } = req.headers;
+    // Use deployed frontend URL as default origin
+    const origin = req.headers.origin || req.headers.referer || 'https://zerofashion.vercel.app';
 
     // Validate required fields
     if (!items?.length || !amount || !address) {
@@ -175,6 +176,12 @@ const placeOrderStripe = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in placeOrderStripe:", error);
+    console.error("Error details:", {
+      type: error.type,
+      message: error.message,
+      code: error.code,
+      statusCode: error.statusCode
+    });
     
     // Handle specific Stripe errors
     if (error.type === 'StripeCardError') {
@@ -185,18 +192,23 @@ const placeOrderStripe = async (req, res) => {
     } else if (error.type === 'StripeInvalidRequestError') {
       return res.status(400).json({
         success: false,
-        message: "Invalid payment request"
+        message: "Invalid payment request: " + error.message
       });
     } else if (error.type === 'StripeAPIError') {
       return res.status(500).json({
         success: false,
-        message: "Payment service error"
+        message: "Payment service error: " + error.message
+      });
+    } else if (error.type === 'StripeAuthenticationError') {
+      return res.status(500).json({
+        success: false,
+        message: "Payment authentication error. Please check configuration."
       });
     }
     
     res.status(500).json({ 
       success: false, 
-      message: "Payment initialization failed" 
+      message: "Payment initialization failed: " + error.message 
     });
   }
 };
@@ -205,12 +217,6 @@ const verifyStripe = async (req, res) => {
   try {
     const { orderId, success } = req.query;
 
-    console.log("Verify Stripe Request:", {
-      orderId,
-      success,
-      userId: req.user?._id,
-      headers: req.headers.authorization ? 'Present' : 'Missing'
-    });
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -250,14 +256,6 @@ const verifyStripe = async (req, res) => {
       });
     }
 
-    console.log("Order found:", {
-      orderId: order._id,
-      status: order.status,
-      paymentMethod: order.paymentMethod,
-      hasStripeSessionId: !!order.stripeSessionId,
-      payment: order.payment
-    });
-
     if (success === "true") {
       // Check if order has Stripe session ID
       if (!order.stripeSessionId) {
@@ -268,20 +266,12 @@ const verifyStripe = async (req, res) => {
       }
 
       try {
-        console.log("Retrieving Stripe session:", order.stripeSessionId);
-
         const session = await stripe.checkout.sessions.retrieve(
           order.stripeSessionId,
           {
             expand: ['payment_intent']
           }
         );
-
-        console.log("Stripe session retrieved:", {
-          sessionId: session.id,
-          paymentStatus: session.payment_status,
-          paymentIntentId: session.payment_intent?.id
-        });
 
         if (session.payment_status === "paid") {
           order.payment = true;
