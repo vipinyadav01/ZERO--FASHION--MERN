@@ -18,7 +18,6 @@ const HeroStats = ({ icon: Icon, label, value }) => (
 const Hero = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-
   const featuredProducts = [
     {
       id: 1,
@@ -39,7 +38,6 @@ const Hero = () => {
       subtitle: "Trending Now"
     }
   ];
-
   useEffect(() => {
     if (!isHovered) {
       const timer = setInterval(() => {
@@ -48,7 +46,6 @@ const Hero = () => {
       return () => clearInterval(timer);
     }
   }, [isHovered, featuredProducts.length]);
-
   return (
     <div className={`relative w-full overflow-hidden pt-8 pb-8 md:pt-16 md:pb-16 bg-white ${fontAsterion}`}>
       {/* Responsive background */}
@@ -57,31 +54,66 @@ const Hero = () => {
         {/* Left content section */}
         <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-8 sm:px-8 sm:py-12 lg:p-16 bg-white">
           <div className="text-black w-full max-w-lg">
-            <div className={`inline-flex items-center gap-2 px-3 py-1 mb-4 sm:mb-6 text-xs bg-black text-white rounded ${fontAsterion}`}>
+            <div className={`inline-flex items-center gap-2 px-3 py-1 mb-4 sm:mb-6 text-xs bg-black text-white rounded ${fontAsterion} animate-pulse`}>
               <Clock size={12} />
               <span className="tracking-widest font-medium">NEW COLLECTION</span>
             </div>
 
             <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-normal leading-tight mb-3 sm:mb-4 ${fontAsterion}`}>
-              {featuredProducts[currentImageIndex].title}
+              <span
+                className="cursor-pointer hover:text-black transition-colors duration-200"
+                title="Click to see next collection"
+                onClick={() => setCurrentImageIndex((prev) => (prev === featuredProducts.length - 1 ? 0 : prev + 1))}
+              >
+                {featuredProducts[currentImageIndex].title}
+              </span>
               <span className="block text-lg sm:text-xl md:text-2xl text-gray-600 mt-2 sm:mt-4 font-normal">
                 {featuredProducts[currentImageIndex].subtitle}
               </span>
             </h1>
 
             <p className="text-gray-600 mb-8 sm:mb-10 max-w-md text-base sm:text-lg">
-              Discover our curated selection of premium designs that combine style, comfort, and sustainability.
+              <span
+                className="underline cursor-pointer hover:text-black transition-colors duration-200"
+                title="Learn more about our designs"
+                onClick={() => alert('Explore more about our premium designs!')}
+              >
+                Discover our curated selection
+              </span>{" "}
+              of premium designs that combine style, comfort, and sustainability.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-10 sm:mb-16">
-              <button className={`flex items-center justify-center gap-2 bg-black text-white px-6 py-3 sm:px-8 sm:py-4 font-medium rounded hover:bg-gray-900 transition-colors transform hover:-translate-y-1 transition-transform duration-300 ${fontAsterion}`}>
+              <button
+                className={`flex items-center justify-center gap-2 bg-black text-white px-6 py-3 sm:px-8 sm:py-4 font-medium rounded hover:bg-gray-900 transition-colors transform hover:-translate-y-1 transition-transform duration-300 active:scale-95 ${fontAsterion}`}
+                onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+              >
                 SHOP NOW <ArrowRight size={16} />
+              </button>
+              <button
+                className="flex items-center gap-2 border border-black text-black px-6 py-3 sm:px-8 sm:py-4 font-medium rounded hover:bg-black hover:text-white transition-colors duration-300"
+                onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? featuredProducts.length - 1 : prev - 1))}
+                title="See previous collection"
+              >
+                <ArrowRight className="rotate-180" size={16} /> PREV
               </button>
             </div>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-              <HeroStats icon={ShoppingBag} label="Products" value="2000+" />
-              <HeroStats icon={Heart} label="Happy Customers" value="10k+" />
+              <div
+                className="cursor-pointer hover:scale-105 transition-transform duration-200"
+                title="See all products"
+                onClick={() => window.location.href = '/collection'}
+              >
+                <HeroStats icon={ShoppingBag} label="Products" value="2000+" />
+              </div>
+              <div
+                className="cursor-pointer hover:scale-105 transition-transform duration-200"
+                title="See what our customers say"
+                onClick={() => alert('10k+ happy customers!')}
+              >
+                <HeroStats icon={Heart} label="Happy Customers" value="10k+" />
+              </div>
             </div>
           </div>
         </div>
