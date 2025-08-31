@@ -1,22 +1,22 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { backendUrl } from "../App";
 import { toast } from "react-toastify";
-import { 
-  Truck, 
-  Package, 
-  Calendar, 
-  CreditCard, 
-  MapPin, 
-  Phone,
-  ChevronDown,
-  ChevronUp,
-  ShoppingBag,
-  Clock,
-  AlertCircle,
-  CheckCircle,
-  Search,
-  X
+import {
+    Truck,
+    Package,
+    Calendar,
+    CreditCard,
+    MapPin,
+    Phone,
+    ChevronDown,
+    ChevronUp,
+    ShoppingBag,
+    Clock,
+    AlertCircle,
+    CheckCircle,
+    Search,
+    X
 } from "lucide-react";
 
 const Order = () => {
@@ -130,7 +130,7 @@ const Order = () => {
 
     // Filter orders based on search and status
     const filteredOrders = orders.filter(order => {
-        const matchesSearch = !searchQuery || 
+        const matchesSearch = !searchQuery ||
             order.address.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             order.address.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
             order._id.toLowerCase().includes(searchQuery.toLowerCase());
@@ -164,14 +164,14 @@ const Order = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-            
+
             <div className="px-3 pt-20 pb-6 sm:px-4 sm:pt-24 lg:px-6 lg:pt-28">
                 <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-                    
-                 
+
+
                     <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-4 sm:p-6">
                         <div className="space-y-4">
-                            
+
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 rounded-xl bg-indigo-500/20">
@@ -182,15 +182,15 @@ const Order = () => {
                                         <p className="text-xs sm:text-sm text-slate-400">{filteredOrders.length} orders</p>
                                     </div>
                                 </div>
-                                
-                              
+
+
                                 <div className="text-right">
                                     <p className="text-xs text-slate-500">Total Orders</p>
                                     <p className="text-lg sm:text-xl font-bold text-indigo-400">{orders.length}</p>
                                 </div>
                             </div>
 
-                           
+
                             <div className="space-y-3">
                                 {/* Search Bar */}
                                 <div className="relative">
@@ -245,10 +245,10 @@ const Order = () => {
                                                 </button>
                                             </div>
                                         )}
-                                        
+
                                         {searchQuery && (
                                             <div className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs rounded-full whitespace-nowrap">
-                                                <span>Search: "{searchQuery.slice(0, 15)}{searchQuery.length > 15 ? '...' : ''}"</span>
+                                                <span>Search: &quot;{searchQuery.slice(0, 15)}{searchQuery.length > 15 ? '...' : ''}&quot;</span>
                                                 <button
                                                     onClick={() => setSearchQuery('')}
                                                     className="ml-1 hover:bg-purple-500/30 rounded-full p-0.5 transition-colors"
@@ -273,11 +273,11 @@ const Order = () => {
                                         </button>
                                     )}
                                 </div>
-                                </div>
-                                </div>
-                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                {/* Orders Section */}
+                    {/* Orders Section */}
                     {error ? (
                         /* Error State */
                         <div className="relative overflow-hidden rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-6 text-center">
@@ -336,7 +336,7 @@ const Order = () => {
                                         className="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 hover:bg-slate-700/60 transition-all duration-300"
                                     >
                                         {/* Order Header - Mobile optimized */}
-                                        <div 
+                                        <div
                                             className="p-4 sm:p-6 cursor-pointer"
                                             onClick={() => toggleOrderExpansion(index)}
                                         >
@@ -356,7 +356,7 @@ const Order = () => {
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     <div className="text-right flex-shrink-0">
                                                         <p className="font-bold text-indigo-400 text-sm sm:text-base">
                                                             ₹{order.amount.toFixed(0)}
@@ -379,7 +379,7 @@ const Order = () => {
                                                             {order.items.length} items
                                                         </span>
                                                     </div>
-                                                    
+
                                                     <div className="flex items-center gap-2">
                                                         <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
                                                             {order.status}
@@ -398,7 +398,7 @@ const Order = () => {
                                         {isExpanded && (
                                             <div className="border-t border-slate-700/50 p-4 sm:p-6 space-y-4 sm:space-y-6">
                                                 <div className="grid gap-4 sm:gap-6">
-                                                    
+
                                                     {/* Order Items - Mobile-first */}
                                                     <div className="space-y-3">
                                                         <h5 className="font-medium text-slate-300 flex items-center gap-2">
@@ -428,7 +428,7 @@ const Order = () => {
 
                                                     {/* Two column layout on larger screens */}
                                                     <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-                                                        
+
                                                         {/* Delivery Address */}
                                                         <div className="space-y-3">
                                                             <h5 className="font-medium text-slate-300 flex items-center gap-2">
