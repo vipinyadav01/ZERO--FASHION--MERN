@@ -2,12 +2,14 @@ import React, { useEffect, useState, Suspense } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import PropTypes from "prop-types";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Login from "./components/Login";
 import LoadingSpinner from "./components/LoadingSpinner";
 import NotFound from "./components/NotFound";
 import CreateAdmin from "./pages/CreateAdmin";
+import { backendUrl, currency } from "./constants";
 
 // Lazy load pages
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
@@ -15,11 +17,7 @@ const Add = React.lazy(() => import("./pages/Add"));
 const List = React.lazy(() => import("./pages/List"));
 const Order = React.lazy(() => import("./pages/Order"));
 const OrderCharts = React.lazy(() => import("./pages/OrderCharts"));
-const Users = React.lazy(() => import("./pages/UserProfile"));
-
-// Environment variables
-export const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
-export const currency = "₹";
+// Protected Route Component
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -28,6 +26,8 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Modern Mobile-First Layout Component
+const DashboardLayout = ({ children, handleLogout }) => {
 // Modern Mobile-First Layout Component
 const DashboardLayout = ({ children, handleLogout }) => {
   const [sidebarWidth, setSidebarWidth] = useState(64); // px
@@ -45,7 +45,10 @@ const DashboardLayout = ({ children, handleLogout }) => {
   );
 };
 
-const App = () => {
+DashboardLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+  handleLogout: PropTypes.func.isRequired,
+};
   const navigate = useNavigate();
   const [token, setToken] = useState(sessionStorage.getItem("token") || "");
 
