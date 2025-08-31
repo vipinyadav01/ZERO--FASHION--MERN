@@ -7,18 +7,14 @@ import {
   Package, 
   Calendar, 
   CreditCard, 
-  User, 
   MapPin, 
   Phone,
   ChevronDown,
   ChevronUp,
   ShoppingBag,
   Clock,
-  DollarSign,
-  Eye,
   AlertCircle,
   CheckCircle,
-  Filter,
   Search,
   X
 } from "lucide-react";
@@ -168,14 +164,14 @@ const Order = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-            {/* Mobile-first container */}
+            
             <div className="px-3 pt-20 pb-6 sm:px-4 sm:pt-24 lg:px-6 lg:pt-28">
                 <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
                     
-                    {/* Mobile-first Header */}
+                 
                     <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-4 sm:p-6">
                         <div className="space-y-4">
-                            {/* Title and Stats Row */}
+                            
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 rounded-xl bg-indigo-500/20">
@@ -187,14 +183,14 @@ const Order = () => {
                                     </div>
                                 </div>
                                 
-                                {/* Quick Stats */}
+                              
                                 <div className="text-right">
                                     <p className="text-xs text-slate-500">Total Orders</p>
                                     <p className="text-lg sm:text-xl font-bold text-indigo-400">{orders.length}</p>
                                 </div>
                             </div>
 
-                            {/* Mobile-first Search and Filters */}
+                           
                             <div className="space-y-3">
                                 {/* Search Bar */}
                                 <div className="relative">
