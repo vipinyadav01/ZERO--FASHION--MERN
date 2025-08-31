@@ -98,12 +98,12 @@ const NotificationDropdown = () => {
 
         } catch (error) {
             console.error('Error fetching notifications:', error);
-            
+
             // Fallback to mock data if API fails
             const fallbackNotifications = generateFallbackNotifications();
             setNotifications(fallbackNotifications);
             setUnreadCount(fallbackNotifications.filter(n => !n.read).length);
-            
+
             // Show error toast only if it's not a network error
             if (error.response?.status !== 404) {
                 toast.error('Failed to load notifications');
@@ -195,9 +195,9 @@ const NotificationDropdown = () => {
             if (!token) return;
 
             // Update local state immediately for better UX
-            setNotifications(prev => 
-                prev.map(notification => 
-                    notification.id === notificationId 
+            setNotifications(prev =>
+                prev.map(notification =>
+                    notification.id === notificationId
                         ? { ...notification, read: true }
                         : notification
                 )
@@ -322,18 +322,16 @@ const NotificationDropdown = () => {
                             notifications.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    className={`px-6 py-4 hover:bg-slate-700/30 cursor-pointer border-l-3 transition-all duration-200 ${
-                                        notification.read ? "border-transparent" : "border-indigo-500"
-                                    }`}
+                                    className={`px-6 py-4 hover:bg-slate-700/30 cursor-pointer border-l-3 transition-all duration-200 ${notification.read ? "border-transparent" : "border-indigo-500"
+                                        }`}
                                     onClick={() => markAsRead(notification.id)}
                                 >
                                     <div className="flex items-start gap-3">
                                         {getNotificationIcon(notification)}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2">
-                                                <p className={`text-sm font-medium truncate ${
-                                                    notification.read ? "text-slate-300" : "text-white"
-                                                }`}>
+                                                <p className={`text-sm font-medium truncate ${notification.read ? "text-slate-300" : "text-white"
+                                                    }`}>
                                                     {notification.title}
                                                 </p>
                                                 {!notification.read && (

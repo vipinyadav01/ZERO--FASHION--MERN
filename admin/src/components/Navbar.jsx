@@ -14,7 +14,7 @@ const Navbar = ({ onLogout }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [isScrolled, setIsScrolled] = useState(false);
     const [user, setUser] = useState({ name: "", email: "", profileImage: "", role: "" });
-    
+
     const dropdownRef = useRef(null);
     const searchInputRef = useRef(null);
 
@@ -32,7 +32,7 @@ const Navbar = ({ onLogout }) => {
 
     const toggleMenu = () => setIsMenuOpen(prev => !prev);
     const toggleDropdown = () => setIsDropdownOpen(prev => !prev);
-    
+
     const toggleMobileSearch = () => {
         setIsMobileSearchOpen(prev => !prev);
         setTimeout(() => {
@@ -56,33 +56,33 @@ const Navbar = ({ onLogout }) => {
             try {
                 const token = sessionStorage.getItem("token");
                 if (!token) return;
-                
+
                 const res = await axios.get(`${backendUrl}/api/user/user`, {
                     headers: { Authorization: `Bearer ${token}` },
                     signal: controller.signal
                 });
-                
+
                 if (res.data?.success && res.data?.user) {
                     const u = res.data.user;
                     setUser({
                         name: u.name || "",
                         email: u.email || "",
                         role: u.role || "",
-                        profileImage: u.profileImage || "" 
+                        profileImage: u.profileImage || ""
                     });
                 } else {
                     throw new Error(res.data?.message || "Failed to load user");
                 }
             } catch (err) {
                 if (err.name === 'AbortError' || err.code === 'ERR_CANCELED') return;
-                
+
                 const message = err.response?.data?.message || err.message || "Failed to load user";
                 toast.error(message);
                 setUser({
                     name: "Admin",
                     email: "admin@zerofashion.com",
                     role: "Administrator",
-                    profileImage: "" 
+                    profileImage: ""
                 });
             }
         };
@@ -138,19 +138,17 @@ const Navbar = ({ onLogout }) => {
 
     return (
         <>
-            <nav className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-500 ${
-                isScrolled 
-                    ? 'bg-slate-900/98 backdrop-blur-2xl shadow-2xl border-b border-slate-700/60' 
+            <nav className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-500 ${isScrolled
+                    ? 'bg-slate-900/98 backdrop-blur-2xl shadow-2xl border-b border-slate-700/60'
                     : 'bg-slate-900/95 backdrop-blur-xl shadow-xl border-b border-slate-700/40'
-            }`}>
+                }`}>
                 <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
-                    <div className={`flex items-center justify-between transition-all duration-300 ${
-                        isScrolled ? 'h-14 lg:h-16' : 'h-16 lg:h-20'
-                    }`}>
-                        
+                    <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'h-14 lg:h-16' : 'h-16 lg:h-20'
+                        }`}>
+
                         {/* Logo */}
-                        <Link 
-                            to="/dashboard" 
+                        <Link
+                            to="/dashboard"
                             className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity"
                         >
                             <img
@@ -206,7 +204,7 @@ const Navbar = ({ onLogout }) => {
                         {/* Desktop Actions */}
                         <div className="hidden md:flex items-center space-x-1 lg:space-x-2 xl:space-x-3">
                             {/* Mobile Search Toggle */}
-                            <button 
+                            <button
                                 onClick={toggleMobileSearch}
                                 className="lg:hidden p-2.5 text-slate-400 hover:text-indigo-400 rounded-xl hover:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             >
@@ -343,7 +341,7 @@ const Navbar = ({ onLogout }) => {
             {/* Mobile Menu Overlay */}
             {isMenuOpen && (
                 <div className="fixed inset-0 z-40 md:hidden">
-                    <div 
+                    <div
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={() => setIsMenuOpen(false)}
                     />
