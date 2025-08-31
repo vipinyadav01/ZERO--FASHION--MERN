@@ -9,7 +9,6 @@ import Login from "./components/Login";
 import LoadingSpinner from "./components/LoadingSpinner";
 import NotFound from "./components/NotFound";
 import CreateAdmin from "./pages/CreateAdmin";
-import { backendUrl, currency } from "./constants";
 
 // Lazy load pages
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
@@ -17,7 +16,7 @@ const Add = React.lazy(() => import("./pages/Add"));
 const List = React.lazy(() => import("./pages/List"));
 const Order = React.lazy(() => import("./pages/Order"));
 const OrderCharts = React.lazy(() => import("./pages/OrderCharts"));
-// Protected Route Component
+const UserProfile = React.lazy(() => import("./pages/UserProfile"));
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -26,8 +25,10 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Modern Mobile-First Layout Component
-const DashboardLayout = ({ children, handleLogout }) => {
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
 // Modern Mobile-First Layout Component
 const DashboardLayout = ({ children, handleLogout }) => {
   const [sidebarWidth, setSidebarWidth] = useState(64); // px
@@ -36,7 +37,7 @@ const DashboardLayout = ({ children, handleLogout }) => {
       <Sidebar onWidthChange={setSidebarWidth} />
       <Navbar onLogout={handleLogout} />
       <main
-        className="min-h-screen pt-16 transition-all duration-300"
+        className="min-h-screen pt-0 transition-all duration-300"
         style={{ paddingLeft: `${sidebarWidth}px` }}
       >
         {children}
@@ -49,6 +50,9 @@ DashboardLayout.propTypes = {
   children: PropTypes.node.isRequired,
   handleLogout: PropTypes.func.isRequired,
 };
+
+// Main App Component
+const App = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState(sessionStorage.getItem("token") || "");
 
@@ -112,7 +116,7 @@ DashboardLayout.propTypes = {
           { path: "/list", Component: List },
           { path: "/orders", Component: Order },
           { path: "/order-charts", Component: OrderCharts },
-          { path: "/userprofile", Component: Users },
+          { path: "/userprofile", Component: UserProfile },
           { path: "/admin-create", Component: CreateAdmin},
         ].map(({ path, Component }) => (
           <Route

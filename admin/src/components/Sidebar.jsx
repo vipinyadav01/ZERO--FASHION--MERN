@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { backendUrl } from "../App";
+import { backendUrl } from "../constants";
 import {
     BarChart3,
     PlusCircle,

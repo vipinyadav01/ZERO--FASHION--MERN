@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { backendUrl, currency } from "../App";
+import { backendUrl, currency } from "../constants";
 import { 
   Trash2, 
   Search, 

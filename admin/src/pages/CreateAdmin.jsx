@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { backendUrl } from "../App";
+import { backendUrl } from "../constants";
 
 const CreateAdmin = ({ token }) => {
   const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });

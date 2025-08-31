@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { backendUrl } from "../App";
+import { backendUrl } from "../constants";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Shield, Zap } from "lucide-react";
 

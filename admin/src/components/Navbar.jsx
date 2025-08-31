@@ -1,22 +1,24 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { backendUrl } from "../App";
-import { LogOut, Menu, X, ChevronDown, Bell, Search, User, Settings, HelpCircle, Command } from "lucide-react";
+import { toast } from "react-toastify";
+import { backendUrl } from "../constants";
+import { LogOut, Menu, X, ChevronDown, Search, Command, Package, Users, Plus } from "lucide-react";
+import NotificationDropdown from "./NotificationDropdown";
 
 const Navbar = ({ onLogout }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [isScrolled, setIsScrolled] = useState(false);
     const [user, setUser] = useState({ name: "", email: "", profileImage: "", role: "" });
+    
     const dropdownRef = useRef(null);
-    const notificationsRef = useRef(null);
     const searchInputRef = useRef(null);
 
+    // Event handlers
     const handleLogout = () => {
         if (isLoading) return;
         setIsLoading(true);
@@ -28,15 +30,9 @@ const Navbar = ({ onLogout }) => {
             });
     };
 
-    const toggleMenu = () => {
-        setIsMenuOpen(prev => !prev);
-        if (!isMenuOpen) {
-            setIsMobileSearchOpen(false);
-        }
-    };
-
+    const toggleMenu = () => setIsMenuOpen(prev => !prev);
     const toggleDropdown = () => setIsDropdownOpen(prev => !prev);
-    const toggleNotifications = () => setIsNotificationsOpen(prev => !prev);
+    
     const toggleMobileSearch = () => {
         setIsMobileSearchOpen(prev => !prev);
         setTimeout(() => {
@@ -46,18 +42,9 @@ const Navbar = ({ onLogout }) => {
         }, 100);
     };
 
-    const notifications = [
-        { id: 1, title: "New order received", desc: "Order #1247 from customer John D.", time: "5 min ago", read: false, type: "order" },
-        { id: 2, title: "Product inventory low", desc: "Winter Jacket - Only 3 items left", time: "2 hours ago", read: false, type: "warning" },
-        { id: 3, title: "System update completed", desc: "Dashboard performance improved", time: "Yesterday", read: true, type: "system" },
-        { id: 4, title: "Payment processed", desc: "Monthly subscription renewed", time: "3 hours ago", read: true, type: "payment" },
-        { id: 5, title: "New user registered", desc: "Welcome new customer Sarah M.", time: "1 day ago", read: true, type: "user" },
-    ];
-
+    // Scroll effect
     useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 10);
-        };
+        const handleScroll = () => setIsScrolled(window.scrollY > 10);
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
@@ -69,10 +56,12 @@ const Navbar = ({ onLogout }) => {
             try {
                 const token = sessionStorage.getItem("token");
                 if (!token) return;
+                
                 const res = await axios.get(`${backendUrl}/api/user/user`, {
                     headers: { Authorization: `Bearer ${token}` },
                     signal: controller.signal
                 });
+                
                 if (res.data?.success && res.data?.user) {
                     const u = res.data.user;
                     setUser({
@@ -85,6 +74,8 @@ const Navbar = ({ onLogout }) => {
                     throw new Error(res.data?.message || "Failed to load user");
                 }
             } catch (err) {
+                if (err.name === 'AbortError' || err.code === 'ERR_CANCELED') return;
+                
                 const message = err.response?.data?.message || err.message || "Failed to load user";
                 toast.error(message);
                 setUser({
@@ -97,22 +88,20 @@ const Navbar = ({ onLogout }) => {
         };
         fetchUser();
         return () => controller.abort();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Click outside handlers
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsDropdownOpen(false);
-            }
-            if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
-                setIsNotificationsOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    // Responsive handlers
     useEffect(() => {
         const handleResize = () => {
             if (window.innerWidth >= 768) {
@@ -124,6 +113,7 @@ const Navbar = ({ onLogout }) => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
+    // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (event) => {
             if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
@@ -134,25 +124,13 @@ const Navbar = ({ onLogout }) => {
                 setIsMobileSearchOpen(false);
                 setIsMenuOpen(false);
                 setIsDropdownOpen(false);
-                setIsNotificationsOpen(false);
             }
         };
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    const unreadCount = notifications.filter(n => !n.read).length;
 
-    const getNotificationIcon = (type) => {
-        switch (type) {
-            case 'order': return '🛍️';
-            case 'warning': return '⚠️';
-            case 'system': return '⚙️';
-            case 'payment': return '💳';
-            case 'user': return '👤';
-            default: return '📢';
-        }
-    };
 
     const avatarSrc = user.profileImage || "/zero.png";
     const displayName = user.name || "Admin";
@@ -170,6 +148,7 @@ const Navbar = ({ onLogout }) => {
                         isScrolled ? 'h-14 lg:h-16' : 'h-16 lg:h-20'
                     }`}>
                         
+                        {/* Logo */}
                         <Link 
                             to="/dashboard" 
                             className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity"
@@ -194,7 +173,7 @@ const Navbar = ({ onLogout }) => {
                             </div>
                         </Link>
 
-                        {/* Search bar - Desktop */}
+                        {/* Desktop Search */}
                         <div className="hidden lg:flex flex-1 max-w-xl mx-6 xl:mx-8">
                             <div className="relative w-full">
                                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
@@ -224,8 +203,9 @@ const Navbar = ({ onLogout }) => {
                             </div>
                         </div>
 
-                        {/* Desktop Action buttons */}
+                        {/* Desktop Actions */}
                         <div className="hidden md:flex items-center space-x-1 lg:space-x-2 xl:space-x-3">
+                            {/* Mobile Search Toggle */}
                             <button 
                                 onClick={toggleMobileSearch}
                                 className="lg:hidden p-2.5 text-slate-400 hover:text-indigo-400 rounded-xl hover:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
@@ -233,59 +213,10 @@ const Navbar = ({ onLogout }) => {
                                 <Search className="w-5 h-5" />
                             </button>
 
-                            <div className="relative" ref={notificationsRef}>
-                                <button
-                                    onClick={toggleNotifications}
-                                    className="relative p-2.5 text-slate-400 hover:text-indigo-400 rounded-xl hover:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                                    aria-label="Notifications"
-                                >
-                                    <Bell className="w-5 h-5" />
-                                    {unreadCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold rounded-full ring-2 ring-slate-900">
-                                            {unreadCount > 9 ? '9+' : unreadCount}
-                                        </span>
-                                    )}
-                                </button>
+                            {/* Notifications */}
+                            <NotificationDropdown />
 
-                                {isNotificationsOpen && (
-                                    <div className="origin-top-right absolute right-0 mt-3 w-80 lg:w-96 xl:w-[400px] rounded-2xl shadow-2xl bg-slate-800/98 backdrop-blur-2xl border border-slate-700/60 focus:outline-none overflow-hidden">
-                                        <div className="px-6 py-4 border-b border-slate-700/50">
-                                            <div className="flex items-center justify-between">
-                                                <h3 className="text-base font-semibold text-white">Notifications</h3>
-                                                <span className="text-xs px-3 py-1 rounded-full bg-slate-700/60 text-slate-300 font-medium border border-slate-600/40">
-                                                    {unreadCount} new
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="max-h-96 overflow-y-auto">
-                                            {notifications.slice(0, 5).map((item) => (
-                                                <div
-                                                    key={item.id}
-                                                    className={`px-6 py-4 hover:bg-slate-700/30 cursor-pointer border-l-3 ${
-                                                        item.read ? "border-transparent" : "border-indigo-500"
-                                                    } transition-all duration-200`}
-                                                >
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="text-lg mt-0.5 flex-shrink-0">
-                                                            {getNotificationIcon(item.type)}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-medium text-white truncate">
-                                                                {item.title}
-                                                            </p>
-                                                            <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                                                                {item.desc}
-                                                            </p>
-                                                            <p className="text-xs text-slate-500 mt-1">{item.time}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
+                            {/* User Menu */}
                             <div className="relative" ref={dropdownRef}>
                                 <button
                                     onClick={toggleDropdown}
@@ -303,7 +234,7 @@ const Navbar = ({ onLogout }) => {
                                     <span className="ml-3 text-white font-medium hidden lg:inline">{displayName}</span>
                                     <ChevronDown
                                         size={16}
-                                        className={`ml-2 text-slate-400 ${isDropdownOpen ? "rotate-180" : ""}`}
+                                        className={`ml-2 text-slate-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
                                     />
                                 </button>
 
@@ -355,7 +286,7 @@ const Navbar = ({ onLogout }) => {
                             </div>
                         </div>
 
-                        {/* Mobile actions */}
+                        {/* Mobile Actions */}
                         <div className="flex items-center gap-2 md:hidden">
                             <button
                                 onClick={toggleMobileSearch}
@@ -409,7 +340,7 @@ const Navbar = ({ onLogout }) => {
                 )}
             </nav>
 
-            {/* Mobile menu overlay */}
+            {/* Mobile Menu Overlay */}
             {isMenuOpen && (
                 <div className="fixed inset-0 z-40 md:hidden">
                     <div 
@@ -419,38 +350,55 @@ const Navbar = ({ onLogout }) => {
                     <div className="fixed top-16 left-0 right-0 bottom-0 bg-slate-900/98 backdrop-blur-2xl border-t border-slate-700/50">
                         <div className="flex flex-col h-full">
                             <div className="flex-1 overflow-y-auto">
+                                {/* Mobile Notifications */}
                                 <div className="p-6 border-b border-slate-700/50">
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="text-lg font-semibold text-white">Notifications</h3>
-                                        {unreadCount > 0 && (
-                                            <span className="text-xs px-3 py-1 rounded-full bg-slate-700/60 text-slate-300 font-medium border border-slate-600/40">
-                                                {unreadCount} new
-                                            </span>
-                                        )}
+                                        <span className="text-xs px-3 py-1 rounded-full bg-slate-700/60 text-slate-300 font-medium border border-slate-600/40">
+                                            Recent
+                                        </span>
                                     </div>
                                     <div className="space-y-3">
-                                        {notifications.slice(0, 4).map((item) => (
-                                            <div
-                                                key={item.id}
-                                                className={`p-4 hover:bg-slate-800/30 rounded-xl border-l-3 ${
-                                                    item.read ? "border-transparent" : "border-indigo-500"
-                                                } transition-all duration-200`}
-                                            >
-                                                <div className="flex items-start gap-3">
-                                                    <div className="text-base mt-0.5 flex-shrink-0">
-                                                        {getNotificationIcon(item.type)}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium text-white">{item.title}</p>
-                                                        <p className="text-xs text-slate-400 mt-1">{item.desc}</p>
-                                                        <p className="text-xs text-slate-500 mt-1">{item.time}</p>
-                                                    </div>
+                                        <div className="p-4 hover:bg-slate-800/30 rounded-xl border-l-3 border-indigo-500 transition-all duration-200">
+                                            <div className="flex items-start gap-3">
+                                                <div className="p-2 rounded-lg bg-blue-500/20">
+                                                    <Package className="w-4 h-4 text-blue-400" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-white">New Order Received</p>
+                                                    <p className="text-xs text-slate-400 mt-1">Order #1247 from customer John D.</p>
+                                                    <p className="text-xs text-slate-500 mt-1">5 min ago</p>
                                                 </div>
                                             </div>
-                                        ))}
+                                        </div>
+                                        <div className="p-4 hover:bg-slate-800/30 rounded-xl border-l-3 border-indigo-500 transition-all duration-200">
+                                            <div className="flex items-start gap-3">
+                                                <div className="p-2 rounded-lg bg-green-500/20">
+                                                    <Users className="w-4 h-4 text-green-400" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-white">New User Registered</p>
+                                                    <p className="text-xs text-slate-400 mt-1">Welcome new customer Sarah M.</p>
+                                                    <p className="text-xs text-slate-500 mt-1">2 hours ago</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 hover:bg-slate-800/30 rounded-xl border-l-3 border-transparent transition-all duration-200">
+                                            <div className="flex items-start gap-3">
+                                                <div className="p-2 rounded-lg bg-purple-500/20">
+                                                    <Plus className="w-4 h-4 text-purple-400" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-slate-300">New Product Added</p>
+                                                    <p className="text-xs text-slate-400 mt-1">Winter Jacket has been added to inventory</p>
+                                                    <p className="text-xs text-slate-500 mt-1">1 day ago</p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
+                                {/* Mobile User Profile & Logout */}
                                 <div className="p-6">
                                     <div className="flex items-center mb-6 p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50">
                                         <img

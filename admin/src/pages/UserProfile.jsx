@@ -6,7 +6,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
-import { backendUrl } from "../App";
+import { backendUrl } from "../constants";
 import UsersHeader from "../components/users/UsersHeader";
 import UsersSearch from "../components/users/UsersSearch";
 import UsersPagination from "../components/users/UsersPagination";

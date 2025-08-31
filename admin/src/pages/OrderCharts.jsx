@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { backendUrl, currency } from "../App";
+import { backendUrl, currency } from "../constants";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { Bar, Pie } from "react-chartjs-2";
