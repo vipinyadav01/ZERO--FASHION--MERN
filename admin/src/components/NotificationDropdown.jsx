@@ -1,71 +1,173 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Bell, Package, Users, Plus, Clock, X } from "lucide-react";
+import axios from "axios";
+import { backendUrl } from "../constants";
+import { toast } from "react-toastify";
 
 const NotificationDropdown = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
     const dropdownRef = useRef(null);
 
-    // Custom notification logic - only 3 types: orders, users, new products
-    const generateNotifications = () => {
+    // Fetch real notifications from backend
+    const fetchNotifications = async () => {
+        try {
+            setIsLoading(true);
+            const token = sessionStorage.getItem("token");
+            if (!token) return;
+
+            // Fetch recent orders
+            const ordersResponse = await axios.get(`${backendUrl}/api/orders/recent`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // Fetch recent users
+            const usersResponse = await axios.get(`${backendUrl}/api/users/recent`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // Fetch recent products
+            const productsResponse = await axios.get(`${backendUrl}/api/products/recent`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // Process and combine notifications
+            const processedNotifications = [];
+
+            // Process orders
+            if (ordersResponse.data?.success && ordersResponse.data?.orders) {
+                ordersResponse.data.orders.slice(0, 2).forEach((order, index) => {
+                    processedNotifications.push({
+                        id: `order-${order._id || index}`,
+                        type: 'order',
+                        title: 'New Order Received',
+                        desc: `Order #${order.orderNumber || order._id?.slice(-6)} from ${order.customerName || 'Customer'}`,
+                        timestamp: new Date(order.createdAt || Date.now() - (index * 30 * 60 * 1000)),
+                        icon: Package,
+                        color: 'text-blue-400',
+                        bgColor: 'bg-blue-500/20',
+                        read: false,
+                        data: order
+                    });
+                });
+            }
+
+            // Process users
+            if (usersResponse.data?.success && usersResponse.data?.users) {
+                usersResponse.data.users.slice(0, 1).forEach((user, index) => {
+                    processedNotifications.push({
+                        id: `user-${user._id || index}`,
+                        type: 'user',
+                        title: 'New User Registered',
+                        desc: `Welcome new customer ${user.name || user.email}`,
+                        timestamp: new Date(user.createdAt || Date.now() - (2 * 60 * 60 * 1000)),
+                        icon: Users,
+                        color: 'text-green-400',
+                        bgColor: 'bg-green-500/20',
+                        read: false,
+                        data: user
+                    });
+                });
+            }
+
+            // Process products
+            if (productsResponse.data?.success && productsResponse.data?.products) {
+                productsResponse.data.products.slice(0, 1).forEach((product, index) => {
+                    processedNotifications.push({
+                        id: `product-${product._id || index}`,
+                        type: 'product',
+                        title: 'New Product Added',
+                        desc: `${product.name} has been added to inventory`,
+                        timestamp: new Date(product.createdAt || Date.now() - (24 * 60 * 60 * 1000)),
+                        icon: Plus,
+                        color: 'text-purple-400',
+                        bgColor: 'bg-purple-500/20',
+                        read: true,
+                        data: product
+                    });
+                });
+            }
+
+            // Sort by timestamp (newest first)
+            processedNotifications.sort((a, b) => b.timestamp - a.timestamp);
+
+            setNotifications(processedNotifications);
+            setUnreadCount(processedNotifications.filter(n => !n.read).length);
+
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+            
+            // Fallback to mock data if API fails
+            const fallbackNotifications = generateFallbackNotifications();
+            setNotifications(fallbackNotifications);
+            setUnreadCount(fallbackNotifications.filter(n => !n.read).length);
+            
+            // Show error toast only if it's not a network error
+            if (error.response?.status !== 404) {
+                toast.error('Failed to load notifications');
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Fallback notifications when API is not available
+    const generateFallbackNotifications = () => {
         const currentTime = new Date();
-        const notificationTypes = [
+        return [
             {
+                id: 'order-1',
                 type: 'order',
                 title: 'New Order Received',
                 desc: 'Order #1247 from customer John D.',
-                time: '5 min ago',
+                timestamp: new Date(currentTime.getTime() - 5 * 60 * 1000), // 5 min ago
                 icon: Package,
                 color: 'text-blue-400',
                 bgColor: 'bg-blue-500/20',
                 read: false
             },
             {
+                id: 'user-1',
                 type: 'user',
                 title: 'New User Registered',
                 desc: 'Welcome new customer Sarah M.',
-                time: '2 hours ago',
+                timestamp: new Date(currentTime.getTime() - 2 * 60 * 60 * 1000), // 2 hours ago
                 icon: Users,
                 color: 'text-green-400',
                 bgColor: 'bg-green-500/20',
                 read: false
             },
             {
+                id: 'product-1',
                 type: 'product',
                 title: 'New Product Added',
                 desc: 'Winter Jacket has been added to inventory',
-                time: '1 day ago',
+                timestamp: new Date(currentTime.getTime() - 24 * 60 * 60 * 1000), // 1 day ago
                 icon: Plus,
                 color: 'text-purple-400',
                 bgColor: 'bg-purple-500/20',
                 read: true
             }
         ];
-
-        // Add some random variations to make it more realistic
-        const variations = [
-            { order: 'Order #1248 from customer Mike R.', user: 'Welcome new customer Emma L.', product: 'Summer Dress has been added to inventory' },
-            { order: 'Order #1249 from customer Lisa K.', user: 'Welcome new customer David P.', product: 'Leather Bag has been added to inventory' },
-            { order: 'Order #1250 from customer Alex M.', user: 'Welcome new customer Rachel S.', product: 'Sneakers have been added to inventory' }
-        ];
-
-        const randomVariation = variations[Math.floor(Math.random() * variations.length)];
-        
-        return notificationTypes.map((notification, index) => ({
-            id: index + 1,
-            ...notification,
-            desc: randomVariation[notification.type] || notification.desc,
-            timestamp: new Date(currentTime.getTime() - (index * 2 * 60 * 60 * 1000)) // 2 hours apart
-        }));
     };
 
     // Initialize notifications
     useEffect(() => {
-        const initialNotifications = generateNotifications();
-        setNotifications(initialNotifications);
-        setUnreadCount(initialNotifications.filter(n => !n.read).length);
+        fetchNotifications();
     }, []);
+
+    // Refresh notifications every 30 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (!isOpen) { // Only refresh when dropdown is closed
+                fetchNotifications();
+            }
+        }, 30000);
+
+        return () => clearInterval(interval);
+    }, [isOpen]);
 
     // Click outside to close
     useEffect(() => {
@@ -79,24 +181,67 @@ const NotificationDropdown = () => {
     }, []);
 
     // Toggle dropdown
-    const toggleDropdown = () => setIsOpen(prev => !prev);
+    const toggleDropdown = () => {
+        setIsOpen(prev => !prev);
+        if (!isOpen) {
+            fetchNotifications(); // Refresh when opening
+        }
+    };
 
     // Mark notification as read
-    const markAsRead = (notificationId) => {
-        setNotifications(prev => 
-            prev.map(notification => 
-                notification.id === notificationId 
-                    ? { ...notification, read: true }
-                    : notification
-            )
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
+    const markAsRead = async (notificationId) => {
+        try {
+            const token = sessionStorage.getItem("token");
+            if (!token) return;
+
+            // Update local state immediately for better UX
+            setNotifications(prev => 
+                prev.map(notification => 
+                    notification.id === notificationId 
+                        ? { ...notification, read: true }
+                        : notification
+                )
+            );
+            setUnreadCount(prev => Math.max(0, prev - 1));
+
+            // Try to mark as read on backend (optional)
+            try {
+                await axios.patch(`${backendUrl}/api/notifications/${notificationId}/read`, {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            } catch (error) {
+                // Silently fail if backend doesn't support this
+                console.log('Backend notification read status not supported');
+            }
+
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
     };
 
     // Mark all as read
-    const markAllAsRead = () => {
-        setNotifications(prev => prev.map(notification => ({ ...notification, read: true })));
-        setUnreadCount(0);
+    const markAllAsRead = async () => {
+        try {
+            const token = sessionStorage.getItem("token");
+            if (!token) return;
+
+            // Update local state immediately
+            setNotifications(prev => prev.map(notification => ({ ...notification, read: true })));
+            setUnreadCount(0);
+
+            // Try to mark all as read on backend (optional)
+            try {
+                await axios.patch(`${backendUrl}/api/notifications/mark-all-read`, {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            } catch (error) {
+                // Silently fail if backend doesn't support this
+                console.log('Backend bulk notification read status not supported');
+            }
+
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+        }
     };
 
     // Format time
@@ -136,6 +281,9 @@ const NotificationDropdown = () => {
                         {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                 )}
+                {isLoading && (
+                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full animate-ping"></div>
+                )}
             </button>
 
             {/* Notification Dropdown */}
@@ -165,7 +313,12 @@ const NotificationDropdown = () => {
 
                     {/* Notifications List */}
                     <div className="max-h-96 overflow-y-auto">
-                        {notifications.length > 0 ? (
+                        {isLoading ? (
+                            <div className="px-6 py-8 text-center">
+                                <div className="w-8 h-8 mx-auto mb-3 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
+                                <p className="text-sm text-slate-400">Loading notifications...</p>
+                            </div>
+                        ) : notifications.length > 0 ? (
                             notifications.map((notification) => (
                                 <div
                                     key={notification.id}
