@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import axios from "axios";
 import { backendUrl } from "../App";
 import { toast } from "react-toastify";
@@ -215,17 +215,49 @@ const Order = () => {
                                 </div>
 
                                 {/* Status Filter */}
-                                <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                                    <select
-                                        value={statusFilter}
-                                        onChange={(e) => setStatusFilter(e.target.value)}
-                                        className="flex-shrink-0 px-3 py-2 bg-slate-700/50 border border-slate-600/50 text-white text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                                    >
-                                        <option value="">All Statuses</option>
-                                        {statuses.map(status => (
-                                            <option key={status} value={status}>{status}</option>
-                                        ))}
-                                    </select>
+                                <div className="flex items-center gap-3 overflow-x-auto pb-1">
+                                    <div className="relative flex-shrink-0">
+                                        <select
+                                            value={statusFilter}
+                                            onChange={(e) => setStatusFilter(e.target.value)}
+                                            className="appearance-none pl-4 pr-10 py-3 bg-gradient-to-r from-slate-700/60 to-slate-600/60 backdrop-blur-sm border border-slate-500/30 text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400/50 transition-all duration-300 hover:bg-slate-600/70 cursor-pointer shadow-lg"
+                                        >
+                                            <option value="" className="bg-slate-800 text-white">All Statuses</option>
+                                            {statuses.map(status => (
+                                                <option key={status} value={status} className="bg-slate-800 text-white">{status}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <ChevronDown className="h-4 w-4 text-slate-400" />
+                                        </div>
+                                    </div>
+
+                                    {/* Active Filters Display */}
+                                    <div className="flex items-center gap-2 overflow-x-auto">
+                                        {statusFilter && (
+                                            <div className="flex items-center gap-1 px-3 py-1.5 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs rounded-full whitespace-nowrap">
+                                                <span>Status: {statusFilter}</span>
+                                                <button
+                                                    onClick={() => setStatusFilter('')}
+                                                    className="ml-1 hover:bg-indigo-500/30 rounded-full p-0.5 transition-colors"
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        )}
+                                        
+                                        {searchQuery && (
+                                            <div className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs rounded-full whitespace-nowrap">
+                                                <span>Search: "{searchQuery.slice(0, 15)}{searchQuery.length > 15 ? '...' : ''}"</span>
+                                                <button
+                                                    onClick={() => setSearchQuery('')}
+                                                    className="ml-1 hover:bg-purple-500/30 rounded-full p-0.5 transition-colors"
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
 
                                     {(searchQuery || statusFilter) && (
                                         <button
@@ -233,17 +265,19 @@ const Order = () => {
                                                 setSearchQuery('');
                                                 setStatusFilter('');
                                             }}
-                                            className="px-3 py-2 bg-slate-600/50 text-slate-300 text-sm rounded-lg hover:bg-slate-600 transition-colors"
+                                            className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30 text-red-300 text-sm rounded-xl hover:from-red-500/30 hover:to-red-600/30 hover:border-red-400/50 transition-all duration-300 active:scale-95 shadow-lg"
                                         >
-                                            Clear
+                                            <X className="h-4 w-4" />
+                                            <span className="hidden sm:inline">Clear All</span>
+                                            <span className="sm:hidden">Clear</span>
                                         </button>
                                     )}
                                 </div>
-                            </div>
-                        </div>
-                    </div>
+                                </div>
+                                </div>
+                                </div>
 
-                    {/* Orders Section */}
+                                {/* Orders Section */}
                     {error ? (
                         /* Error State */
                         <div className="relative overflow-hidden rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-6 text-center">
