@@ -2,10 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import {
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+import { AlertCircle} from "lucide-react";
 import { backendUrl } from "../constants";
 import UsersHeader from "../components/users/UsersHeader";
 import UsersSearch from "../components/users/UsersSearch";
@@ -77,12 +74,11 @@ const UserProfile = ({ token }) => {
       if (!isMounted.current) return;
 
       if (response.data.success) {
-        const usersData = Array.isArray(response.data.users) ? response.data.users : response.data.users || [];
-        
+        const usersData = Array.isArray(response.data.users) ? response.data.users : [];
         setUsers(usersData);
         setTotal(response.data.total || usersData.length);
         setTotalPages(response.data.totalPages || 1);
-        
+
         if (usersData.length === 0 && (response.data.total || 0) === 0) {
           toast.info("No users found in the database. Try creating some users first.");
         }
@@ -92,7 +88,7 @@ const UserProfile = ({ token }) => {
     } catch (err) {
       if (!isMounted.current) return;
       const status = err.response?.status;
-      const message = err.response?.data?.message || err.message;
+      const message = err.response?.data?.message || err.message || "Failed to fetch users.";
       setError(
         status === 403
           ? "Access denied: Admin privileges required."
@@ -131,7 +127,6 @@ const UserProfile = ({ token }) => {
 
     try {
       let createdCount = 0;
-      let adminCreated = false;
 
       for (const userData of sampleUsers) {
         try {
@@ -147,28 +142,10 @@ const UserProfile = ({ token }) => {
 
           if (registerResponse.data.success) {
             createdCount++;
-            if (userData.email === "testadmin@zerofashion.com") {
-              await axios.post(
-                `${backendUrl}/api/user/admin-update`,
-                {
-                  userId: registerResponse.data.user._id,
-                  name: userData.name,
-                  email: userData.email,
-                  role: "admin",
-                },
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                  },
-                }
-              );
-              adminCreated = true;
-            }
           }
         } catch (userError) {
           if (userError.response?.data?.message?.includes("already exists")) {
-            
+            continue;
           } else {
             throw userError;
           }
@@ -176,7 +153,7 @@ const UserProfile = ({ token }) => {
       }
 
       if (createdCount > 0) {
-        toast.success(`Created ${createdCount} sample users${adminCreated ? " (including 1 admin)" : ""}`);
+        toast.success(`Created ${createdCount} sample users`);
         await fetchUsers(1);
         setPage(1);
       } else {
@@ -310,25 +287,23 @@ const UserProfile = ({ token }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center space-y-4">
-            <div className="relative h-12 w-12 mx-auto">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 animate-pulse"></div>
-              <div className="absolute inset-1 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-40 animate-pulse animation-delay-75"></div>
-              <div className="absolute inset-2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-spin"></div>
-            </div>
-            <div className="space-y-1">
-              <p className="text-white font-semibold text-lg">Loading Users</p>
-              <p className="text-slate-400 text-sm">Fetching user data...</p>
-            </div>
-            <button
-              onClick={() => fetchUsers(page)}
-              className="mt-4 px-4 py-2 bg-slate-700/50 text-slate-300 text-sm rounded-lg hover:bg-slate-600/50 transition-colors"
-            >
-              Refresh
-            </button>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="relative h-12 w-12 mx-auto">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 animate-pulse"></div>
+            <div className="absolute inset-1 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-40 animate-pulse animation-delay-75"></div>
+            <div className="absolute inset-2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-spin"></div>
           </div>
+          <div className="space-y-1">
+            <p className="text-white font-semibold text-lg">Loading Users</p>
+            <p className="text-slate-400 text-sm">Fetching user data...</p>
+          </div>
+          <button
+            onClick={() => fetchUsers(page)}
+            className="mt-4 px-4 py-2 bg-slate-700/50 text-slate-300 text-sm rounded-lg hover:bg-slate-600/50 transition-colors"
+          >
+            Refresh
+          </button>
         </div>
       </div>
     );
@@ -336,7 +311,7 @@ const UserProfile = ({ token }) => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6 flex items-center justify-center">
         <div className="max-w-md mx-auto">
           <div className="relative overflow-hidden rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-6 text-center">
             <div className="space-y-4">
@@ -361,111 +336,116 @@ const UserProfile = ({ token }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="px-3 pt-20 pb-6 sm:px-4 sm:pt-24 lg:px-6 lg:pt-28">
-        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-          <UsersHeader
-            total={total}
-            loading={loading}
-            isSubmitting={isSubmitting}
-            onRefresh={() => fetchUsers(page)}
-            onAddSample={createSampleUsers}
-          />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <UsersHeader
+          total={total}
+          loading={loading}
+          isSubmitting={isSubmitting}
+          onRefresh={() => fetchUsers(page)}
+          onAddSample={createSampleUsers}
+        />
 
-          <UsersSearch
-            value={searchTerm}
-            onChange={handleSearchChange}
-            onClear={() => {
-              setSearchTerm("");
-              const input = document.querySelector('input[type="text"]');
-              if (input) input.value = "";
-            }}
-          />
+        <UsersSearch
+          value={searchTerm}
+          onChange={handleSearchChange}
+          onClear={() => {
+            setSearchTerm("");
+            const input = document.querySelector('input[type="text"]');
+            if (input) input.value = "";
+          }}
+        />
 
-          <UsersPagination
-            page={page}
-            totalPages={totalPages}
-            onPrev={() => page > 1 && setPage(page - 1)}
-            onNext={() => page < totalPages && setPage(page + 1)}
-          />
-
-          {users.length === 0 ? (
-            <div className="relative overflow-hidden rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-6 text-center">
-              <div className="space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-slate-500/20 to-slate-600/20 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-slate-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 11C16 13.2091 14.2091 15 12 15C9.79086 15 8 13.2091 8 11C8 8.79086 9.79086 7 12 7C14.2091 7 16 8.79086 16 11Z" stroke="currentColor" strokeWidth="1.5"/><path d="M20.3536 20.3536C18.2091 22.4981 15.2091 24 12 24C8.79086 24 5.79086 22.4981 3.64645 20.3536C5.79086 18.2091 8.79086 16.7071 12 16.7071C15.2091 16.7071 18.2091 18.2091 20.3536 20.3536Z" stroke="currentColor" strokeWidth="1.5"/></svg>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-white">No Users Found</h3>
-                  <p className="text-sm text-slate-400">
-                    {searchTerm
-                      ? "Try adjusting your search criteria"
-                      : "No users available in the system. Create some sample users to get started."}
-                  </p>
-                </div>
+        {users.length === 0 ? (
+          <div className="relative overflow-hidden rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-6 text-center">
+            <div className="space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-slate-500/20 to-slate-600/20 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-slate-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M16 11C16 13.2091 14.2091 15 12 15C9.79086 15 8 13.2091 8 11C8 8.79086 9.79086 7 12 7C14.2091 7 16 8.79086 16 11Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M20.3536 20.3536C18.2091 22.4981 15.2091 24 12 24C8.79086 24 5.79086 22.4981 3.64645 20.3536C5.79086 18.2091 8.79086 16.7071 12 16.7071C15.2091 16.7071 18.2091 18.2091 20.3536 20.3536Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  />
+                </svg>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-bold text-white">No Users Found</h3>
+                <p className="text-sm text-slate-400">
+                  {searchTerm
+                    ? "Try adjusting your search criteria"
+                    : "No users available in the system. Create some sample users to get started."}
+                </p>
               </div>
             </div>
-          ) : (
-            <div className="space-y-3 sm:space-y-4">
-              <UsersTable
-                users={users}
-                formatDate={formatDate}
-                onEdit={(user) => {
-                  setSelectedUser(user);
-                  setEditForm({ name: user.name || "", email: user.email || "", isAdmin: user.role === "admin" });
-                  setModalAction("edit");
-                  setIsModalOpen(true);
-                }}
-                onDelete={(user) => {
-                  setSelectedUser(user);
-                  setModalAction("delete");
-                  setIsModalOpen(true);
-                }}
-              />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <UsersTable
+              users={users}
+              formatDate={formatDate}
+              onEdit={(user) => {
+                setSelectedUser(user);
+                setEditForm({ name: user.name || "", email: user.email || "", isAdmin: user.role === "admin" });
+                setModalAction("edit");
+                setIsModalOpen(true);
+              }}
+              onDelete={(user) => {
+                setSelectedUser(user);
+                setModalAction("delete");
+                setIsModalOpen(true);
+              }}
+            />
+            <UsersListMobile
+              users={users}
+              formatDate={formatDate}
+              onEdit={(user) => {
+                setSelectedUser(user);
+                setEditForm({ name: user.name || "", email: user.email || "", isAdmin: user.role === "admin" });
+                setModalAction("edit");
+                setIsModalOpen(true);
+              }}
+              onDelete={(user) => {
+                setSelectedUser(user);
+                setModalAction("delete");
+                setIsModalOpen(true);
+              }}
+            />
+            <UsersPagination
+              page={page}
+              totalPages={totalPages}
+              onPrev={() => page > 1 && setPage(page - 1)}
+              onNext={() => page < totalPages && setPage(page + 1)}
+            />
+          </div>
+        )}
 
-              <UsersListMobile
-                users={users}
-                formatDate={formatDate}
-                onEdit={(user) => {
-                  setSelectedUser(user);
-                  setEditForm({ name: user.name || "", email: user.email || "", isAdmin: user.role === "admin" });
-                  setModalAction("edit");
-                  setIsModalOpen(true);
-                }}
-                onDelete={(user) => {
-                  setSelectedUser(user);
-                  setModalAction("delete");
-                  setIsModalOpen(true);
-                }}
-              />
+        <UserEditModal
+          isOpen={isModalOpen && modalAction === "edit"}
+          onClose={closeModal}
+          editForm={editForm}
+          setEditForm={setEditForm}
+          onSave={handleEdit}
+          isSubmitting={isSubmitting}
+        />
 
-              <UsersPagination
-                page={page}
-                totalPages={totalPages}
-                onPrev={() => page > 1 && setPage(page - 1)}
-                onNext={() => page < totalPages && setPage(page + 1)}
-              />
-            </div>
-          )}
-        </div>
+        <UserDeleteModal
+          isOpen={isModalOpen && modalAction === "delete"}
+          onClose={closeModal}
+          onConfirm={handleDelete}
+          isSubmitting={isSubmitting}
+          selectedUser={selectedUser}
+        />
       </div>
-
-      <UserEditModal
-        isOpen={isModalOpen && modalAction === "edit"}
-        onClose={closeModal}
-        editForm={editForm}
-        setEditForm={setEditForm}
-        onSave={handleEdit}
-        isSubmitting={isSubmitting}
-      />
-
-      <UserDeleteModal
-        isOpen={isModalOpen && modalAction === "delete"}
-        onClose={closeModal}
-        onConfirm={handleDelete}
-        isSubmitting={isSubmitting}
-        selectedUser={selectedUser}
-      />
     </div>
   );
 };
