@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PropTypes from "prop-types";
-import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Login from "./components/Login";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -34,13 +33,14 @@ const DashboardLayout = ({ children, handleLogout }) => {
   const [sidebarWidth, setSidebarWidth] = useState(64); // px
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <Sidebar onWidthChange={setSidebarWidth} />
-      <Navbar onLogout={handleLogout} />
+      <Sidebar onWidthChange={setSidebarWidth} handleLogout={handleLogout} />
       <main
-        className="min-h-screen pt-0 transition-all duration-300"
+        className="min-h-screen transition-all duration-300 p-6"
         style={{ paddingLeft: `${sidebarWidth}px` }}
       >
-        {children}
+        <div className="max-w-7xl mx-auto">
+          {children}
+        </div>
       </main>
     </div>
   );
