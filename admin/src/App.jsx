@@ -35,10 +35,10 @@ const DashboardLayout = ({ children, handleLogout }) => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <Sidebar onWidthChange={setSidebarWidth} handleLogout={handleLogout} />
       <main
-        className="min-h-screen transition-all duration-300 p-6"
-        style={{ paddingLeft: `${sidebarWidth}px` }}
+        className="min-h-screen transition-all duration-300 p-6 pt-0"
+        style={{ paddingLeft: `${sidebarWidth + 24}px` }}
       >
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto pt-6">
           {children}
         </div>
       </main>

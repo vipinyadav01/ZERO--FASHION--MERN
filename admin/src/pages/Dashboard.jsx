@@ -1,30 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { backendUrl } from "../constants";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import {
-    Sparkles,
     Clock,
-    Calendar,
-    Award,
+
     TrendingUp,
-    Zap,
+
     Lightbulb,
-    PieChart,
+
     Star,
     Heart,
-    User,
+
     ArrowUpRight,
     CheckCircle2,
     AlertCircle,
-    ShoppingBag,
+
     BarChart3,
     Eye,
     DollarSign,
     Package,
     Users,
     ChevronRight,
-    Bell,
     Target,
     Briefcase
 } from 'lucide-react';
@@ -58,38 +55,7 @@ const Dashboard = () => {
 
     const [dataError, setDataError] = useState(null);
 
-    useEffect(() => {
-        updateDateTime();
-        setGreeting(getGreeting());
-        fetchCurrentUser();
-        fetchDashboardData();
-
-        const timer = setInterval(() => {
-            updateDateTime();
-            setGreeting(getGreeting());
-        }, 60000);
-
-        return () => clearInterval(timer);
-    }, []);
-
-    const fetchCurrentUser = async () => {
-        try {
-            const token = sessionStorage.getItem("token");
-            if (!token) return;
-            const res = await axios.get(`${backendUrl}/api/user/user`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.data?.success && res.data?.user?.name) {
-                setCurrentUser(res.data.user.name);
-            } else {
-                setCurrentUser("Admin");
-            }
-        } catch (_) {
-            setCurrentUser("Admin");
-        }
-    };
-
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = useCallback(async () => {
         try {
             setIsLoading(true);
             setDataError(null);
@@ -100,8 +66,8 @@ const Dashboard = () => {
             const [ordersResponse, productsResponse] = await Promise.all([
                 axios.get(`${backendUrl}/api/order/list`, {
                     headers: { Authorization: `Bearer ${token}` }
-                }).catch(err => ({ data: { success: false, orders: [] } })),
-                axios.get(`${backendUrl}/api/product/list`).catch(err => ({ data: { success: false, products: [] } }))
+                }).catch(() => ({ data: { success: false, orders: [] } })),
+                axios.get(`${backendUrl}/api/product/list`).catch(() => ({ data: { success: false, products: [] } }))
             ]);
 
             const orders = ordersResponse.data.success ? ordersResponse.data.orders : [];
@@ -181,6 +147,37 @@ const Dashboard = () => {
         } finally {
             setIsLoading(false);
         }
+    }, []);
+
+    useEffect(() => {
+        updateDateTime();
+        setGreeting(getGreeting());
+        fetchCurrentUser();
+        fetchDashboardData();
+
+        const timer = setInterval(() => {
+            updateDateTime();
+            setGreeting(getGreeting());
+        }, 60000);
+
+        return () => clearInterval(timer);
+    }, [fetchDashboardData]);
+
+    const fetchCurrentUser = async () => {
+        try {
+            const token = sessionStorage.getItem("token");
+            if (!token) return;
+            const res = await axios.get(`${backendUrl}/api/user/user`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.data?.success && res.data?.user?.name) {
+                setCurrentUser(res.data.user.name);
+            } else {
+                setCurrentUser("Admin");
+            }
+        } catch {
+            setCurrentUser("Admin");
+        }
     };
 
     const animateNumbers = (salesTarget, monthlyTarget, satisfaction) => {
@@ -232,26 +229,6 @@ const Dashboard = () => {
         setCurrentDateTime(now.toLocaleDateString(undefined, options));
     };
 
-    const formatCurrency = (amount) => {
-        if (amount >= 1000000) {
-            return `$${(amount / 1000000).toFixed(1)}M`;
-        } else if (amount >= 1000) {
-            return `$${(amount / 1000).toFixed(0)}k`;
-        } else {
-            return `$${amount.toFixed(0)}`;
-        }
-    };
-
-    const formatNumber = (num) => {
-        if (num >= 1000000) {
-            return `${(num / 1000000).toFixed(1)}M`;
-        } else if (num >= 1000) {
-            return `${(num / 1000).toFixed(1)}k`;
-        } else {
-            return num.toString();
-        }
-    };
-
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4">
@@ -297,10 +274,9 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-            {/* Mobile-first container with proper spacing */}
-            <div className="px-3 pt-20 pb-6 sm:px-4 sm:pt-24 lg:px-6 lg:pt-28">
-                <main className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
+        <div className="w-full">
+            {/* Main dashboard content */}
+            <main className="space-y-4 sm:space-y-6 lg:space-y-8">
                     {/* Mobile-first Welcome Section */}
                     <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-4 sm:p-6 lg:p-8">
                         {/* Mobile-optimized background */}
@@ -576,7 +552,6 @@ const Dashboard = () => {
                         </div>
                     </div>
                 </main>
-            </div>
         </div>
     );
 };

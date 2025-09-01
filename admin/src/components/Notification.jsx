@@ -1,10 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Bell, Package, Users, Plus, Clock, X } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Bell, Package, Users, Plus, Clock } from "lucide-react";
 import axios from "axios";
 import { backendUrl } from "../constants";
-import { toast } from "react-toastify";
 
-const NotificationDropdown = () => {
+const Notification = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -12,116 +11,160 @@ const NotificationDropdown = () => {
     const dropdownRef = useRef(null);
 
     // Fetch real notifications from backend
-    const fetchNotifications = async () => {
+    const fetchNotifications = useCallback(async () => {
         try {
             setIsLoading(true);
             const token = sessionStorage.getItem("token");
-            if (!token) return;
+            
+            console.log('🔔 Fetching notifications...');
+            console.log('Backend URL:', backendUrl);
+            console.log('Token available:', !!token);
+            
+            if (!token) {
+                console.log('❌ No token found, using fallback data');
+                const fallbackNotifications = generateFallbackNotifications();
+                setNotifications(fallbackNotifications);
+                setUnreadCount(fallbackNotifications.filter(n => !n.read).length);
+                return;
+            }
 
-            // Fetch recent orders
-            const ordersResponse = await axios.get(`${backendUrl}/api/orders/recent`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            // Fetch recent orders (using correct endpoint)
+            const ordersPromise = axios.get(`${backendUrl}/api/order/list`, {
+                headers: { token }
+            }).catch(err => ({ data: { success: false, error: err } }));
 
-            // Fetch recent users
-            const usersResponse = await axios.get(`${backendUrl}/api/users/recent`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            // Fetch recent users (using correct endpoint)
+            const usersPromise = axios.get(`${backendUrl}/api/user/all`, {
+                headers: { token }
+            }).catch(err => ({ data: { success: false, error: err } }));
 
-            // Fetch recent products
-            const productsResponse = await axios.get(`${backendUrl}/api/products/recent`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            // Fetch recent products (using correct endpoint)
+            const productsPromise = axios.get(`${backendUrl}/api/product/list`, {
+                headers: { token }
+            }).catch(err => ({ data: { success: false, error: err } }));
+
+            // Wait for all requests to complete
+            const [ordersResponse, usersResponse, productsResponse] = await Promise.all([
+                ordersPromise,
+                usersPromise, 
+                productsPromise
+            ]);
+
+            console.log('📊 API Responses:');
+            console.log('Orders:', ordersResponse.data?.success ? '✅ Success' : '❌ Failed', ordersResponse.data);
+            console.log('Users:', usersResponse.data?.success ? '✅ Success' : '❌ Failed', usersResponse.data);
+            console.log('Products:', productsResponse.data?.success ? '✅ Success' : '❌ Failed', productsResponse.data);
 
             // Process and combine notifications
             const processedNotifications = [];
 
-            // Process orders
+            // Process orders - get latest 3 orders
             if (ordersResponse.data?.success && ordersResponse.data?.orders) {
-                ordersResponse.data.orders.slice(0, 2).forEach((order, index) => {
+                const recentOrders = ordersResponse.data.orders
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 3);
+
+                recentOrders.forEach((order, index) => {
                     processedNotifications.push({
-                        id: `order-${order._id || index}`,
+                        id: `order-${order._id}`,
                         type: 'order',
                         title: 'New Order Received',
-                        desc: `Order #${order.orderNumber || order._id?.slice(-6)} from ${order.customerName || 'Customer'}`,
-                        timestamp: new Date(order.createdAt || Date.now() - (index * 30 * 60 * 1000)),
+                        desc: `Order worth ₹${order.amount} from ${order.address?.firstName || 'Customer'} ${order.address?.lastName || ''}`.trim(),
+                        timestamp: new Date(order.date),
                         icon: Package,
                         color: 'text-blue-400',
                         bgColor: 'bg-blue-500/20',
-                        read: false,
+                        read: index > 0, // Only first order is unread
                         data: order
                     });
                 });
             }
 
-            // Process users
+            // Process users - get latest 2 users  
             if (usersResponse.data?.success && usersResponse.data?.users) {
-                usersResponse.data.users.slice(0, 1).forEach((user, index) => {
+                const recentUsers = usersResponse.data.users
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 2);
+
+                recentUsers.forEach((user, index) => {
                     processedNotifications.push({
-                        id: `user-${user._id || index}`,
-                        type: 'user',
+                        id: `user-${user._id}`,
+                        type: 'user', 
                         title: 'New User Registered',
-                        desc: `Welcome new customer ${user.name || user.email}`,
-                        timestamp: new Date(user.createdAt || Date.now() - (2 * 60 * 60 * 1000)),
+                        desc: `Welcome ${user.name} (${user.email})`,
+                        timestamp: new Date(user.date),
                         icon: Users,
                         color: 'text-green-400',
                         bgColor: 'bg-green-500/20',
-                        read: false,
+                        read: index > 0, // Only first user is unread
                         data: user
                     });
                 });
             }
 
-            // Process products
+            // Process products - get latest 2 products
             if (productsResponse.data?.success && productsResponse.data?.products) {
-                productsResponse.data.products.slice(0, 1).forEach((product, index) => {
+                const recentProducts = productsResponse.data.products
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 2);
+
+                recentProducts.forEach((product) => {
                     processedNotifications.push({
-                        id: `product-${product._id || index}`,
+                        id: `product-${product._id}`,
                         type: 'product',
-                        title: 'New Product Added',
-                        desc: `${product.name} has been added to inventory`,
-                        timestamp: new Date(product.createdAt || Date.now() - (24 * 60 * 60 * 1000)),
+                        title: 'Product Available', 
+                        desc: `${product.name} - ₹${product.price} in stock`,
+                        timestamp: new Date(product.date),
                         icon: Plus,
                         color: 'text-purple-400',
                         bgColor: 'bg-purple-500/20',
-                        read: true,
+                        read: true, // Products are always marked as read
                         data: product
                     });
                 });
             }
 
-            // Sort by timestamp (newest first)
-            processedNotifications.sort((a, b) => b.timestamp - a.timestamp);
-
-            setNotifications(processedNotifications);
-            setUnreadCount(processedNotifications.filter(n => !n.read).length);
+            // If no real data was available, show success message but use fallback
+            if (processedNotifications.length === 0) {
+                console.log('📭 No recent data available, using fallback notifications');
+                const fallbackNotifications = generateFallbackNotifications();
+                setNotifications(fallbackNotifications);
+                setUnreadCount(fallbackNotifications.filter(n => !n.read).length);
+            } else {
+                console.log('✅ Successfully processed', processedNotifications.length, 'notifications');
+                // Sort by timestamp (newest first)
+                processedNotifications.sort((a, b) => b.timestamp - a.timestamp);
+                setNotifications(processedNotifications);
+                setUnreadCount(processedNotifications.filter(n => !n.read).length);
+            }
 
         } catch (error) {
-            console.error('Error fetching notifications:', error);
+            console.log('❌ Error fetching notifications:', error.message);
+            console.log('Error details:', error.response?.data || error);
 
-            // Fallback to mock data if API fails
+            // Always show fallback data instead of error
             const fallbackNotifications = generateFallbackNotifications();
             setNotifications(fallbackNotifications);
             setUnreadCount(fallbackNotifications.filter(n => !n.read).length);
 
-            // Show error toast only if it's not a network error
-            if (error.response?.status !== 404) {
-                toast.error('Failed to load notifications');
-            }
+            // Only show error toast for severe errors (commented out to avoid spam)
+            // if (error.code === 'NETWORK_ERROR') {
+            //     toast.error('Network connection issue');
+            // }
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
     // Fallback notifications when API is not available
     const generateFallbackNotifications = () => {
         const currentTime = new Date();
         return [
             {
-                id: 'order-1',
+                id: 'demo-order-1',
                 type: 'order',
-                title: 'New Order Received',
-                desc: 'Order #1247 from customer John D.',
+                title: 'Demo Order',
+                desc: 'Sample order data - Connect to backend for real data',
                 timestamp: new Date(currentTime.getTime() - 5 * 60 * 1000), // 5 min ago
                 icon: Package,
                 color: 'text-blue-400',
@@ -129,10 +172,10 @@ const NotificationDropdown = () => {
                 read: false
             },
             {
-                id: 'user-1',
+                id: 'demo-user-1',
                 type: 'user',
-                title: 'New User Registered',
-                desc: 'Welcome new customer Sarah M.',
+                title: 'Demo User',
+                desc: 'Sample user data - Connect to backend for real data',
                 timestamp: new Date(currentTime.getTime() - 2 * 60 * 60 * 1000), // 2 hours ago
                 icon: Users,
                 color: 'text-green-400',
@@ -140,10 +183,10 @@ const NotificationDropdown = () => {
                 read: false
             },
             {
-                id: 'product-1',
+                id: 'demo-product-1',
                 type: 'product',
-                title: 'New Product Added',
-                desc: 'Winter Jacket has been added to inventory',
+                title: 'Demo Product',
+                desc: 'Sample product data - Connect to backend for real data',
                 timestamp: new Date(currentTime.getTime() - 24 * 60 * 60 * 1000), // 1 day ago
                 icon: Plus,
                 color: 'text-purple-400',
@@ -156,7 +199,7 @@ const NotificationDropdown = () => {
     // Initialize notifications
     useEffect(() => {
         fetchNotifications();
-    }, []);
+    }, [fetchNotifications]);
 
     // Refresh notifications every 30 seconds
     useEffect(() => {
@@ -167,7 +210,7 @@ const NotificationDropdown = () => {
         }, 30000);
 
         return () => clearInterval(interval);
-    }, [isOpen]);
+    }, [isOpen, fetchNotifications]);
 
     // Click outside to close
     useEffect(() => {
@@ -209,7 +252,7 @@ const NotificationDropdown = () => {
                 await axios.patch(`${backendUrl}/api/notifications/${notificationId}/read`, {}, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-            } catch (error) {
+            } catch {
                 // Silently fail if backend doesn't support this
                 console.log('Backend notification read status not supported');
             }
@@ -234,7 +277,7 @@ const NotificationDropdown = () => {
                 await axios.patch(`${backendUrl}/api/notifications/mark-all-read`, {}, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-            } catch (error) {
+            } catch {
                 // Silently fail if backend doesn't support this
                 console.log('Backend bulk notification read status not supported');
             }
@@ -357,7 +400,7 @@ const NotificationDropdown = () => {
                                     <Bell className="w-6 h-6 text-slate-400" />
                                 </div>
                                 <p className="text-sm text-slate-400">No notifications yet</p>
-                                <p className="text-xs text-slate-500 mt-1">We'll notify you when something happens</p>
+                                <p className="text-xs text-slate-500 mt-1">We&apos;ll notify you when something happens</p>
                             </div>
                         )}
                     </div>
@@ -379,4 +422,4 @@ const NotificationDropdown = () => {
     );
 };
 
-export default NotificationDropdown;
+export default Notification;
