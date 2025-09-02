@@ -29,7 +29,7 @@ ProtectedRoute.propTypes = {
 };
 
 const DashboardLayout = ({ children }) => {
-  const [sidebarWidth, setSidebarWidth] = useState(64); // px
+  const [sidebarWidth, setSidebarWidth] = useState(80);
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <Sidebar onWidthChange={setSidebarWidth} />
@@ -73,13 +73,7 @@ const App = () => {
     }
   }, [token, navigate]);
 
-  const handleLogout = () => {
-    setToken("");
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("user");
-    toast.success("Logged out successfully");
-    navigate("/login", { replace: true });
-  };
+
 
   const handleLogin = (newToken) => {
     if (!newToken) {
