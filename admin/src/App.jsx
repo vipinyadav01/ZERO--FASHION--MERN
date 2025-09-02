@@ -124,7 +124,7 @@ const App = () => {
           { path: "/list", Component: List },
           { path: "/orders", Component: Order },
           { path: "/order-charts", Component: OrderCharts },
-          { path: "/userprofile", Component: UserProfile },
+          { path: "/users", Component: UserProfile },
           { path: "/admin-create", Component: CreateAdmin},
         ].map(({ path, Component }) => (
           <Route

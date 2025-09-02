@@ -191,9 +191,8 @@ const AddProduct = ({ token }) => {
     const images = [image1, image2, image3, image4];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-8 sm:py-10 lg:py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen py-8 sm:py-10 lg:py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
-                {/* Enhanced Header */}
                 <div className="text-center mb-8 lg:mb-12">
                     <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 mb-6">
                         <Package className="w-6 h-6 text-indigo-400" />
@@ -202,7 +201,6 @@ const AddProduct = ({ token }) => {
                 </div>
 
                 <form onSubmit={onSubmitHandler} className="space-y-6 lg:space-y-8">
-                    {/* Enhanced Image Upload Section */}
                     <div className="bg-slate-800/60 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-700/50 shadow-2xl">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 rounded-xl bg-purple-500/20">

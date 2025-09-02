@@ -143,7 +143,7 @@ const Order = () => {
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="min-h-screen">
 
             <div className="px-3 pt-8 pb-6 sm:px-4 sm:pt-10 lg:px-6 lg:pt-12">
                 <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">

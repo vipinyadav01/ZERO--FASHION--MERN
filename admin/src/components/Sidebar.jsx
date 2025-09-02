@@ -71,7 +71,7 @@ const Sidebar = ({ onWidthChange }) => {
         { path: "/list", icon: ListTodo, label: "Product List" },
         { path: "/orders", icon: ShoppingCart, label: "Orders" },
         { path: "/order-charts", icon: BarChart3, label: "Order Charts" },
-        { path: "/userprofile", icon: User, label: "User Profile" },
+        { path: "/users", icon: User, label: "User Profile" },
         { path: "/admin-create", icon: Users, label: "Create Admin" },
     ];
 
