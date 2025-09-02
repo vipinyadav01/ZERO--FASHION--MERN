@@ -18,17 +18,16 @@ const OrderCharts = React.lazy(() => import("./pages/OrderCharts"));
 const UserProfile = React.lazy(() => import("./pages/UserProfile"));
 
 // Protected Route Component
-const ProtectedRoute = ({ children }) => {
-  const token = sessionStorage.getItem("token");
+const ProtectedRoute = ({ children, token }) => {
   if (!token) return <Navigate to="/login" replace />;
   return children;
 };
 
 ProtectedRoute.propTypes = {
   children: PropTypes.node.isRequired,
+  token: PropTypes.string.isRequired,
 };
 
-// Modern Mobile-First Layout Component
 const DashboardLayout = ({ children }) => {
   const [sidebarWidth, setSidebarWidth] = useState(64); // px
   return (
@@ -52,13 +51,25 @@ DashboardLayout.propTypes = {
 const App = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState(sessionStorage.getItem("token") || "");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) {
+    const storedToken = sessionStorage.getItem("token");
+    
+    if (storedToken && !token) {
+      setToken(storedToken);
+    } else if (!storedToken && !token) {
+      navigate("/login", { replace: true });
+    }
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (token) {
+      sessionStorage.setItem("token", token);
+    } else {
       sessionStorage.removeItem("token");
       navigate("/login", { replace: true });
-    } else {
-      sessionStorage.setItem("token", token);
     }
   }, [token, navigate]);
 
@@ -78,15 +89,21 @@ const App = () => {
     setToken(newToken);
   };
 
+
+  if (isLoading) {
+    return <LoadingSpinner title="Initializing" subtitle="Setting up your dashboard..." />;
+  }
+
   return (
     <>
       <ToastContainer
         position="top-right"
         autoClose={3000}
         hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover
+        newestOnTop={true}
+        closeOnClick={true}
+        pauseOnHover={true}
+        draggable={false}
         theme="dark"
         className="!top-20 !right-4 !left-4 sm:!left-auto sm:!right-4"
         toastClassName="!bg-slate-800/95 !backdrop-blur-xl !border !border-slate-700/50 !text-white !rounded-xl !shadow-2xl"
@@ -120,13 +137,13 @@ const App = () => {
             key={path}
             path={path}
             element={
-              <ProtectedRoute>
-                <DashboardLayout>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <Component token={token} />
-                  </Suspense>
-                </DashboardLayout>
-              </ProtectedRoute>
+                             <ProtectedRoute token={token}>
+                 <DashboardLayout>
+                   <Suspense fallback={<LoadingSpinner />}>
+                     <Component token={token} />
+                   </Suspense>
+                 </DashboardLayout>
+               </ProtectedRoute>
             }
           />
         ))}
