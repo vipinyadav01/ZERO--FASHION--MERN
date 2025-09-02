@@ -5,10 +5,16 @@ import { backendUrl, currency } from "../constants";
 import { 
   Trash2, 
   Search, 
+  Plus, 
+  ArrowLeft, 
+  ArrowRight, 
+  Sparkles, 
   Package,
   Edit3,
+  Filter,
   Grid3X3,
   List as ListIcon,
+  Eye,
   X,
   ChevronLeft,
   ChevronRight
@@ -148,7 +154,7 @@ const List = ({ token }) => {
                 onClick={() => navigate('/add')}
                 className="w-full mt-4 py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 active:scale-95 flex items-center justify-center gap-2"
               >
-                <Package className="h-4 w-4" />
+                <Plus className="h-4 w-4" />
                 Add First Product
               </button>
             </div>
@@ -159,18 +165,19 @@ const List = ({ token }) => {
   }
 
   return (
-    <div className="w-full">
-      {/* Main container */}
-      <div className="space-y-4 sm:space-y-6">
-        
-        {/* Header */}
-        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-4 sm:p-6">
-          <div className="space-y-4">
-            {/* Title and Stats Row */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-indigo-500/20">
-                  <Package className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-400" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Mobile-first container */}
+      <div className="px-3 pt-20 pb-6 sm:px-4 sm:pt-24 lg:px-6 lg:pt-28">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+          
+          {/* Mobile-first Header */}
+          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-4 sm:p-6">
+            <div className="space-y-4">
+              {/* Title and Stats Row */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-indigo-500/20">
+                    <Package className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-400" />
                   </div>
                   <div>
                     <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">Product Inventory</h1>
@@ -183,7 +190,7 @@ const List = ({ token }) => {
                   onClick={() => navigate('/add')}
                   className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 active:scale-95"
                 >
-                  <Package className="h-4 w-4" />
+                  <Plus className="h-4 w-4" />
                   <span className="hidden sm:inline">Add Product</span>
                 </button>
               </div>
@@ -478,6 +485,7 @@ const List = ({ token }) => {
             </>
           )}
         </div>
+      </div>
     </div>
   );
 };

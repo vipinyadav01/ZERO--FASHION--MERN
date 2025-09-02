@@ -1,7 +1,8 @@
-import  { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { backendUrl } from "../constants";
 import { toast } from "react-toastify";
+import { assets } from "../assets/assets";
 import { 
     UploadCloud, 
     X, 
@@ -14,6 +15,7 @@ import {
     Loader2,
     AlertCircle,
     Save,
+    Plus
 } from "lucide-react";
 
 const AddProduct = ({ token }) => {
@@ -191,7 +193,7 @@ const AddProduct = ({ token }) => {
     const images = [image1, image2, image3, image4];
 
     return (
-        <div className="w-full">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-14 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
                 {/* Enhanced Header */}
                 <div className="text-center mb-8 lg:mb-12">

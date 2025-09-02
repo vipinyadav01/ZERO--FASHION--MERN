@@ -1,10 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import PropTypes from "prop-types";
 import { backendUrl } from "../constants";
-import Notification from "./Notification";
 import {
     BarChart3,
     PlusCircle,
@@ -13,10 +11,11 @@ import {
     ChevronLeft,
     LayoutDashboard,
     Users,
-    LogOut
+    Settings,
+    HelpCircle
 } from "lucide-react";
 
-const Sidebar = ({ onWidthChange, handleLogout }) => {
+const Sidebar = ({ onWidthChange }) => {
     const [isCollapsed, setIsCollapsed] = useState(() => {
         return window.innerWidth < 768 ? true : JSON.parse(localStorage.getItem("sidebar-collapsed")) ?? false;
     });
@@ -28,16 +27,16 @@ const Sidebar = ({ onWidthChange, handleLogout }) => {
         role: ""
     });
 
-    const computeWidth = useCallback(() => {
+    const computeWidth = () => {
         const isMobile = window.innerWidth < 768;
         const isExpanded = !isCollapsed || isHovered;
         return isMobile ? 64 : isExpanded ? 256 : 64; 
-    }, [isCollapsed, isHovered]);
+    };
     useEffect(() => {
         if (typeof onWidthChange === "function") {
             onWidthChange(computeWidth());
         }
-    }, [isCollapsed, isHovered, onWidthChange, computeWidth]);
+    }, [isCollapsed, isHovered]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -73,6 +72,7 @@ const Sidebar = ({ onWidthChange, handleLogout }) => {
         };
         fetchUser();
         return () => controller.abort();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -128,7 +128,7 @@ const Sidebar = ({ onWidthChange, handleLogout }) => {
             {/* Sidebar */}
             <aside
                 className={`
-                    fixed inset-y-0 left-0
+                    fixed inset-y-0 left-0 pt-16
                     ${isMobile ? "w-16" : isExpanded ? "w-64" : "w-16"}
                     bg-slate-800 border-r border-slate-700
                     text-white shadow-xl
@@ -139,37 +139,6 @@ const Sidebar = ({ onWidthChange, handleLogout }) => {
                 onMouseEnter={isMobile ? undefined : handleMouseEnter}
                 onMouseLeave={isMobile ? undefined : handleMouseLeave}
             >
-                {/* Header with Logo and Notifications */}
-                <div className="p-4 border-b border-slate-700/50">
-                    <div className="flex items-center justify-between">
-                        {/* Logo/Brand */}
-                        <div className="flex items-center">
-                            <div className="w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                                Z
-                            </div>
-                            {isExpanded && (
-                                <span className="ml-3 text-lg font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                                    Zero Fashion
-                                </span>
-                            )}
-                        </div>
-                        
-                        {/* Notifications */}
-                        {isExpanded && (
-                            <div className="flex items-center gap-2">
-                                <Notification />
-                                {!isMobile && (
-                                    <button
-                                        onClick={toggleSidebar}
-                                        className="p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors"
-                                    >
-                                        <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""}`} />
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
                 {/* Navigation */}
                 <nav className="flex-1 px-2 py-5 space-y-2 overflow-y-auto scrollbar-thin 
                     scrollbar-thumb-slate-600 scrollbar-track-transparent">
@@ -212,35 +181,6 @@ const Sidebar = ({ onWidthChange, handleLogout }) => {
                             </NavLink>
                         );
                     })}
-                    
-                    {/* Logout Button */}
-                    <button
-                        onClick={handleLogout}
-                        className="w-full group/nav relative flex items-center gap-3 px-3 py-3
-                            text-slate-300 hover:text-white hover:bg-red-600/20
-                            rounded-xl transition-all duration-200 ease-in-out
-                            border border-transparent hover:border-red-500/30
-                            shadow-sm hover:shadow-md"
-                    >
-                        <LogOut className="w-5 h-5 flex-shrink-0 text-red-400" />
-                        <span
-                            className={`
-                                font-medium text-sm transition-all duration-300 ease-in-out
-                                ${isExpanded ? "opacity-100 max-w-full"
-                                    : "opacity-0 max-w-0 overflow-hidden group-hover:opacity-100 group-hover:max-w-full"}
-                            `}
-                        >
-                            Logout
-                        </span>
-                        {!isMobile && isCollapsed && (
-                            <div className="absolute left-full ml-3 px-3 py-1.5 bg-slate-800
-                                rounded-lg opacity-0 invisible group-hover/nav:visible group-hover/nav:opacity-100 
-                                transition-all duration-250 ease-out
-                                shadow-lg text-xs whitespace-nowrap z-50 border border-slate-700">
-                                Logout
-                            </div>
-                        )}
-                    </button>
                 </nav>
 
                 {/* User Profile Section (Hidden on Mobile) */}
@@ -291,14 +231,24 @@ const Sidebar = ({ onWidthChange, handleLogout }) => {
                         </div>
                     </div>
                 )}
+
+                {/* Toggle Button (Desktop Only) */}
+                {!isMobile && (
+                    <button
+                        onClick={toggleSidebar}
+                        className="absolute -right-3 top-20
+                            bg-slate-700 
+                            text-slate-300 hover:text-indigo-400 rounded-full p-1.5
+                            border border-slate-600 hover:border-indigo-500
+                            transition-all duration-300 shadow-md hidden md:block z-50"
+                        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                    >
+                        <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""}`} />
+                    </button>
+                )}
             </aside>
         </>
     );
-};
-
-Sidebar.propTypes = {
-    onWidthChange: PropTypes.func,
-    handleLogout: PropTypes.func.isRequired,
 };
 
 export default Sidebar;
