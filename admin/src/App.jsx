@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PropTypes from "prop-types";
-import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Login from "./components/Login";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -30,12 +29,11 @@ ProtectedRoute.propTypes = {
 };
 
 // Modern Mobile-First Layout Component
-const DashboardLayout = ({ children, handleLogout }) => {
+const DashboardLayout = ({ children }) => {
   const [sidebarWidth, setSidebarWidth] = useState(64); // px
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <Sidebar onWidthChange={setSidebarWidth} />
-      <Navbar onLogout={handleLogout} />
       <main
         className="min-h-screen pt-0 transition-all duration-300"
         style={{ paddingLeft: `${sidebarWidth}px` }}
@@ -48,7 +46,6 @@ const DashboardLayout = ({ children, handleLogout }) => {
 
 DashboardLayout.propTypes = {
   children: PropTypes.node.isRequired,
-  handleLogout: PropTypes.func.isRequired,
 };
 
 // Main App Component
@@ -124,7 +121,7 @@ const App = () => {
             path={path}
             element={
               <ProtectedRoute>
-                <DashboardLayout handleLogout={handleLogout}>
+                <DashboardLayout>
                   <Suspense fallback={<LoadingSpinner />}>
                     <Component token={token} />
                   </Suspense>
