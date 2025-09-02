@@ -268,8 +268,8 @@ const Dashboard = () => {
     }
 
     if (dataError) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6">
+            return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-8 pb-6 sm:pt-10 lg:pt-12">
                 <div className="max-w-md mx-auto">
                     <div className="relative overflow-hidden rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-6 text-center">
                         <div className="space-y-4">
@@ -296,7 +296,7 @@ const Dashboard = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
             {/* Mobile-first container with proper spacing */}
-            <div className="px-3 pt-10 pb-6 sm:px-4 sm:pt-24 lg:px-6 lg:pt-28">
+            <div className="px-3 pt-8 pb-6 sm:px-4 sm:pt-10 lg:px-6 lg:pt-12">
                 <main className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
                     {/* Mobile-first Welcome Section */}
                     <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-4 sm:p-6 lg:p-8">

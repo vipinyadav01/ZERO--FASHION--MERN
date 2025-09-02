@@ -186,7 +186,7 @@ const OrderCharts = ({ token }) => {
   // Mobile loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-8 pb-6 sm:pt-10 lg:pt-12">
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center space-y-4">
             <div className="relative h-12 w-12 mx-auto">
@@ -207,7 +207,7 @@ const OrderCharts = ({ token }) => {
   // Mobile empty state
   if (!orders.length) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-20 pb-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-3 pt-8 pb-6 sm:pt-10 lg:pt-12">
         <div className="max-w-md mx-auto">
           <div className="relative overflow-hidden rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-6">
             <div className="text-center space-y-4">
@@ -238,7 +238,7 @@ const OrderCharts = ({ token }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Mobile-first container */}
-      <div className="px-1 pt-20 pb-6 sm:px-4 sm:pt-24 lg:px-6 lg:pt-28">
+      <div className="px-1 pt-8 pb-6 sm:px-4 sm:pt-10 lg:px-6 lg:pt-12">
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
           
           {/* Mobile-first Header */}

@@ -2,15 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { backendUrl } from "../constants";
 import { toast } from "react-toastify";
-import { assets } from "../assets/assets";
-import { 
-    UploadCloud, 
-    X, 
-    Check, 
-    Star, 
-    Package, 
-    DollarSign, 
-    Tag, 
+import {
+    UploadCloud,
+    X,
+    Check,
+    Star,
+    Package,
+    DollarSign,
+    Tag,
     Image as ImageIcon,
     Loader2,
     AlertCircle,
@@ -90,7 +89,7 @@ const AddProduct = ({ token }) => {
 
     const validateForm = () => {
         const newErrors = {};
-        
+
         if (!name.trim()) newErrors.name = "Product name is required";
         if (!description.trim()) newErrors.description = "Product description is required";
         if (!price || price <= 0) newErrors.price = "Please enter a valid price";
@@ -179,7 +178,7 @@ const AddProduct = ({ token }) => {
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: null }));
         }
-        
+
         switch (field) {
             case 'name': setName(value); break;
             case 'description': setDescription(value); break;
@@ -199,14 +198,8 @@ const AddProduct = ({ token }) => {
                 <div className="text-center mb-8 lg:mb-12">
                     <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 mb-6">
                         <Package className="w-6 h-6 text-indigo-400" />
-                        <span className="text-slate-300 font-medium">Product Management</span>
+                        <span className="text-slate-300 font-medium"> Add New Product</span>
                     </div>
-                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent mb-4">
-                        Add New Product
-                    </h1>
-                    <p className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto">
-                        Create and customize your product listing with detailed information and high-quality images
-                    </p>
                 </div>
 
                 <form onSubmit={onSubmitHandler} className="space-y-6 lg:space-y-8">
@@ -221,7 +214,7 @@ const AddProduct = ({ token }) => {
                                 Up to 4 images
                             </span>
                         </div>
-                        
+
                         {errors.images && (
                             <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-2">
                                 <AlertCircle className="w-4 h-4 text-red-400" />
@@ -234,9 +227,8 @@ const AddProduct = ({ token }) => {
                                 <div key={index} className="group relative">
                                     <label
                                         htmlFor={`image${index + 1}`}
-                                        className={`relative cursor-pointer block transition-all duration-300 hover:scale-[1.02] ${
-                                            dragOver === index ? 'scale-[1.02]' : ''
-                                        }`}
+                                        className={`relative cursor-pointer block transition-all duration-300 hover:scale-[1.02] ${dragOver === index ? 'scale-[1.02]' : ''
+                                            }`}
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDragLeave={handleDragLeave}
                                         onDrop={(e) => handleDrop(e, imageSetters[index], index)}
@@ -297,7 +289,7 @@ const AddProduct = ({ token }) => {
                                 </div>
                             ))}
                         </div>
-                        
+
                         <div className="mt-4 p-4 rounded-xl bg-slate-700/30 border border-slate-600/30">
                             <h4 className="text-sm font-medium text-slate-300 mb-2">Image Guidelines:</h4>
                             <ul className="text-xs text-slate-400 space-y-1">
@@ -324,11 +316,10 @@ const AddProduct = ({ token }) => {
                             <input
                                 onChange={(e) => handleInputChange('name', e.target.value)}
                                 value={name}
-                                className={`w-full px-4 py-3 sm:py-4 bg-slate-700/50 backdrop-blur-sm text-white border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 hover:bg-slate-700/70 ${
-                                    errors.name 
-                                        ? 'border-red-500/50 focus:ring-red-500/50' 
+                                className={`w-full px-4 py-3 sm:py-4 bg-slate-700/50 backdrop-blur-sm text-white border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 hover:bg-slate-700/70 ${errors.name
+                                        ? 'border-red-500/50 focus:ring-red-500/50'
                                         : 'border-slate-600/50 focus:ring-indigo-500/50 hover:border-slate-500/50'
-                                }`}
+                                    }`}
                                 type="text"
                                 placeholder="Enter a descriptive product name"
                                 required
@@ -347,11 +338,10 @@ const AddProduct = ({ token }) => {
                             <textarea
                                 onChange={(e) => handleInputChange('description', e.target.value)}
                                 value={description}
-                                className={`w-full px-4 py-3 sm:py-4 bg-slate-700/50 backdrop-blur-sm text-white border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 hover:bg-slate-700/70 resize-none ${
-                                    errors.description 
-                                        ? 'border-red-500/50 focus:ring-red-500/50' 
+                                className={`w-full px-4 py-3 sm:py-4 bg-slate-700/50 backdrop-blur-sm text-white border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 hover:bg-slate-700/70 resize-none ${errors.description
+                                        ? 'border-red-500/50 focus:ring-red-500/50'
                                         : 'border-slate-600/50 focus:ring-indigo-500/50 hover:border-slate-500/50'
-                                }`}
+                                    }`}
                                 placeholder="Describe your product features, materials, and benefits"
                                 rows="4"
                                 required
@@ -398,11 +388,10 @@ const AddProduct = ({ token }) => {
                                 <input
                                     onChange={(e) => handleInputChange('price', e.target.value)}
                                     value={price}
-                                    className={`w-full px-4 py-3 sm:py-4 bg-slate-700/50 backdrop-blur-sm text-white border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 hover:bg-slate-700/70 ${
-                                        errors.price 
-                                            ? 'border-red-500/50 focus:ring-red-500/50' 
+                                    className={`w-full px-4 py-3 sm:py-4 bg-slate-700/50 backdrop-blur-sm text-white border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 hover:bg-slate-700/70 ${errors.price
+                                            ? 'border-red-500/50 focus:ring-red-500/50'
                                             : 'border-slate-600/50 focus:ring-indigo-500/50 hover:border-slate-500/50'
-                                    }`}
+                                        }`}
                                     type="number"
                                     min="0"
                                     step="0.01"
@@ -433,11 +422,10 @@ const AddProduct = ({ token }) => {
                                         key={size}
                                         onClick={() => handleSizeToggle(size)}
                                         type="button"
-                                        className={`relative px-4 py-3 sm:py-4 rounded-2xl border text-center font-medium transition-all duration-300 hover:scale-[1.02] ${
-                                            sizes.includes(size) 
-                                                ? "bg-gradient-to-r from-indigo-600 to-purple-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/25" 
+                                        className={`relative px-4 py-3 sm:py-4 rounded-2xl border text-center font-medium transition-all duration-300 hover:scale-[1.02] ${sizes.includes(size)
+                                                ? "bg-gradient-to-r from-indigo-600 to-purple-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/25"
                                                 : "bg-slate-700/50 border-slate-600/50 text-slate-300 hover:border-indigo-500/50 hover:bg-slate-600/50"
-                                        }`}
+                                            }`}
                                     >
                                         {sizes.includes(size) && (
                                             <Check className="w-4 h-4 absolute top-1 right-1" />
@@ -480,11 +468,10 @@ const AddProduct = ({ token }) => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className={`w-full sm:w-auto mx-auto flex items-center justify-center gap-3 px-8 py-4 sm:py-5 text-base sm:text-lg font-bold rounded-2xl transition-all duration-300 ${
-                                    loading 
-                                        ? "bg-slate-600 text-slate-300 cursor-not-allowed" 
+                                className={`w-full sm:w-auto mx-auto flex items-center justify-center gap-3 px-8 py-4 sm:py-5 text-base sm:text-lg font-bold rounded-2xl transition-all duration-300 ${loading
+                                        ? "bg-slate-600 text-slate-300 cursor-not-allowed"
                                         : "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/25"
-                                }`}
+                                    }`}
                             >
                                 {loading ? (
                                     <>
