@@ -8,6 +8,7 @@ import Login from "./components/Login";
 import LoadingSpinner from "./components/LoadingSpinner";
 import NotFound from "./components/NotFound";
 import CreateAdmin from "./pages/CreateAdmin";
+import Notification from "./components/Notification";
 
 // Lazy load pages
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
@@ -90,6 +91,7 @@ const App = () => {
 
   return (
     <>
+      <Notification />
       <ToastContainer
         position="top-right"
         autoClose={3000}

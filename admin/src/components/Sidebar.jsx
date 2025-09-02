@@ -26,6 +26,8 @@ const Sidebar = ({ onWidthChange }) => {
         return window.innerWidth < 768 ? true : JSON.parse(localStorage.getItem("sidebarCollapsed") || "false");
     });
     const [user, setUser] = useState(null);
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -58,11 +60,35 @@ const Sidebar = ({ onWidthChange }) => {
         fetchUser();
     }, []);
 
+    useEffect(() => {
+        const count = notifications.filter(n => !n.read).length;
+        setUnreadCount(count);
+    }, [notifications]);
+
     const handleLogout = () => {
         sessionStorage.removeItem("token");
         sessionStorage.removeItem("user");
         toast.success("Logged out successfully");
         navigate("/login", { replace: true });
+    };
+
+    const markAsRead = (notificationId) => {
+        setNotifications(prev => 
+            prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+        );
+    };
+
+    const markAllAsRead = () => {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    };
+
+    const getNotificationIcon = (type) => {
+        switch (type) {
+            case 'order': return <ShoppingCart className="h-4 w-4 text-blue-500" />;
+            case 'stock': return <Package className="h-4 w-4 text-yellow-500" />;
+            case 'user': return <User className="h-4 w-4 text-green-500" />;
+            default: return <ShoppingBag className="h-4 w-4 text-gray-500" />;
+        }
     };
 
     const navigationItems = [
@@ -118,23 +144,24 @@ const Sidebar = ({ onWidthChange }) => {
                 {user && (
                     <div className="mb-4">
                         <div className="flex items-center space-x-3 mb-3">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center overflow-hidden">
+                            <div className="h-12 w-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center overflow-hidden shadow-lg">
                                 {user.image ? (
                                     <img
                                         src={user.image}
                                         alt={user.name || "User"}
-                                        className="h-10 w-10 object-cover rounded-full"
+                                        className="h-12 w-12 object-cover rounded-full"
                                     />
                                 ) : (
-                                    <span className="text-white font-bold text-sm">
+                                    <span className="text-white font-bold text-lg">
                                         {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                                     </span>
                                 )}
                             </div>
                             {!isCollapsed && (
-                                <div>
-                                    <p className="text-white font-medium text-sm">{user.name || "User"}</p>
-                                    <p className="text-slate-400 text-xs">{user.email || "user@example.com"}</p>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-white font-semibold text-sm truncate">{user.name || "User"}</p>
+                                    <p className="text-slate-400 text-xs truncate">{user.email || "user@example.com"}</p>
+                                    <p className="text-indigo-400 text-xs font-medium">{user.role || "User"}</p>
                                 </div>
                             )}
                         </div>
@@ -142,7 +169,7 @@ const Sidebar = ({ onWidthChange }) => {
                         {/* Logout Button */}
                         <button
                             onClick={handleLogout}
-                            className="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 hover:text-red-300 border border-red-500/30 transition-all duration-200 group"
+                            className="w-full flex items-center justify-center space-x-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-red-600/20 to-red-700/20 hover:from-red-600/30 hover:to-red-700/30 text-red-400 hover:text-red-300 border border-red-500/30 transition-all duration-200 group shadow-lg"
                         >
                             <LogOut className="h-4 w-4" />
                             {!isCollapsed && <span className="text-sm font-medium">Logout</span>}
