@@ -359,21 +359,7 @@ const Notification = () => {
                                     <p className="text-xs text-slate-500">You're all caught up!</p>
                                 </div>
                             ) : (
-                                <div className="space-y-2">
-                                    {/* Backend Status Message */}
-                                    <div className="p-2 bg-slate-700/50 rounded-lg border border-slate-600/30">
-                                        <p className="text-xs text-slate-400 text-center">
-                                            {notifications.some(n => n.id.includes('fallback')) 
-                                                ? "⚠️ Backend not available - showing demo notifications" 
-                                                : "✅ Connected to backend - showing real-time data"}
-                                        </p>
-                                        {notifications.some(n => n.id.includes('fallback')) && (
-                                            <p className="text-xs text-slate-500 text-center mt-1">
-                                                Start backend: cd backend && npm run server
-                                            </p>
-                                        )}
-                                    </div>
-                                    
+                                <div className="space-y-2">  
                                     {notifications.map((notification) => (
                                         <div
                                             key={notification.id}
