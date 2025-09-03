@@ -13,6 +13,7 @@ import {
   getUserProfile,
   adminResetPassword,
   adminCreateUser,
+  getRecentUsers,
 } from "../controllers/userController.js";
 import authUser from "../middleware/auth.js";
 import adminAuth from "../middleware/adminAuth.js";
@@ -26,6 +27,7 @@ userRouter.post("/admin-login", adminLogin);
 userRouter.get("/user", authUser, userDetails);
 userRouter.get("/profile", authUser, getUserProfile);
 userRouter.get("/all", adminAuth, getAllUsers);
+userRouter.get("/recent", adminAuth, getRecentUsers);
 
 // Add error handling for multer
 const handleUpload = (req, res, next) => {

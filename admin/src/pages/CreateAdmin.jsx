@@ -95,6 +95,7 @@ const CreateAdmin = ({ token }) => {
                 name="password"
                 value={form.password}
                 onChange={handleChange}
+                autoComplete="new-password"
                 className="w-full px-3 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
                 placeholder="At least 8 characters"
                 disabled={submitting}
@@ -107,6 +108,7 @@ const CreateAdmin = ({ token }) => {
                 name="confirmPassword"
                 value={form.confirmPassword}
                 onChange={handleChange}
+                autoComplete="new-password"
                 className="w-full px-3 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
                 placeholder="Re-enter password"
                 disabled={submitting}

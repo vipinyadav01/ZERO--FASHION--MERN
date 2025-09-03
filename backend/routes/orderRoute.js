@@ -10,6 +10,7 @@ import {
   cancelOrder,
   listOrders,
   updateStatus,
+  getRecentOrders,
 } from "../controllers/orderController.js";
 import authUser from "../middleware/auth.js";
 import adminAuth from "../middleware/adminAuth.js";
@@ -25,5 +26,6 @@ orderRouter.get("/userOrders", authUser, userOrders);
 orderRouter.put("/:orderId/cancel", authUser, cancelOrder);
 orderRouter.put("/status/:orderId", adminAuth, updateStatus);
 orderRouter.get("/list", adminAuth, listOrders);
+orderRouter.get("/recent", adminAuth, getRecentOrders);
 
 export default orderRouter;

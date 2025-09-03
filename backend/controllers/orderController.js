@@ -645,6 +645,32 @@ const listOrders = async (req, res) => {
   }
 };
 
+// Get recent orders for notifications (Admin)
+const getRecentOrders = async (req, res) => {
+  try {
+    const { limit = 5 } = req.query;
+    
+    const orders = await OrderModel.find()
+      .populate("userId", "name email")
+      .sort({ date: -1 })
+      .limit(parseInt(limit))
+      .select("_id orderNumber userId amount status date")
+      .lean();
+
+    res.status(200).json({ 
+      success: true, 
+      orders: orders.map(order => ({
+        ...order,
+        customerName: order.userId?.name || "Unknown Customer",
+        customer: order.userId
+      }))
+    });
+  } catch (error) {
+    console.error("Error in getRecentOrders:", error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
+  }
+};
+
 // Refund Processing Functions
 async function processStripeRefund(order) {
   try {
@@ -684,6 +710,7 @@ export {
   verifyRazorPay,
   cancelOrder,
   listOrders,
+  getRecentOrders,
   processStripeRefund,
   processRazorPayRefund,
 };

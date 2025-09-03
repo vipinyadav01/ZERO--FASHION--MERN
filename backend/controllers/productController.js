@@ -124,4 +124,27 @@ const singleProduct = async (req, res) => {
   }
 };
 
-export { listProduct, addProduct, removeProduct, singleProduct };
+// Get low stock products for notifications (Admin)
+const getLowStockProducts = async (req, res) => {
+  try {
+    const { threshold = 10 } = req.query;
+    
+    const products = await ProductModel.find({
+      stock: { $lte: parseInt(threshold) }
+    })
+    .sort({ stock: 1 })
+    .limit(10)
+    .select("_id name stock price category")
+    .lean();
+
+    res.json({ 
+      success: true, 
+      products 
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+export { listProduct, addProduct, removeProduct, singleProduct, getLowStockProducts };

@@ -29,11 +29,11 @@ ProtectedRoute.propTypes = {
   token: PropTypes.string.isRequired,
 };
 
-const DashboardLayout = ({ children }) => {
+const DashboardLayout = ({ children, onLogout }) => {
   const [sidebarWidth, setSidebarWidth] = useState(80);
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <Sidebar onWidthChange={setSidebarWidth} />
+      <Sidebar onWidthChange={setSidebarWidth} onLogout={onLogout} />
       <main
         className="min-h-screen pt-0 transition-all duration-300"
         style={{ paddingLeft: `${sidebarWidth}px` }}
@@ -46,6 +46,7 @@ const DashboardLayout = ({ children }) => {
 
 DashboardLayout.propTypes = {
   children: PropTypes.node.isRequired,
+  onLogout: PropTypes.func,
 };
 
 // Main App Component
@@ -84,6 +85,13 @@ const App = () => {
     setToken(newToken);
   };
 
+  const handleLogout = () => {
+    
+    setToken("");
+    sessionStorage.clear();
+    localStorage.clear(); 
+    navigate("/login", { replace: true });
+  };
 
   if (isLoading) {
     return <LoadingSpinner title="Initializing" subtitle="Setting up your dashboard..." />;
@@ -133,13 +141,13 @@ const App = () => {
             key={path}
             path={path}
             element={
-                             <ProtectedRoute token={token}>
-                 <DashboardLayout>
-                   <Suspense fallback={<LoadingSpinner />}>
-                     <Component token={token} />
-                   </Suspense>
-                 </DashboardLayout>
-               </ProtectedRoute>
+              <ProtectedRoute token={token}>
+                <DashboardLayout onLogout={handleLogout}>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <Component token={token} />
+                  </Suspense>
+                </DashboardLayout>
+              </ProtectedRoute>
             }
           />
         ))}

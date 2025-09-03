@@ -9,6 +9,7 @@ import cartRouter from "./routes/cartRoute.js";
 import orderRouter from "./routes/orderRoute.js";
 import newsletterRouter from "./routes/newsletterRoute.js";
 import wishlistRouter from "./routes/wishlistRoute.js";
+import notificationRouter from "./routes/notificationRoute.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
 app.use("/api/newsletter", newsletterRouter);
+app.use("/api/notification", notificationRouter);
 
 app.get("/", (req, res) => {
   res.send("API Working correctly");

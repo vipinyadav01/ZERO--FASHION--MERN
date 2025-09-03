@@ -21,6 +21,29 @@ const Notification = () => {
         fetchNotifications();
     }, []);
 
+    // Clear notifications when token is removed (logout)
+    useEffect(() => {
+        const handleStorageChange = (e) => {
+            if (e.key === 'token' && !e.newValue) {
+                setNotifications([]);
+                setUnreadCount(0);
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        
+        // Also check on mount
+        const token = sessionStorage.getItem("token");
+        if (!token) {
+            setNotifications([]);
+            setUnreadCount(0);
+        }
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, []);
+
     useEffect(() => {
         const count = notifications.filter(n => !n.read).length;
         setUnreadCount(count);
@@ -49,22 +72,46 @@ const Notification = () => {
         try {
             setIsLoading(true);
             const token = sessionStorage.getItem("token");
-            if (!token) return;
+            if (!token) {
+                // No token available, use fallback notifications
+                const fallbackNotifications = generateFallbackNotifications();
+                setNotifications(fallbackNotifications);
+                setIsLoading(false);
+                return;
+            }
 
             // Fetch recent orders
-            const ordersResponse = await axios.get(`${backendUrl}/api/order/recent`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            let ordersResponse;
+            try {
+                ordersResponse = await axios.get(`${backendUrl}/api/order/recent`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            } catch (error) {
+                console.log('Orders API not available:', error.message);
+                ordersResponse = { data: { success: false, orders: [] } };
+            }
 
             // Fetch recent users
-            const usersResponse = await axios.get(`${backendUrl}/api/user/recent`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            let usersResponse;
+            try {
+                usersResponse = await axios.get(`${backendUrl}/api/user/recent`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            } catch (error) {
+                console.log('Users API not available:', error.message);
+                usersResponse = { data: { success: false, users: [] } };
+            }
 
             // Fetch low stock products
-            const productsResponse = await axios.get(`${backendUrl}/api/product/low-stock`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            let productsResponse;
+            try {
+                productsResponse = await axios.get(`${backendUrl}/api/product/low-stock`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            } catch (error) {
+                console.log('Products API not available:', error.message);
+                productsResponse = { data: { success: false, products: [] } };
+            }
 
             // Process and combine notifications
             const processedNotifications = [];
@@ -76,7 +123,7 @@ const Notification = () => {
                         id: `order-${order._id || index}`,
                         title: 'New Order Received',
                         message: `Order #${order.orderNumber || order._id?.slice(-6) || 'N/A'} from ${order.customerName || order.customer?.name || 'Customer'}`,
-                        time: formatTime(new Date(order.createdAt || Date.now() - (index * 30 * 60 * 1000))),
+                        time: formatTime(new Date(order.date || Date.now() - (index * 30 * 60 * 1000))),
                         read: false,
                         type: "order",
                         data: order
@@ -114,14 +161,19 @@ const Notification = () => {
                 });
             }
 
-            // Sort by timestamp (newest first)
-            processedNotifications.sort((a, b) => {
-                const timeA = new Date(a.time);
-                const timeB = new Date(b.time);
-                return timeB - timeA;
-            });
-
-            setNotifications(processedNotifications);
+            // If no real data is available, use fallback notifications
+            if (processedNotifications.length === 0) {
+                const fallbackNotifications = generateFallbackNotifications();
+                setNotifications(fallbackNotifications);
+            } else {
+                // Sort by timestamp (newest first)
+                processedNotifications.sort((a, b) => {
+                    const timeA = new Date(a.time);
+                    const timeB = new Date(b.time);
+                    return timeB - timeA;
+                });
+                setNotifications(processedNotifications);
+            }
 
         } catch (error) {
             console.error('Error fetching notifications:', error);
@@ -139,7 +191,7 @@ const Notification = () => {
         const currentTime = new Date();
         return [
             {
-                id: 'order-1',
+                id: 'fallback-order-1',
                 title: 'New Order Received',
                 message: 'Order #1247 from customer John D.',
                 time: formatTime(new Date(currentTime.getTime() - 5 * 60 * 1000)),
@@ -147,7 +199,7 @@ const Notification = () => {
                 type: "order"
             },
             {
-                id: 'user-1',
+                id: 'fallback-user-1',
                 title: 'New User Registration',
                 message: 'User Sarah M. has registered',
                 time: formatTime(new Date(currentTime.getTime() - 2 * 60 * 60 * 1000)),
@@ -155,7 +207,7 @@ const Notification = () => {
                 type: "user"
             },
             {
-                id: 'stock-1',
+                id: 'fallback-stock-1',
                 title: 'Product Low Stock',
                 message: 'Winter Jacket is running low (5 remaining)',
                 time: formatTime(new Date(currentTime.getTime() - 4 * 60 * 60 * 1000)),
@@ -172,15 +224,14 @@ const Notification = () => {
                 prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
             );
 
-            // Try to mark as read on backend (optional)
+            // Try to mark as read on backend
             const token = sessionStorage.getItem("token");
             if (token) {
                 try {
-                    await axios.patch(`${backendUrl}/api/notifications/${notificationId}/read`, {}, {
+                    await axios.patch(`${backendUrl}/api/notification/${notificationId}/read`, {}, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                 } catch (error) {
-                    // Silently fail if backend doesn't support this
                     console.log('Backend notification read status not supported');
                 }
             }
@@ -194,15 +245,14 @@ const Notification = () => {
             // Update local state immediately
             setNotifications(prev => prev.map(n => ({ ...n, read: true })));
 
-            // Try to mark all as read on backend (optional)
+            // Try to mark all as read on backend
             const token = sessionStorage.getItem("token");
             if (token) {
                 try {
-                    await axios.patch(`${backendUrl}/api/notifications/mark-all-read`, {}, {
+                    await axios.patch(`${backendUrl}/api/notification/mark-all-read`, {}, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                 } catch (error) {
-                    // Silently fail if backend doesn't support this
                     console.log('Backend bulk notification read status not supported');
                 }
             }
@@ -271,10 +321,10 @@ const Notification = () => {
                                     </span>
                                 )}
                             </h3>
-                            <div className="flex space-x-1 sm:space-x-2">
+                            <div className="flex space-x-2">
                                 <button
                                     onClick={fetchNotifications}
-                                    className="text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 px-1.5 sm:px-2 py-1 rounded transition-colors"
+                                    className="text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 px-2 py-1 rounded transition-colors"
                                     disabled={isLoading}
                                     title="Refresh notifications"
                                 >
@@ -283,25 +333,14 @@ const Notification = () => {
                                 {unreadCount > 0 && (
                                     <button
                                         onClick={markAllAsRead}
-                                        className="text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 px-1.5 sm:px-2 py-1 rounded transition-colors hidden sm:block"
-                                        title="Mark all as read"
+                                        className="text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 px-2 py-1 rounded transition-colors"
                                     >
                                         Mark all read
-                                    </button>
-                                )}
-                                {unreadCount > 0 && (
-                                    <button
-                                        onClick={markAllAsRead}
-                                        className="text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 px-1.5 py-1 rounded transition-colors sm:hidden"
-                                        title="Mark all as read"
-                                    >
-                                        All read
                                     </button>
                                 )}
                                 <button
                                     onClick={() => setShowNotifications(false)}
                                     className="text-slate-400 hover:text-white hover:bg-slate-600/50 p-1 rounded transition-colors"
-                                    title="Close notifications"
                                 >
                                     <X className="h-4 w-4" />
                                 </button>
@@ -309,34 +348,46 @@ const Notification = () => {
                         </div>
                         <div className="p-2">
                             {isLoading ? (
-                                <div className="text-center py-6 sm:py-8 text-slate-400">
-                                    <div className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-2 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                    <p className="text-xs sm:text-sm">Loading notifications...</p>
+                                <div className="text-center py-8 text-slate-400">
+                                    <div className="w-6 h-6 mx-auto mb-2 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                    <p className="text-sm">Loading notifications...</p>
                                 </div>
                             ) : notifications.length === 0 ? (
-                                <div className="text-center py-6 sm:py-8 text-slate-400">
-                                    <Bell className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 opacity-50" />
-                                    <p className="text-xs sm:text-sm">No notifications</p>
-                                    <p className="text-xs text-slate-500 hidden sm:block">You're all caught up!</p>
+                                <div className="text-center py-8 text-slate-400">
+                                    <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                    <p className="text-sm">No notifications</p>
+                                    <p className="text-xs text-slate-500">You're all caught up!</p>
                                 </div>
                             ) : (
-                                <div className="space-y-1.5 sm:space-y-2">
+                                <div className="space-y-2">
+                                    {/* Backend Status Message */}
+                                    <div className="p-2 bg-slate-700/50 rounded-lg border border-slate-600/30">
+                                        <p className="text-xs text-slate-400 text-center">
+                                            {notifications.some(n => n.id.includes('fallback')) 
+                                                ? "⚠️ Backend not available - showing demo notifications" 
+                                                : "✅ Connected to backend - showing real-time data"}
+                                        </p>
+                                        {notifications.some(n => n.id.includes('fallback')) && (
+                                            <p className="text-xs text-slate-500 text-center mt-1">
+                                                Start backend: cd backend && npm run server
+                                            </p>
+                                        )}
+                                    </div>
+                                    
                                     {notifications.map((notification) => (
                                         <div
                                             key={notification.id}
-                                            className={`p-2.5 sm:p-3 rounded-lg cursor-pointer transition-all duration-200 border ${
+                                            className={`p-3 rounded-lg cursor-pointer transition-all duration-200 border ${
                                                 notification.read 
                                                     ? 'bg-slate-700/50 hover:bg-slate-700 border-slate-600/30' 
                                                     : `${getNotificationColor(notification.type)}`
                                             }`}
                                             onClick={() => markAsRead(notification.id)}
                                         >
-                                            <div className="flex items-start space-x-2 sm:space-x-3">
-                                                <div className="flex-shrink-0">
-                                                    {getNotificationIcon(notification.type)}
-                                                </div>
+                                            <div className="flex items-start space-x-3">
+                                                {getNotificationIcon(notification.type)}
                                                 <div className="flex-1 min-w-0">
-                                                    <h4 className={`text-xs sm:text-sm font-medium ${
+                                                    <h4 className={`text-sm font-medium ${
                                                         notification.read ? 'text-slate-300' : 'text-white'
                                                     }`}>
                                                         {notification.title}
@@ -344,7 +395,7 @@ const Notification = () => {
                                                     <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                                                         {notification.message}
                                                     </p>
-                                                    <p className="text-xs text-slate-500 mt-1.5 flex items-center space-x-1">
+                                                    <p className="text-xs text-slate-500 mt-1 flex items-center space-x-1">
                                                         <Clock className="w-3 h-3 flex-shrink-0" />
                                                         <span className="truncate">{notification.time}</span>
                                                     </p>

@@ -616,6 +616,27 @@ const adminCreateUser = async (req, res) => {
   }
 };
 
+// Get recent users for notifications (Admin)
+const getRecentUsers = async (req, res) => {
+  try {
+    const { limit = 5 } = req.query;
+    
+    const users = await UserModel.find()
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .select("_id name email role createdAt")
+      .lean();
+
+    res.status(200).json({ 
+      success: true, 
+      users 
+    });
+  } catch (error) {
+    console.error("Error in getRecentUsers:", error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
+  }
+};
+
 export {
   loginUser,
   registerUser,
@@ -629,4 +650,5 @@ export {
   getUserProfile,
   adminResetPassword,
   adminCreateUser,
+  getRecentUsers,
 };

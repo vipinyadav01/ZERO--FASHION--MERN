@@ -12,22 +12,17 @@ import {
     ChevronLeft,
     LayoutDashboard,
     Users,
-    Settings,
-    HelpCircle,
     LogOut,
-    User,
-    Package,
-    TrendingUp,
-    ShoppingBag
+    User
 } from "lucide-react";
+import PropTypes from "prop-types";
 
-const Sidebar = ({ onWidthChange }) => {
+const Sidebar = ({ onWidthChange, onLogout }) => {
     const [isCollapsed, setIsCollapsed] = useState(() => {
         return window.innerWidth < 768 ? true : JSON.parse(localStorage.getItem("sidebarCollapsed") || "false");
     });
     const [user, setUser] = useState(null);
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
+    const [isLoadingUser, setIsLoadingUser] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -38,6 +33,7 @@ const Sidebar = ({ onWidthChange }) => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
+                setIsLoadingUser(true);
                 const token = sessionStorage.getItem("token");
                 if (token) {
                     const response = await axios.get(`${backendUrl}/api/user/user`, {
@@ -55,40 +51,25 @@ const Sidebar = ({ onWidthChange }) => {
                     email: "admin@zerofashion.com",
                     role: "Administrator"
                 });
+            } finally {
+                setIsLoadingUser(false);
             }
         };
         fetchUser();
     }, []);
 
-    useEffect(() => {
-        const count = notifications.filter(n => !n.read).length;
-        setUnreadCount(count);
-    }, [notifications]);
-
     const handleLogout = () => {
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("user");
+        // Clear all storage comprehensively
+        sessionStorage.clear();
+        localStorage.clear();
+        
+        // Call parent logout function if provided
+        if (onLogout) {
+            onLogout();
+        }
+        
         toast.success("Logged out successfully");
         navigate("/login", { replace: true });
-    };
-
-    const markAsRead = (notificationId) => {
-        setNotifications(prev => 
-            prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-        );
-    };
-
-    const markAllAsRead = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    };
-
-    const getNotificationIcon = (type) => {
-        switch (type) {
-            case 'order': return <ShoppingCart className="h-4 w-4 text-blue-500" />;
-            case 'stock': return <Package className="h-4 w-4 text-yellow-500" />;
-            case 'user': return <User className="h-4 w-4 text-green-500" />;
-            default: return <ShoppingBag className="h-4 w-4 text-gray-500" />;
-        }
     };
 
     const navigationItems = [
@@ -141,21 +122,42 @@ const Sidebar = ({ onWidthChange }) => {
 
             {/* User Profile & Logout */}
             <div className="p-4 border-t border-slate-700/50">
-                {user && (
+                {isLoadingUser ? (
+                    <div className="mb-4">
+                        <div className="flex items-center space-x-3 mb-3">
+                            <div className="h-12 w-12 rounded-full bg-slate-700 animate-pulse"></div>
+                            {!isCollapsed && (
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-4 bg-slate-700 rounded animate-pulse"></div>
+                                    <div className="h-3 bg-slate-700 rounded animate-pulse w-3/4"></div>
+                                    <div className="h-3 bg-slate-700 rounded animate-pulse w-1/2"></div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="h-10 bg-slate-700 rounded-lg animate-pulse"></div>
+                    </div>
+                ) : user ? (
                     <div className="mb-4">
                         <div className="flex items-center space-x-3 mb-3">
                             <div className="h-12 w-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center overflow-hidden shadow-lg">
-                                {user.image ? (
+                                {user.profileImage ? (
                                     <img
-                                        src={user.image}
+                                        src={user.profileImage}
                                         alt={user.name || "User"}
                                         className="h-12 w-12 object-cover rounded-full"
+                                        onError={(e) => {
+                                            
+                                            e.target.style.display = 'none';
+                                            e.target.nextSibling.style.display = 'flex';
+                                        }}
                                     />
-                                ) : (
-                                    <span className="text-white font-bold text-lg">
-                                        {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-                                    </span>
-                                )}
+                                ) : null}
+                                <span 
+                                    className={`text-white font-bold text-lg ${user.profileImage ? 'hidden' : 'flex'} items-center justify-center`}
+                                    style={{ display: user.profileImage ? 'none' : 'flex' }}
+                                >
+                                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                                </span>
                             </div>
                             {!isCollapsed && (
                                 <div className="flex-1 min-w-0">
@@ -175,7 +177,7 @@ const Sidebar = ({ onWidthChange }) => {
                             {!isCollapsed && <span className="text-sm font-medium">Logout</span>}
                         </button>
                     </div>
-                )}
+                ) : null}
             </div>
 
             <button
@@ -191,6 +193,11 @@ const Sidebar = ({ onWidthChange }) => {
             </button>
         </div>
     );
+};
+
+Sidebar.propTypes = {
+    onWidthChange: PropTypes.func.isRequired,
+    onLogout: PropTypes.func,
 };
 
 export default Sidebar;
