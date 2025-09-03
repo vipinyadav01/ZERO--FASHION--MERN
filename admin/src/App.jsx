@@ -34,6 +34,7 @@ const DashboardLayout = ({ children, onLogout }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <Sidebar onWidthChange={setSidebarWidth} onLogout={onLogout} />
+      <Notification />
       <main
         className="min-h-screen pt-0 transition-all duration-300"
         style={{ paddingLeft: `${sidebarWidth}px` }}
@@ -83,6 +84,7 @@ const App = () => {
       return;
     }
     setToken(newToken);
+    toast.success("Login successful! Welcome to the Admin.");
   };
 
   const handleLogout = () => {
@@ -99,7 +101,7 @@ const App = () => {
 
   return (
     <>
-      <Notification />
+      
       <ToastContainer
         position="top-right"
         autoClose={3000}
