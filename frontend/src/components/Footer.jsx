@@ -184,10 +184,10 @@ const Footer = () => {
                                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
                             />
                             <div className="flex flex-col">
-                                <span className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-stone-700 to-stone-900 font-outfit"> {/* Darker gradient for text */}
+                                <span className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent font-asterion bg-gradient-to-r from-stone-700 to-stone-900 font-outfit"> {/* Darker gradient for text */}
                                     ZERO FASHION
                                 </span>
-                                <span className="text-xs sm:text-sm text-stone-600 font-medium tracking-wide">
+                                <span className="text-xs sm:text-sm text-stone-600 font-asterion font-medium tracking-wide">
                                     Style Meets Sustainability
                                 </span>
                             </div>

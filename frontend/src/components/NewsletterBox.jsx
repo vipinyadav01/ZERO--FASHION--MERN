@@ -27,7 +27,7 @@
 
         <button
           type="submit"
-          className="bg-black text-white text-xs px-10 py-4 hover:bg-gray-700 transition-colors"
+          className="bg-black text-white text-xs px-10 py-4 hover:bg-gray-700 transition-colors font-asterion"
         >
           JOIN NOW
         </button>

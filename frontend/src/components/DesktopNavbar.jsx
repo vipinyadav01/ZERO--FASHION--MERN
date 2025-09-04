@@ -109,10 +109,10 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
               />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-gray-900 tracking-tight">
+              <span className="text-xl font-bold text-gray-900 tracking-tight font-asterion">
                 ZERO
               </span>
-              <span className="text-xs text-gray-500 tracking-widest -mt-1">
+              <span className="text-xs text-gray-500 tracking-widest -mt-1 font-asterion">
                 FASHION
               </span>
             </div>
@@ -200,7 +200,7 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
               ) : (
                 <Link
                   to="/login"
-                  className="flex items-center space-x-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-200 font-medium"
+                  className="flex items-center space-x-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-200 font-medium font-asterion"
                 >
                   <User className="w-4 h-4" />
                   <span>Login</span>
