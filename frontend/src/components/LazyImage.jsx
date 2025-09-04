@@ -1,17 +1,78 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import PropTypes from 'prop-types';
 
-// Preload critical images
+// Image cache to prevent duplicate requests
+const imageCache = new Map();
+const loadingImages = new Map();
+
+// Optimized image preloader with caching
 const preloadImage = (src) => {
-  const img = new Image();
-  img.src = src;
-  return new Promise((resolve, reject) => {
-    img.onload = resolve;
-    img.onerror = reject;
+  if (imageCache.has(src)) {
+    return Promise.resolve();
+  }
+  
+  if (loadingImages.has(src)) {
+    return loadingImages.get(src);
+  }
+
+  const promise = new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      imageCache.set(src, true);
+      loadingImages.delete(src);
+      resolve();
+    };
+    img.onerror = () => {
+      loadingImages.delete(src);
+      reject();
+    };
+    img.src = src;
   });
+  
+  loadingImages.set(src, promise);
+  return promise;
 };
 
-const LazyImage = ({
+// Optimized Intersection Observer singleton
+class IntersectionObserverManager {
+  constructor() {
+    this.observers = new Map();
+    this.callbacks = new WeakMap();
+  }
+
+  observe(element, callback, options = {}) {
+    const key = JSON.stringify(options);
+    
+    if (!this.observers.has(key)) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const callback = this.callbacks.get(entry.target);
+          if (callback) {
+            callback(entry);
+          }
+        });
+      }, {
+        threshold: 0.01,
+        rootMargin: '50px', // Reduced from 100px for faster loading
+        ...options
+      });
+      this.observers.set(key, observer);
+    }
+
+    const observer = this.observers.get(key);
+    this.callbacks.set(element, callback);
+    observer.observe(element);
+
+    return () => {
+      this.callbacks.delete(element);
+      observer.unobserve(element);
+    };
+  }
+}
+
+const observerManager = new IntersectionObserverManager();
+
+const LazyImage = memo(({
   src,
   alt,
   className = '',
@@ -22,82 +83,104 @@ const LazyImage = ({
   onLoad,
   onError,
   preload = false,
+  priority = false,
   ...props
 }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const [inView, setInView] = useState(false);
+  const [imageState, setImageState] = useState(() => ({
+    loaded: imageCache.has(src),
+    error: false,
+    inView: priority || loading === 'eager' // Load immediately if priority or eager
+  }));
+  
   const imgRef = useRef();
+  const mountedRef = useRef(true);
 
-  // Preload image if requested
+  // Memoized handlers to prevent unnecessary re-renders
+  const handleLoad = useCallback((e) => {
+    if (!mountedRef.current) return;
+    imageCache.set(src, true);
+    setImageState(prev => ({ ...prev, loaded: true }));
+    onLoad?.(e);
+  }, [src, onLoad]);
+
+  const handleError = useCallback((e) => {
+    if (!mountedRef.current) return;
+    setImageState(prev => ({ ...prev, error: true }));
+    onError?.(e);
+  }, [onError]);
+
+  const handleIntersection = useCallback((entry) => {
+    if (entry.isIntersecting && !imageState.inView) {
+      setImageState(prev => ({ ...prev, inView: true }));
+    }
+  }, [imageState.inView]);
+
+  // Preload critical images immediately
   useEffect(() => {
-    if (preload && src) {
+    if ((preload || priority) && src && !imageCache.has(src)) {
       preloadImage(src).catch(() => {
         // Silently handle preload errors
       });
     }
-  }, [preload, src]);
+  }, [preload, priority, src]);
 
-  // Intersection Observer for lazy loading
+  // Setup intersection observer only if needed
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.disconnect();
-        }
-      },
-      {
-        threshold: 0.01, 
-        rootMargin: '100px'
-      }
-    );
-
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
+    if (priority || loading === 'eager' || imageState.inView) {
+      return;
     }
 
-    return () => observer.disconnect();
+    if (!imgRef.current) return;
+
+    const cleanup = observerManager.observe(imgRef.current, handleIntersection);
+    return cleanup;
+  }, [handleIntersection, priority, loading, imageState.inView]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
-  const handleLoad = (e) => {
-    setImageLoaded(true);
-    onLoad?.(e);
-  };
-
-  const handleError = (e) => {
-    setImageError(true);
-    onError?.(e);
-  };
+  // Determine if we should show the image
+  const shouldShowImage = imageState.inView || priority || loading === 'eager';
+  const showPlaceholder = !imageState.loaded && !imageState.error;
 
   return (
-    <div ref={imgRef} className={`relative overflow-hidden ${className}`}>
-      {/* Placeholder/Loading state */}
-      {!imageLoaded && !imageError && (
+    <div 
+      ref={imgRef} 
+      className={`relative overflow-hidden ${className}`}
+      style={{ width, height }}
+    >
+      {/* Optimized placeholder with reduced animation */}
+      {showPlaceholder && (
         <div 
-          className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse flex items-center justify-center"
+          className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center"
           style={{ width, height }}
         >
-          <div className="w-6 h-6 text-gray-400 animate-spin">
-            <svg fill="none" viewBox="0 0 24 24" className="w-full h-full">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/>
-              <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"/>
+          <div className="w-6 h-6 text-gray-400">
+            <svg fill="none" viewBox="0 0 24 24" className="w-full h-full opacity-50">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+              <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="2"/>
             </svg>
           </div>
         </div>
       )}
       
-      {/* Actual image */}
-      {inView && (
+      {/* Actual image - render immediately if in cache or priority */}
+      {shouldShowImage && (
         <img
-          src={imageError ? placeholder : src}
+          src={imageState.error ? placeholder : src}
           alt={alt}
           width={width}
           height={height}
-          loading={loading}
-          className={`transition-opacity duration-300 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          } ${className}`}
+          loading={priority ? 'eager' : loading}
+          decoding="async" 
+          className={`transition-opacity duration-200 ${
+            imageState.loaded ? 'opacity-100' : 'opacity-0'
+          }`}
           onLoad={handleLoad}
           onError={handleError}
           {...props}
@@ -105,7 +188,9 @@ const LazyImage = ({
       )}
     </div>
   );
-};
+});
+
+LazyImage.displayName = 'LazyImage';
 
 LazyImage.propTypes = {
   src: PropTypes.string.isRequired,
@@ -118,12 +203,13 @@ LazyImage.propTypes = {
   onLoad: PropTypes.func,
   onError: PropTypes.func,
   preload: PropTypes.bool,
+  priority: PropTypes.bool,
 };
 
 export default LazyImage;
 
 // Optimized Product Image Component
-export const ProductImage = ({ 
+export const ProductImage = memo(({ 
   src, 
   alt, 
   productName,
@@ -131,19 +217,21 @@ export const ProductImage = ({
   priority = false,
   ...props 
 }) => {
-  const optimizedAlt = alt || `${productName} - Premium fashion item at Zero Fashion`;
+  const optimizedAlt = alt || `${productName} - Premium fashion item`;
   
   return (
     <LazyImage
       src={src}
       alt={optimizedAlt}
       loading={priority ? 'eager' : 'lazy'}
-      preload={priority}
+      priority={priority}
       className={`object-cover hover:scale-105 transition-transform duration-300 ${className}`}
       {...props}
     />
   );
-};
+});
+
+ProductImage.displayName = 'ProductImage';
 
 ProductImage.propTypes = {
   src: PropTypes.string.isRequired,
@@ -153,10 +241,10 @@ ProductImage.propTypes = {
   priority: PropTypes.bool,
 };
 
-// Hero Image Component
-export const HeroImage = ({
+// Optimized Hero Image Component
+export const HeroImage = memo(({
   src,
-  alt = "Zero Fashion - Premium Fashion Collection",
+  alt = "Premium Fashion Collection",
   className = '',
   ...props
 }) => {
@@ -165,11 +253,14 @@ export const HeroImage = ({
       src={src}
       alt={alt}
       loading="eager" 
+      priority={true}
       className={`w-full h-full object-cover ${className}`}
       {...props}
     />
   );
-};
+});
+
+HeroImage.displayName = 'HeroImage';
 
 HeroImage.propTypes = {
   src: PropTypes.string.isRequired,
