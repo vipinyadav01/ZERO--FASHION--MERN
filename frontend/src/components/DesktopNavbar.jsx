@@ -16,7 +16,7 @@ import PropTypes from "prop-types";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
 
-const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
+const DesktopNavbar = ({ token, setShowSearch, getCartCount, isTablet = false }) => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   
   const context = useContext(ShopContext);
@@ -93,33 +93,33 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           
           {/* Logo */}
           <Link 
             to="/" 
-            className="flex items-center space-x-3 group hover:opacity-80 transition-opacity"
+            className="flex items-center space-x-2 sm:space-x-3 group hover:opacity-80 transition-opacity"
           >
-            <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-black rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
               <img
                 src={assets.logo || "/apple-touch-icon.png"}
                 alt="Zero Fashion"
-                className="w-7 h-7 object-contain"
+                className="w-5 h-5 sm:w-7 sm:h-7 object-contain"
               />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-gray-900 tracking-tight font-asterion">
+              <span className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight font-asterion">
                 ZERO
               </span>
-              <span className="text-xs text-gray-500 tracking-widest -mt-1 font-asterion">
+              <span className="text-[10px] sm:text-xs text-gray-500 tracking-widest -mt-1 font-asterion">
                 FASHION
               </span>
             </div>
           </Link>
 
           {/* Navigation Items */}
-          <div className="hidden lg:flex items-center space-x-8">
+          <div className={`hidden ${isTablet ? 'md:flex' : 'lg:flex'} items-center space-x-4 lg:space-x-8`}>
             {navItems.map((item) => {
               const ItemIcon = item.icon;
               const active = isActive(item.path);
@@ -133,7 +133,7 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                  className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 ${
                     active
                       ? "bg-black text-white shadow-md"
                       : "text-gray-700 hover:text-black hover:bg-gray-50"
@@ -147,26 +147,26 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount }) => {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             
             {/* Search Button */}
             <button
               onClick={() => setShowSearch(true)}
-              className="p-2 text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200 hover:scale-110"
+              className="p-1.5 sm:p-2 text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200 hover:scale-110"
               aria-label="Search"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             {/* Cart Button */}
             <Link
               to="/cart"
-              className="relative p-2 text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200 hover:scale-110"
+              className="relative p-1.5 sm:p-2 text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200 hover:scale-110"
               aria-label="Shopping Cart"
             >
-              <ShoppingBag className="w-5 h-5" />
+              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-semibold animate-pulse">
+                <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-red-500 text-white rounded-full text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-semibold animate-pulse">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
@@ -262,6 +262,7 @@ DesktopNavbar.propTypes = {
   token: PropTypes.string,
   setShowSearch: PropTypes.func.isRequired,
   getCartCount: PropTypes.func.isRequired,
+  isTablet: PropTypes.bool,
 };
 
 export default DesktopNavbar;

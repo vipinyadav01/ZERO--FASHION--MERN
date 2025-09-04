@@ -6,6 +6,7 @@ import DesktopNavbar from "./DesktopNavbar";
 
 const Navbar = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
   const context = useContext(ShopContext);
   
   const {
@@ -15,10 +16,11 @@ const Navbar = () => {
     showSearch = false,
   } = context || {};
 
-  // Handle responsive breakpoint
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1024);
     };
     
     handleResize();
@@ -41,6 +43,7 @@ const Navbar = () => {
           token={token}
           setShowSearch={setShowSearch}
           getCartCount={getCartCount}
+          isTablet={isTablet}
         />
       )}
     </>
