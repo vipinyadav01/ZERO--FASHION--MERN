@@ -192,16 +192,23 @@ const AddProduct = ({ token }) => {
 
     return (
         <div className="min-h-screen py-8 sm:py-10 lg:py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-5xl mx-auto">
-                <div className="text-center mb-8 lg:mb-12">
-                    <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 mb-6">
-                        <Package className="w-6 h-6 text-indigo-400" />
-                        <span className="text-slate-300 font-medium"> Add New Product</span>
+            <div className="max-w-6xl mx-auto">
+                <div className="mb-6 sm:mb-8 lg:mb-10">
+                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 rounded-2xl bg-indigo-500/15 ring-1 ring-indigo-500/20">
+                                <Package className="w-6 h-6 text-indigo-400" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Add Product</h1>
+                                <p className="text-sm text-slate-400">Create a new item with images, sizes and pricing.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <form onSubmit={onSubmitHandler} className="space-y-6 lg:space-y-8">
-                    <div className="bg-slate-800/60 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-700/50 shadow-2xl">
+                    <div className="bg-slate-800/60 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-700/50 shadow-xl">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 rounded-xl bg-purple-500/20">
                                 <ImageIcon className="w-5 h-5 text-purple-400" />
@@ -219,12 +226,12 @@ const AddProduct = ({ token }) => {
                             </div>
                         )}
 
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                             {images.map((image, index) => (
                                 <div key={index} className="group relative">
                                     <label
                                         htmlFor={`image${index + 1}`}
-                                        className={`relative cursor-pointer block transition-all duration-300 hover:scale-[1.02] ${dragOver === index ? 'scale-[1.02]' : ''
+                                        className={`relative cursor-pointer block transition-all duration-300 hover:scale-[1.02] focus-within:ring-2 focus-within:ring-purple-400/40 rounded-2xl ${dragOver === index ? 'scale-[1.02]' : ''
                                             }`}
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDragLeave={handleDragLeave}
@@ -232,9 +239,9 @@ const AddProduct = ({ token }) => {
                                     >
                                         <div className={`
                                             relative w-full aspect-square rounded-2xl border-2 border-dashed overflow-hidden
-                                            transition-all duration-300 group-hover:border-indigo-500/50
-                                            ${image ? 'border-slate-600/50 bg-slate-700/30' : 'border-slate-600/30 bg-slate-700/20'}
-                                            ${dragOver === index ? 'border-indigo-500 bg-indigo-500/10' : ''}
+                                            transition-all duration-300 group-hover:border-indigo-500/60 group-hover:bg-slate-700/40
+                                            ${image ? 'border-slate-600/50 bg-slate-700/30' : 'border-slate-600/30 bg-slate-700/25'}
+                                            ${dragOver === index ? 'border-indigo-500 bg-indigo-500/10 ring-2 ring-indigo-500/20' : ''}
                                         `}>
                                             {image ? (
                                                 <>
@@ -251,7 +258,7 @@ const AddProduct = ({ token }) => {
                                                                     e.preventDefault();
                                                                     removeImage(imageSetters[index]);
                                                                 }}
-                                                                className="p-2 rounded-xl bg-red-500/80 hover:bg-red-500 text-white transition-colors"
+                                                                className="p-2 rounded-xl bg-red-500/85 hover:bg-red-500 text-white transition-colors shadow-lg shadow-red-500/20"
                                                             >
                                                                 <X className="w-4 h-4" />
                                                             </button>
@@ -266,9 +273,7 @@ const AddProduct = ({ token }) => {
                                                     <p className="text-xs sm:text-sm text-slate-400 font-medium">
                                                         {index === 0 ? 'Main Image' : `Image ${index + 1}`}
                                                     </p>
-                                                    <p className="text-xs text-slate-500 mt-1">
-                                                        Click or drag
-                                                    </p>
+                                                    <p className="text-xs text-slate-500 mt-1">Click or drag files here</p>
                                                 </div>
                                             )}
                                         </div>
@@ -299,7 +304,7 @@ const AddProduct = ({ token }) => {
                     </div>
 
                     {/* Enhanced Form Fields Section */}
-                    <div className="bg-slate-800/60 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-700/50 shadow-2xl space-y-6 lg:space-y-8">
+                    <div className="bg-slate-800/60 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-700/50 shadow-xl space-y-6 lg:space-y-8">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 rounded-xl bg-indigo-500/20">
                                 <Tag className="w-5 h-5 text-indigo-400" />
@@ -313,7 +318,7 @@ const AddProduct = ({ token }) => {
                             <input
                                 onChange={(e) => handleInputChange('name', e.target.value)}
                                 value={name}
-                                className={`w-full px-4 py-3 sm:py-4 bg-slate-700/50 backdrop-blur-sm text-white border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 hover:bg-slate-700/70 ${errors.name
+                                className={`w-full px-4 py-3 sm:py-4 bg-slate-700/50 backdrop-blur-sm text-white border rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all duration-300 placeholder-slate-400 hover:bg-slate-700/70 ${errors.name
                                         ? 'border-red-500/50 focus:ring-red-500/50'
                                         : 'border-slate-600/50 focus:ring-indigo-500/50 hover:border-slate-500/50'
                                     }`}
@@ -335,7 +340,7 @@ const AddProduct = ({ token }) => {
                             <textarea
                                 onChange={(e) => handleInputChange('description', e.target.value)}
                                 value={description}
-                                className={`w-full px-4 py-3 sm:py-4 bg-slate-700/50 backdrop-blur-sm text-white border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 hover:bg-slate-700/70 resize-none ${errors.description
+                                className={`w-full px-4 py-3 sm:py-4 bg-slate-700/50 backdrop-blur-sm text-white border rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all duration-300 placeholder-slate-400 hover:bg-slate-700/70 resize-none ${errors.description
                                         ? 'border-red-500/50 focus:ring-red-500/50'
                                         : 'border-slate-600/50 focus:ring-indigo-500/50 hover:border-slate-500/50'
                                     }`}
@@ -385,7 +390,7 @@ const AddProduct = ({ token }) => {
                                 <input
                                     onChange={(e) => handleInputChange('price', e.target.value)}
                                     value={price}
-                                    className={`w-full px-4 py-3 sm:py-4 bg-slate-700/50 backdrop-blur-sm text-white border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 hover:bg-slate-700/70 ${errors.price
+                                    className={`w-full px-4 py-3 sm:py-4 bg-slate-700/50 backdrop-blur-sm text-white border rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all duration-300 placeholder-slate-400 hover:bg-slate-700/70 ${errors.price
                                             ? 'border-red-500/50 focus:ring-red-500/50'
                                             : 'border-slate-600/50 focus:ring-indigo-500/50 hover:border-slate-500/50'
                                         }`}
@@ -460,14 +465,14 @@ const AddProduct = ({ token }) => {
                             </div>
                         </div>
 
-                        {/* Enhanced Submit Button */}
-                        <div className="pt-4">
+                        {/* Enhanced Actions */}
+                        <div className="pt-4 flex flex-col sm:flex-row gap-3 sm:gap-4">
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className={`w-full sm:w-auto mx-auto flex items-center justify-center gap-3 px-8 py-4 sm:py-5 text-base sm:text-lg font-bold rounded-2xl transition-all duration-300 ${loading
-                                        ? "bg-slate-600 text-slate-300 cursor-not-allowed"
-                                        : "bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/25"
+                                className={`w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 sm:py-5 text-base sm:text-lg font-bold rounded-2xl transition-all duration-300 ${loading
+                                        ? 'bg-slate-600 text-slate-300 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 hover:scale-[1.01] hover:shadow-xl hover:shadow-indigo-500/25'
                                     }`}
                             >
                                 {loading ? (
@@ -481,6 +486,15 @@ const AddProduct = ({ token }) => {
                                         Add Product
                                     </>
                                 )}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={resetForm}
+                                disabled={loading}
+                                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 sm:py-5 text-base sm:text-lg font-semibold rounded-2xl border border-slate-600/60 text-slate-200 hover:bg-slate-700/40 hover:border-slate-500/60 transition-all"
+                            >
+                                <X className="w-5 h-5" />
+                                Reset
                             </button>
                         </div>
                     </div>
