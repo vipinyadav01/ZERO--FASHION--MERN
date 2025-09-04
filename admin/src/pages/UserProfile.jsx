@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import {
   AlertCircle,
-  Loader2,
 } from "lucide-react";
 import { backendUrl } from "../constants";
 import UsersHeader from "../components/users/UsersHeader";
@@ -332,6 +331,49 @@ const UserProfile = ({ token }) => {
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (loading) {
+    return (
+            <div className="min-h-screen">
+      <div className="px-3 pt-8 pb-6 sm:px-4 sm:pt-10 lg:px-6 lg:pt-12">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+          {/* Header skeleton */}
+          <div className="relative overflow-hidden rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-6 animate-pulse">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <div className="h-5 w-48 bg-slate-700/60 rounded" />
+                <div className="h-3 w-32 bg-slate-700/50 rounded" />
+              </div>
+              <div className="h-8 w-24 bg-slate-700/60 rounded" />
+            </div>
+          </div>
+
+          {/* Filters skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="h-11 bg-slate-800/60 border border-slate-700/50 rounded-xl animate-pulse" />
+            <div className="h-11 bg-slate-800/60 border border-slate-700/50 rounded-xl animate-pulse" />
+          </div>
+
+          {/* List skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={i} className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/50 animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-full bg-slate-700/60" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-1/2 bg-slate-700/60 rounded" />
+                    <div className="h-3 w-1/3 bg-slate-700/50 rounded" />
+                  </div>
+                </div>
+                <div className="mt-3 h-8 w-full bg-slate-700/40 rounded-lg" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
     );
   }
 
