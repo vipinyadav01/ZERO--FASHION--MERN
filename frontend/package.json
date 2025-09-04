@@ -42,5 +42,17 @@
     "vite": "^7.1.4",
     "vite-plugin-pwa": "^1.0.3"
   },
+  "overrides": {
+    "react-helmet-async": {
+      "react": "$react",
+      "react-dom": "$react-dom"
+    }
+  },
+  "peerDependenciesResolveOverrides": {
+    "react-helmet-async": {
+      "react": "19.1.1",
+      "react-dom": "19.1.1"
+    }
+  },
   "license": "MIT"
 }

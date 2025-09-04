@@ -10,12 +10,23 @@ const Home = () => {
   return (
     <>
       <SEO {...SEOConfigs.home} />
-      <div>
-        <Hero/>
-        <LatestCollection/>
-        <BestSeller/>
-        <OurPolicy/>
-        <NewsletterBox/>
+      <div className="min-h-screen">
+        {/* Desktop navbar compensation */}
+        <div className="hidden lg:block h-16"></div>
+        
+        {/* Mobile navbar compensation handled in MobileNavbar component */}
+        <main className="relative">
+          <Hero />
+          <div className="space-y-16 py-8">
+            <LatestCollection />
+            <BestSeller />
+            <OurPolicy />
+            <NewsletterBox />
+          </div>
+        </main>
+        
+        {/* Mobile bottom nav compensation */}
+        <div className="lg:hidden h-[68px]"></div>
       </div>
     </>
   )

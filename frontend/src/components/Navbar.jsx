@@ -1,10 +1,11 @@
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import { ShopContext } from "../context/ShopContext";
 import SearchBar from "./SearchBar";
 import MobileNavbar from "./MobileNavbar";
 import DesktopNavbar from "./DesktopNavbar";
 
 const Navbar = () => {
+  const [isMobile, setIsMobile] = useState(false);
   const context = useContext(ShopContext);
   
   const {
@@ -14,18 +15,34 @@ const Navbar = () => {
     showSearch = false,
   } = context || {};
 
+  // Handle responsive breakpoint
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <>
       <SearchBar />
-      <MobileNavbar 
-        token={token}
-        getCartCount={getCartCount}
-      />
-      <DesktopNavbar 
-        token={token}
-        setShowSearch={setShowSearch}
-        getCartCount={getCartCount}
-      />
+      {isMobile ? (
+        <MobileNavbar 
+          token={token}
+          getCartCount={getCartCount}
+          setShowSearch={setShowSearch}
+        />
+      ) : (
+        <DesktopNavbar 
+          token={token}
+          setShowSearch={setShowSearch}
+          getCartCount={getCartCount}
+        />
+      )}
     </>
   );
 };

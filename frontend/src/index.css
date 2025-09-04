@@ -94,6 +94,74 @@ a.active hr {
 .hero-btn:hover::before {
   left: 100%;
 }
+
+/* Navbar Enhancements */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-pb {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* Smooth navbar transitions */
+.navbar-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mobile navbar improvements */
+@media (max-width: 1024px) {
+  .mobile-nav-item {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  .mobile-nav-item:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Desktop navbar improvements */
+@media (min-width: 1024px) {
+  .desktop-nav-link {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .desktop-nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: currentColor;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+  }
+  
+  .desktop-nav-link:hover::after {
+    width: 80%;
+  }
+}
+
+/* Fix scrollbar issues on mobile */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+  
+  .scroll-container {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .scroll-container::-webkit-scrollbar {
+    display: none;
+  }
+}
 .input-field {
   @apply border border-gray-300 rounded-md py-2 px-4 w-full;
 }
