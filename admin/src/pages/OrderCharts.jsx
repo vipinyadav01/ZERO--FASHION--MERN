@@ -80,7 +80,7 @@ const OrderCharts = ({ token }) => {
 
   const totalRevenue = orders.reduce((sum, order) => sum + order.amount, 0);
   const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
-  const recentOrders = orders.slice(0, 7); // Show more on mobile
+  const recentOrders = orders.slice(0, 9);
 
   // Mobile-optimized chart data
   const statusChartData = {
@@ -410,8 +410,8 @@ const OrderCharts = ({ token }) => {
                 </button>
               </div>
 
-              {/* Mobile-first order list */}
-              <div className="space-y-2 sm:space-y-3">
+              {/* Recent orders grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                 {recentOrders.map((order) => (
                   <div
                     key={order._id}
