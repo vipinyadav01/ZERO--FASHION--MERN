@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Prata&display=swap");
 @import url("https://fonts.cdnfonts.com/css/asterion");
-
+@import "./styles/fonts.css";
 
 @import "tailwindcss";
 
@@ -12,10 +12,12 @@ a.active hr {
   font-family: Asterion, sans-serif;
 }
 
-
+.font-rebels-fett {
+  font-family: 'Rebels Fett', sans-serif;
+}
 
 * {
-  font-family: Outfit;
+  font-family: 'Rebels Fett', Outfit, sans-serif;
 }
 
 .font-outfit {

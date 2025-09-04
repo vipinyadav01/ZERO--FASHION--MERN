@@ -8,6 +8,8 @@ export default {
     extend: {
       fontFamily: {
         asterion: ['Asterion', 'sans-serif'],
+        'rebels-fett': ['Rebels Fett', 'sans-serif'],
+        sans: ['Rebels Fett', 'Outfit', 'sans-serif'],
       },
     },
   },
