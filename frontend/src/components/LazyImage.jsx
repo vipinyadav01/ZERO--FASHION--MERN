@@ -1,76 +1,5 @@
-import { useState, useRef, useEffect, useCallback, memo } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import PropTypes from 'prop-types';
-
-// Image cache to prevent duplicate requests
-const imageCache = new Map();
-const loadingImages = new Map();
-
-// Optimized image preloader with caching
-const preloadImage = (src) => {
-  if (imageCache.has(src)) {
-    return Promise.resolve();
-  }
-  
-  if (loadingImages.has(src)) {
-    return loadingImages.get(src);
-  }
-
-  const promise = new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      imageCache.set(src, true);
-      loadingImages.delete(src);
-      resolve();
-    };
-    img.onerror = () => {
-      loadingImages.delete(src);
-      reject();
-    };
-    img.src = src;
-  });
-  
-  loadingImages.set(src, promise);
-  return promise;
-};
-
-// Optimized Intersection Observer singleton
-class IntersectionObserverManager {
-  constructor() {
-    this.observers = new Map();
-    this.callbacks = new WeakMap();
-  }
-
-  observe(element, callback, options = {}) {
-    const key = JSON.stringify(options);
-    
-    if (!this.observers.has(key)) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          const callback = this.callbacks.get(entry.target);
-          if (callback) {
-            callback(entry);
-          }
-        });
-      }, {
-        threshold: 0.01,
-        rootMargin: '50px', // Reduced from 100px for faster loading
-        ...options
-      });
-      this.observers.set(key, observer);
-    }
-
-    const observer = this.observers.get(key);
-    this.callbacks.set(element, callback);
-    observer.observe(element);
-
-    return () => {
-      this.callbacks.delete(element);
-      observer.unobserve(element);
-    };
-  }
-}
-
-const observerManager = new IntersectionObserverManager();
 
 const LazyImage = memo(({
   src,
@@ -82,49 +11,28 @@ const LazyImage = memo(({
   loading = 'lazy',
   onLoad,
   onError,
-  preload = false,
   priority = false,
   ...props
 }) => {
-  const [imageState, setImageState] = useState(() => ({
-    loaded: imageCache.has(src),
+  const [imageState, setImageState] = useState({
+    loaded: false,
     error: false,
-    inView: priority || loading === 'eager' // Load immediately if priority or eager
-  }));
+    inView: priority || loading === 'eager'
+  });
   
   const imgRef = useRef();
-  const mountedRef = useRef(true);
 
-  // Memoized handlers to prevent unnecessary re-renders
-  const handleLoad = useCallback((e) => {
-    if (!mountedRef.current) return;
-    imageCache.set(src, true);
+  const handleLoad = (e) => {
     setImageState(prev => ({ ...prev, loaded: true }));
     onLoad?.(e);
-  }, [src, onLoad]);
+  };
 
-  const handleError = useCallback((e) => {
-    if (!mountedRef.current) return;
+  const handleError = (e) => {
     setImageState(prev => ({ ...prev, error: true }));
     onError?.(e);
-  }, [onError]);
+  };
 
-  const handleIntersection = useCallback((entry) => {
-    if (entry.isIntersecting && !imageState.inView) {
-      setImageState(prev => ({ ...prev, inView: true }));
-    }
-  }, [imageState.inView]);
-
-  // Preload critical images immediately
-  useEffect(() => {
-    if ((preload || priority) && src && !imageCache.has(src)) {
-      preloadImage(src).catch(() => {
-        // Silently handle preload errors
-      });
-    }
-  }, [preload, priority, src]);
-
-  // Setup intersection observer only if needed
+  // Simple intersection observer for lazy loading
   useEffect(() => {
     if (priority || loading === 'eager' || imageState.inView) {
       return;
@@ -132,44 +40,53 @@ const LazyImage = memo(({
 
     if (!imgRef.current) return;
 
-    const cleanup = observerManager.observe(imgRef.current, handleIntersection);
-    return cleanup;
-  }, [handleIntersection, priority, loading, imageState.inView]);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setImageState(prev => ({ ...prev, inView: true }));
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '50px'
+      }
+    );
 
-  // Cleanup on unmount
-  useEffect(() => {
+    observer.observe(imgRef.current);
+
     return () => {
-      mountedRef.current = false;
+      observer.disconnect();
     };
-  }, []);
+  }, [priority, loading, imageState.inView]);
 
-  // Determine if we should show the image
   const shouldShowImage = imageState.inView || priority || loading === 'eager';
-  const showPlaceholder = !imageState.loaded && !imageState.error;
+  const showPlaceholder = !imageState.loaded && !imageState.error && shouldShowImage;
 
   return (
     <div 
       ref={imgRef} 
-      className={`relative overflow-hidden ${className}`}
+      className={`relative ${className}`}
       style={{ width, height }}
     >
-      {/* Optimized placeholder with reduced animation */}
+      {/* Loading placeholder */}
       {showPlaceholder && (
         <div 
-          className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center"
+          className="absolute inset-0 bg-gray-100 flex items-center justify-center"
           style={{ width, height }}
         >
-          <div className="w-6 h-6 text-gray-400">
+          <div className="w-6 h-6 text-gray-400 animate-spin">
             <svg fill="none" viewBox="0 0 24 24" className="w-full h-full opacity-50">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
-              <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="2"/>
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="31.416" strokeDashoffset="31.416">
+                <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/>
+                <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/>
+              </circle>
             </svg>
           </div>
         </div>
       )}
       
-      {/* Actual image - render immediately if in cache or priority */}
+      {/* Actual image */}
       {shouldShowImage && (
         <img
           src={imageState.error ? placeholder : src}
@@ -178,7 +95,7 @@ const LazyImage = memo(({
           height={height}
           loading={priority ? 'eager' : loading}
           decoding="async" 
-          className={`transition-opacity duration-200 ${
+          className={`transition-opacity duration-300 ${
             imageState.loaded ? 'opacity-100' : 'opacity-0'
           }`}
           onLoad={handleLoad}
@@ -202,7 +119,6 @@ LazyImage.propTypes = {
   loading: PropTypes.oneOf(['lazy', 'eager']),
   onLoad: PropTypes.func,
   onError: PropTypes.func,
-  preload: PropTypes.bool,
   priority: PropTypes.bool,
 };
 

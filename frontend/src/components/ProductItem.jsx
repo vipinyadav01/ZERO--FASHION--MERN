@@ -10,11 +10,11 @@ const ProductItem = ({ id, image, name, price, category, isNew, rating }) => {
     <Link to={`/product/${id}`} className="block h-full group">
       <div className="flex flex-col h-full border border-gray-200 bg-white transition-all duration-300 hover:border-black">
         {/* Image Container */}
-        <div className="relative aspect-square w-full overflow-hidden">
+        <div className="relative aspect-square w-full overflow-hidden bg-gray-50">
           <img
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            src={image?.[0] ?? "https://via.placeholder.com/300"}
+            src={image?.[0] || "/placeholder.svg"}
             alt={name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
           
