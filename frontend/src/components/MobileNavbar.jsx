@@ -72,7 +72,7 @@ const MobileNavbar = ({ token, getCartCount, setShowSearch }) => {
                 className="w-5 h-5 object-contain"
               />
             </div>
-            <span className="text-lg font-bold text-gray-900 tracking-tight">
+            <span className="text-lg font-bold text-gray-900 tracking-tight font-asterion">
               ZERO FASHION
             </span>
           </Link>
