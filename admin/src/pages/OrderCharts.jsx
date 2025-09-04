@@ -183,6 +183,73 @@ const OrderCharts = ({ token }) => {
     },
   };
 
+  // Loading state with responsive skeletons
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <div className="px-1 pt-8 pb-6 sm:px-4 sm:pt-10 lg:px-6 lg:pt-12">
+          <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+            {/* Header skeleton */}
+            <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-4 sm:p-6 animate-pulse">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-700/60" />
+                  <div className="space-y-2">
+                    <div className="h-4 w-40 sm:w-52 bg-slate-700/60 rounded" />
+                    <div className="h-3 w-24 bg-slate-700/50 rounded" />
+                  </div>
+                </div>
+                <div className="h-5 w-24 bg-slate-700/60 rounded" />
+              </div>
+            </div>
+
+            {/* Stats skeleton */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-xl bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 p-3 sm:p-4 animate-pulse">
+                  <div className="space-y-3">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-700/60" />
+                    <div className="h-3 w-16 bg-slate-700/50 rounded" />
+                    <div className="h-4 w-24 sm:w-28 bg-slate-700/60 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Charts skeleton */}
+            <div className="grid gap-4 lg:grid-cols-2">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 animate-pulse">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-9 h-9 rounded-xl bg-slate-700/60" />
+                    <div className="h-4 w-32 bg-slate-700/60 rounded" />
+                  </div>
+                  <div className="h-64 sm:h-72 lg:h-80 bg-slate-700/40 rounded-xl" />
+                </div>
+              ))}
+            </div>
+
+            {/* Recent orders skeleton */}
+            <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 animate-pulse">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-slate-700/60" />
+                  <div className="h-4 w-36 bg-slate-700/60 rounded" />
+                </div>
+                <div className="h-6 w-20 bg-slate-700/60 rounded-full" />
+              </div>
+              <div className="space-y-2 sm:space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="p-3 sm:p-4 rounded-xl bg-slate-700/40" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Mobile empty state
   if (!orders.length) {
     return (
@@ -300,7 +367,7 @@ const OrderCharts = ({ token }) => {
             <div className="grid gap-4 lg:grid-cols-2">
               
               {/* Pie Chart - Mobile optimized */}
-              <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 hover:bg-slate-700/60 transition-all duration-300">
+              <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 hover:bg-slate-700/60 hover:ring-2 hover:ring-indigo-500/20 transition-all duration-300">
                 <div className="flex items-center gap-2 sm:gap-3 mb-4">
                   <div className="p-2 rounded-xl bg-indigo-500/20">
                     <PieChartIcon className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400" />
@@ -313,7 +380,7 @@ const OrderCharts = ({ token }) => {
               </div>
 
               {/* Bar Chart - Mobile optimized */}
-              <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 hover:bg-slate-700/60 transition-all duration-300">
+              <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 hover:bg-slate-700/60 hover:ring-2 hover:ring-indigo-500/20 transition-all duration-300">
                 <div className="flex items-center gap-2 sm:gap-3 mb-4">
                   <div className="p-2 rounded-xl bg-purple-500/20">
                     <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400" />
@@ -327,7 +394,7 @@ const OrderCharts = ({ token }) => {
             </div>
 
             {/* Recent Orders - Mobile optimized */}
-            <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 hover:bg-slate-700/60 transition-all duration-300">
+            <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 hover:bg-slate-700/60 hover:ring-2 hover:ring-indigo-500/20 transition-all duration-300">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="p-2 rounded-xl bg-emerald-500/20">
