@@ -277,6 +277,28 @@ const Order = () => {
                                 </button>
                             </div>
                         </div>
+                    ) : loading ? (
+                        /* Loading State */
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                            {Array.from({ length: 6 }).map((_, i) => (
+                                <div key={i} className="rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-4 sm:p-6 animate-pulse">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-700/60" />
+                                            <div className="flex-1 min-w-0 space-y-2">
+                                                <div className="h-3 sm:h-4 w-1/2 bg-slate-700/60 rounded" />
+                                                <div className="h-3 w-1/3 bg-slate-700/50 rounded" />
+                                            </div>
+                                        </div>
+                                        <div className="h-6 w-16 bg-slate-700/60 rounded" />
+                                    </div>
+                                    <div className="mt-4 flex items-center justify-between">
+                                        <div className="h-3 w-24 bg-slate-700/50 rounded" />
+                                        <div className="h-5 w-20 bg-slate-700/50 rounded-full" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     ) : filteredOrders.length === 0 ? (
                         /* Empty State */
                         <div className="relative overflow-hidden rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-6 text-center">
@@ -304,8 +326,8 @@ const Order = () => {
                             </div>
                         </div>
                     ) : (
-                        /* Orders List */
-                        <div className="space-y-3 sm:space-y-4">
+                        /* Orders Grid */
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             {filteredOrders.map((order, index) => {
                                 const StatusIcon = getStatusIcon(order.status);
                                 const isExpanded = expandedOrder === index;
@@ -313,7 +335,7 @@ const Order = () => {
                                 return (
                                     <div
                                         key={order._id || index}
-                                        className="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 hover:bg-slate-700/60 transition-all duration-300"
+                                        className="group relative overflow-hidden rounded-xl sm:rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 hover:bg-slate-700/60 transition-all duration-300 h-full flex flex-col min-h-[220px] hover:ring-2 hover:ring-indigo-500/20"
                                     >
                                         {/* Order Header - Mobile optimized */}
                                         <div
@@ -337,13 +359,20 @@ const Order = () => {
                                                         </div>
                                                     </div>
 
-                                                    <div className="text-right flex-shrink-0">
-                                                        <p className="font-bold text-indigo-400 text-sm sm:text-base">
+                                                    <div className="text-right flex-shrink-0 space-y-1">
+                                                        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-xs font-semibold border border-indigo-500/20">
                                                             ₹{order.amount.toFixed(0)}
-                                                        </p>
-                                                        <button className="text-xs text-slate-400 hover:text-white transition-colors mt-1">
-                                                            {isExpanded ? 'Hide' : 'View'}
-                                                        </button>
+                                                        </span>
+                                                        <div>
+                                                            <button className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors">
+                                                                {isExpanded ? 'Hide' : 'View'}
+                                                                {isExpanded ? (
+                                                                    <ChevronUp className="w-3 h-3" />
+                                                                ) : (
+                                                                    <ChevronDown className="w-3 h-3" />
+                                                                )}
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -376,7 +405,7 @@ const Order = () => {
 
                                         {/* Expanded Details - Mobile optimized */}
                                         {isExpanded && (
-                                            <div className="border-t border-slate-700/50 p-4 sm:p-6 space-y-4 sm:space-y-6">
+                                            <div className="border-t border-slate-700/50 p-4 sm:p-6 space-y-4 sm:space-y-6 mt-auto">
                                                 <div className="grid gap-4 sm:gap-6">
 
                                                     {/* Order Items - Mobile-first */}
