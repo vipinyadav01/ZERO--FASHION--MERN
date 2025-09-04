@@ -4,6 +4,7 @@ import { ShopContext } from "./../context/ShopContext";
 import { assets } from "../assets/assets";
 import Title from "./../components/Title";
 import ProductItem from "./../components/ProductItem";
+import SEO, { SEOConfigs, generateCategorySEO } from "../components/SEO";
 
 const Collection = () => {
     const { products, search, showSearch } = useContext(ShopContext);
@@ -123,9 +124,24 @@ const Collection = () => {
         </motion.div>
     );
 
+    // Generate dynamic SEO based on active filters
+    const generateCollectionSEO = () => {
+        if (category.length === 1 && subCategory.length === 1) {
+            return generateCategorySEO(category[0], subCategory[0]);
+        } else if (category.length === 1) {
+            return generateCategorySEO(category[0]);
+        } else if (subCategory.length === 1) {
+            return generateCategorySEO(null, subCategory[0]);
+        } else {
+            return SEOConfigs.collection;
+        }
+    };
+
     return (
-        <div className="min-h-screen flex flex-col lg:flex-row gap-8 pt-24 pb-8 border-t max-w-7xl mx-auto">
-            {/* Filter options */}
+        <>
+            <SEO {...generateCollectionSEO()} />
+            <div className="min-h-screen flex flex-col lg:flex-row gap-8 pt-24 pb-8 border-t max-w-7xl mx-auto">
+                {/* Filter options */}
             <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -253,7 +269,8 @@ const Collection = () => {
                     </motion.p>
                 )}
             </motion.div>
-        </div>
+            </div>
+        </>
     );
 };
 

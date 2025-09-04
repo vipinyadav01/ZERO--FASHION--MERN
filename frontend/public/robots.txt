@@ -1,0 +1,41 @@
+User-agent: *
+Allow: /
+
+# Allow access to CSS and JS files
+Allow: /static/
+Allow: /assets/
+Allow: *.css
+Allow: *.js
+
+# Disallow private/admin areas
+Disallow: /admin/
+Disallow: /private/
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /cart
+Disallow: /profile
+Disallow: /orders
+Disallow: /wishlist
+Disallow: /notifications
+
+# Disallow search results and filtered pages with parameters to avoid duplicate content
+Disallow: /collection?*
+Disallow: /search?*
+Disallow: /*?search=*
+Disallow: /*?page=*
+Disallow: /*?sort=*
+
+# Allow specific important pages
+Allow: /
+Allow: /collection
+Allow: /about
+Allow: /contact
+Allow: /privacy-policy
+Allow: /support
+
+# Sitemap location
+Sitemap: https://zerofashion.vercel.app/sitemap.xml
+
+# Crawl-delay (optional - helps prevent overwhelming your server)
+Crawl-delay: 1

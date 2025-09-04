@@ -1,10 +1,13 @@
 
 import { assets } from "../assets/assets";
 import NewsletterBox from "../components/NewsletterBox";
+import SEO, { SEOConfigs } from "../components/SEO";
 
 const Contact = () => {
   return (
-    <div className="bg-white">
+    <>
+      <SEO {...SEOConfigs.contact} />
+      <div className="bg-white">
       {/* Hero Section */}
       <div className="relative h-80 bg-gray-900">
         <img
@@ -41,7 +44,7 @@ const Contact = () => {
               <p className="text-lg text-gray-600">
                 Tel: +91 9918572513
                 <br />
-                Email: contact@zerofashion.com
+                Email: contact@zerofashion.vercel.app
               </p>
             </div>
             <div>
@@ -97,7 +100,8 @@ const Contact = () => {
           <NewsletterBox />
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -68,7 +68,7 @@ const Sidebar = ({ onWidthChange, onLogout }) => {
                 
                 setUser({
                     name: "Admin",
-                    email: "admin@zerofashion.com",
+                    email: "admin@zerofashion.vercel.app",
                     role: "Administrator"
                 });
             } finally {

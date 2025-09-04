@@ -220,7 +220,7 @@ const Login = ({ setToken }) => {
                                         onChange={handleChange}
                                         onBlur={() => handleBlur("email")}
                                         className={`w-full pl-12 pr-4 py-4 bg-black/20 backdrop-blur-sm text-white border rounded-2xl outline-none transition-all duration-300 placeholder-gray-500 ${getInputErrorClass("email")}`}
-                                        placeholder="admin@zerofashion.com"
+                                        placeholder="admin@zerofashion.vercel.app"
                                         required
                                         disabled={isLoading}
                                     />

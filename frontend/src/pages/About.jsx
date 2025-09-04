@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { assets } from "../assets/assets";
 import Title from "../components/Title";
 import NewsletterBox from "../components/NewsletterBox";
+import SEO, { SEOConfigs } from "../components/SEO";
 import { Clock, Users, Award, Leaf, Target, Heart, ChevronDown, Mail } from "lucide-react";
 
 // Animation variants
@@ -66,8 +67,10 @@ const About = () => {
     ];
 
     return (
-        <div className="max-w-7xl mx-auto py-16">
-            {/* Header Section with Current Time */}
+        <>
+            <SEO {...SEOConfigs.about} />
+            <div className="max-w-7xl mx-auto py-16">
+                {/* Header Section with Current Time */}
             <motion.div
                 className="text-center mb-8"
                 variants={animations.fadeIn}
@@ -286,7 +289,8 @@ const About = () => {
             >
                 <NewsletterBox />
             </motion.div>
-        </div>
+            </div>
+        </>
     );
 };
 

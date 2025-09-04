@@ -238,7 +238,7 @@ MONGODB_URI=mongodb://localhost:27017/zero-fashion
 JWT_SECRET=your_super_secret_jwt_key_here
 
 # Admin Credentials
-ADMIN_EMAIL=admin@zerofashion.com
+ADMIN_EMAIL=admin@zerofashion.vercel.app
 ADMIN_PASSWORD=your_admin_password
 
 # Cloudinary Configuration (Required for images)

@@ -4,16 +4,20 @@ import LatestCollection from '../components/LatestCollection'
 import BestSeller from '../components/BestSeller'
 import OurPolicy from '../components/OurPolicy'
 import NewsletterBox from '../components/NewsletterBox'
+import SEO, { SEOConfigs } from '../components/SEO'
 
 const Home = () => {
   return (
-    <div>
-      <Hero/>
-      <LatestCollection/>
-      <BestSeller/>
-      <OurPolicy/>
-      <NewsletterBox/>
-    </div>
+    <>
+      <SEO {...SEOConfigs.home} />
+      <div>
+        <Hero/>
+        <LatestCollection/>
+        <BestSeller/>
+        <OurPolicy/>
+        <NewsletterBox/>
+      </div>
+    </>
   )
 }
 

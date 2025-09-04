@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+        
+  <!-- Homepage -->
+  <url>
+    <loc>https://zerofashion.vercel.app/</loc>
+    <lastmod>2025-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://zerofashion.vercel.app/hero_img.png</image:loc>
+      <image:title>Zero Fashion - Premium Fashion Collection</image:title>
+    </image:image>
+  </url>
+  
+  <!-- Collection Page -->
+  <url>
+    <loc>https://zerofashion.vercel.app/collection</loc>
+    <lastmod>2025-09-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- About Page -->
+  <url>
+    <loc>https://zerofashion.vercel.app/about</loc>
+    <lastmod>2025-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://zerofashion.vercel.app/about_img.png</image:loc>
+      <image:title>About Zero Fashion</image:title>
+    </image:image>
+  </url>
+  
+  <!-- Contact Page -->
+  <url>
+    <loc>https://zerofashion.vercel.app/contact</loc>
+    <lastmod>2025-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+      <image:loc>https://zerofashion.vercel.app/contact_img.png</image:loc>
+      <image:title>Contact Zero Fashion</image:title>
+    </image:image>
+  </url>
+  
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://zerofashion.vercel.app/privacy-policy</loc>
+    <lastmod>2025-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Support Page -->
+  <url>
+    <loc>https://zerofashion.vercel.app/support</loc>
+    <lastmod>2025-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Category Pages -->
+  <url>
+    <loc>https://zerofashion.vercel.app/collection?category=Men</loc>
+    <lastmod>2025-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://zerofashion.vercel.app/collection?category=Women</loc>
+    <lastmod>2025-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://zerofashion.vercel.app/collection?category=Kids</loc>
+    <lastmod>2025-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Subcategory Pages -->
+  <url>
+    <loc>https://zerofashion.vercel.app/collection?subcategory=Topwear</loc>
+    <lastmod>2025-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://zerofashion.vercel.app/collection?subcategory=Bottomwear</loc>
+    <lastmod>2025-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://zerofashion.vercel.app/collection?subcategory=Winterwear</loc>
+    <lastmod>2025-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- 
+  Note: Product URLs should be dynamically generated based on your product database.
+  For a complete sitemap, you would want to create a server-side sitemap generator
+  that pulls from your product database to include all product pages like:
+  
+  <url>
+    <loc>https://zerofashion.vercel.app/product/PRODUCT_ID</loc>
+    <lastmod>PRODUCT_LAST_MODIFIED_DATE</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <image:image>
+      <image:loc>PRODUCT_IMAGE_URL</image:loc>
+      <image:title>PRODUCT_NAME</image:title>
+    </image:image>
+  </url>
+  -->
+  
+</urlset>

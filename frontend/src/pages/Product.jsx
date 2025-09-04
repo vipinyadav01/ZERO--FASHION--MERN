@@ -6,6 +6,8 @@ import { ShopContext } from "../context/ShopContext"
 import { assets } from "../assets/assets"
 import RelatedProducts from "../components/RelatedProducts"
 import Title from "../components/Title"
+import SEO, { generateProductSEO } from "../components/SEO"
+import Breadcrumb, { generateProductBreadcrumbs } from "../components/Breadcrumb"
 import { Heart, ShoppingCart } from "lucide-react"
 
 const Product = () => {
@@ -93,8 +95,14 @@ const Product = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16 mt-8 sm:mt-16">
-      <div className="flex flex-col lg:flex-row gap-12">
+    <>
+      <SEO {...generateProductSEO(productData)} />
+      <div className="container mx-auto px-4 py-16 mt-8 sm:mt-16">
+        <Breadcrumb 
+          customItems={generateProductBreadcrumbs(productData)} 
+          className="mb-8"
+        />
+        <div className="flex flex-col lg:flex-row gap-12">
         {/*---------- product images ----------*/}
         <div className="flex-1 flex flex-col-reverse gap-6 lg:flex-row">
           <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto gap-4 lg:w-[20%] w-full no-scrollbar">
@@ -281,7 +289,8 @@ const Product = () => {
           </div>
           <RelatedProducts category={productData.category} subCategory={productData.subCategory} />
         </div>
-    </div>
+      </div>
+    </>
   )
 }
 

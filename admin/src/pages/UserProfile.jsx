@@ -146,7 +146,7 @@ const UserProfile = ({ token }) => {
 
           if (registerResponse.data.success) {
             createdCount++;
-            if (userData.email === "testadmin@zerofashion.com") {
+            if (userData.email === "testadmin@zerofashion.vercel.app") {
               await axios.post(
                 `${backendUrl}/api/user/admin-update`,
                 {
