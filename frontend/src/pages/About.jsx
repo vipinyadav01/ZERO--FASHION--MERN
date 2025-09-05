@@ -69,16 +69,16 @@ const About = () => {
     return (
         <>
             <SEO {...SEOConfigs.about} />
-            <div className="max-w-7xl mx-auto py-16">
+            <div className="max-w-7xl mx-auto py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
                 {/* Header Section with Current Time */}
             <motion.div
-                className="text-center mb-8"
+                className="text-center mb-6 sm:mb-8"
                 variants={animations.fadeIn}
                 initial="hidden"
                 animate="visible"
             >
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mb-4">
-                    <Clock size={16} />
+                <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-gray-500 mb-4">
+                    <Clock size={14} className="sm:w-4 sm:h-4" />
                     <span>{currentDate} UTC</span>
                 </div>
                 <Title text1="ABOUT" text2="US" accent="gradient" size="xl" />
@@ -86,34 +86,34 @@ const About = () => {
 
             {/* Main Content Section */}
             <motion.div
-                className="my-16 flex flex-col md:flex-row gap-16 items-center"
+                className="my-8 sm:my-12 lg:my-16 flex flex-col md:flex-row gap-8 sm:gap-12 lg:gap-16 items-center"
                 variants={animations.fadeIn}
                 initial="hidden"
                 animate="visible"
                 transition={{ duration: 0.6, delay: 0.2 }}
             >
-                <motion.div className="relative w-full md:max-w-[450px]">
+                <motion.div className="relative w-full md:max-w-[450px] max-w-md mx-auto md:mx-0">
                     <motion.img
                         whileHover={{ scale: 1.05 }}
                         transition={{ type: "spring", stiffness: 300 }}
-                        className="rounded-lg shadow-xl"
+                        className="w-full rounded-lg shadow-xl"
                         src={assets.about_img}
                         alt="About Zero Fashion"
                     />
                     <motion.div
-                        className="absolute -bottom-4 -right-4 bg-white p-4 rounded-lg shadow-lg"
+                        className="absolute -bottom-2 sm:-bottom-4 -right-2 sm:-right-4 bg-white p-2 sm:p-4 rounded-lg shadow-lg"
                         whileHover={{ scale: 1.1 }}
                     >
-                        <p className="text-sm font-medium text-gray-600">
+                        <p className="text-xs sm:text-sm font-medium text-gray-600">
                             Designed by {currentUser}
                         </p>
                     </motion.div>
                 </motion.div>
 
-                <div className="flex flex-col justify-center gap-6 md:w-2/4">
+                <div className="flex flex-col justify-center gap-4 sm:gap-6 md:w-2/4 w-full">
                     {/* Company Stats */}
                     <motion.div
-                        className="grid grid-cols-2 gap-4 mb-6"
+                        className="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6"
                         variants={animations.stagger}
                         initial="hidden"
                         animate="visible"
@@ -121,13 +121,13 @@ const About = () => {
                         {companyStats.map((stat, index) => (
                             <motion.div
                                 key={index}
-                                className="bg-white p-4 rounded-lg shadow-sm border border-gray-100"
+                                className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-100"
                                 variants={animations.scale}
                                 whileHover={{ scale: 1.05 }}
                             >
-                                <stat.icon className="w-6 h-6 text-indigo-600 mb-2" />
-                                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                                <div className="text-sm text-gray-500">{stat.label}</div>
+                                <stat.icon className="w-4 h-4 sm:w-6 sm:h-6 text-indigo-600 mb-2" />
+                                <div className="text-lg sm:text-2xl font-bold text-gray-900">{stat.value}</div>
+                                <div className="text-xs sm:text-sm text-gray-500">{stat.label}</div>
                             </motion.div>
                         ))}
                     </motion.div>
@@ -153,39 +153,39 @@ const About = () => {
 
             {/* Timeline Section */}
             <motion.div
-                className="my-20"
+                className="my-12 sm:my-16 lg:my-20"
                 variants={animations.fadeIn}
                 initial="hidden"
                 animate="visible"
                 transition={{ delay: 0.4 }}
             >
-                <Title text1="OUR" text2="JOURNEY" accent="indigo" className="mb-12" />
+                <Title text1="OUR" text2="JOURNEY" accent="indigo" className="mb-8 sm:mb-12" />
                 <div className="relative">
-                    <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-px bg-gray-200" />
+                    <div className="absolute left-4 sm:left-1/2 transform sm:-translate-x-1/2 h-full w-px bg-gray-200" />
                     {milestones.map((milestone, index) => (
                         <motion.div
                             key={index}
-                            className={`flex items-center mb-8 ${index % 2 === 0 ? "flex-row" : "flex-row-reverse"
-                                }`}
+                            className={`flex items-center mb-6 sm:mb-8 ${
+                                index % 2 === 0 ? "sm:flex-row" : "sm:flex-row-reverse"
+                            } flex-row`}
                             initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: index * 0.2 }}
                         >
-                            <div className="w-1/2 px-4">
-                                <div className="bg-white p-6 rounded-lg shadow-lg">
-                                    <div className="text-2xl font-bold text-indigo-600">
+                            <div className="w-full sm:w-1/2 pl-12 sm:px-4">
+                                <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
+                                    <div className="text-xl sm:text-2xl font-bold text-indigo-600">
                                         {milestone.year}
                                     </div>
-                                    <h3 className="text-xl font-semibold mb-2">
+                                    <h3 className="text-lg sm:text-xl font-semibold mb-2">
                                         {milestone.title}
                                     </h3>
-                                    <p className="text-gray-600">{milestone.description}</p>
+                                    <p className="text-sm sm:text-base text-gray-600">{milestone.description}</p>
                                 </div>
                             </div>
-                            <div className="w-4 h-4 bg-indigo-600 rounded-full absolute left-1/2 transform -translate-x-1/2" />
+                            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-indigo-600 rounded-full absolute left-4 sm:left-1/2 transform sm:-translate-x-1/2" />
                         </motion.div>
-                    ))}
                 </div>
             </motion.div>
 

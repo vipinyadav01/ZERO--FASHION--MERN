@@ -85,27 +85,27 @@ const SearchBar = () => {
       onClick={handleClose}
     >
       <div 
-        className="w-[60%] h-[60%] bg-white rounded-2xl shadow-2xl flex flex-col"
+        className="w-[95%] sm:w-[85%] md:w-[75%] lg:w-[65%] xl:w-[60%] h-[90%] sm:h-[80%] md:h-[70%] lg:h-[60%] max-w-4xl bg-white rounded-lg sm:rounded-2xl shadow-2xl flex flex-col m-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex-1 p-6 flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg sm:text-xl font-bold text-black">Search Products</h2>
+        <div className="flex-1 p-4 sm:p-6 flex flex-col">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="text-base sm:text-lg lg:text-xl font-bold text-black">Search Products</h2>
             <button
               onClick={handleClose}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 transition-colors"
               aria-label="Close search"
             >
-              <X className="w-5 h-5 text-gray-600" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
             </button>
           </div>
 
-          <form onSubmit={handleSearch} className="relative mb-6">
+          <form onSubmit={handleSearch} className="relative mb-4 sm:mb-6">
             <div className={`relative flex items-center bg-white rounded-lg border-2 transition-colors ${
               focused ? "border-black" : "border-gray-200"
             }`}>
-              <div className="absolute left-4">
-                <Search className="w-5 h-5 text-gray-400" />
+              <div className="absolute left-3 sm:left-4">
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
               </div>
               
               <input
@@ -113,7 +113,7 @@ const SearchBar = () => {
                 onChange={(e) => setSearch(e.target.value)}
                 onFocus={() => setFocused(true)}
                 onBlur={() => setFocused(false)}
-                className="flex-1 pl-12 pr-24 sm:pr-20 py-3 sm:py-4 text-base sm:text-lg outline-none bg-transparent text-black placeholder-gray-500 rounded-lg"
+                className="flex-1 pl-10 sm:pl-12 pr-20 sm:pr-24 md:pr-20 py-3 sm:py-4 text-sm sm:text-base lg:text-lg outline-none bg-transparent text-black placeholder-gray-500 rounded-lg"
                 type="text"
                 placeholder="Search for products..."
                 aria-label="Search products"
@@ -123,23 +123,23 @@ const SearchBar = () => {
               <div className="absolute right-2 flex items-center space-x-1 sm:space-x-2">
                 <button
                   type="button"
-                  className="hidden sm:flex p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  className="hidden md:flex p-1.5 sm:p-2 rounded-full hover:bg-gray-100 transition-colors"
                   aria-label="Voice search"
                 >
-                  <Mic className="w-4 h-4 text-gray-500" />
+                  <Mic className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
                 </button>
                 
                 <button
                   type="button"
-                  className="hidden sm:flex p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  className="hidden md:flex p-1.5 sm:p-2 rounded-full hover:bg-gray-100 transition-colors"
                   aria-label="Camera search"
                 >
-                  <Camera className="w-4 h-4 text-gray-500" />
+                  <Camera className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
                 </button>
                 
                 <button
                   type="submit"
-                  className="px-3 sm:px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-medium text-sm sm:text-base"
+                  className="px-2 sm:px-3 md:px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-medium text-xs sm:text-sm md:text-base"
                 >
                   Search
                 </button>
@@ -169,14 +169,14 @@ const SearchBar = () => {
             )}
 
             {!search && (
-              <div className="mt-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Popular Categories</h3>
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              <div className="mt-3 sm:mt-4">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">Popular Categories</h3>
+                <div className="flex flex-wrap gap-1 sm:gap-1.5 md:gap-2">
                   {popularCategories.map((category) => (
                     <button
                       key={category}
                       onClick={() => handleCategoryClick(category)}
-                      className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-black hover:text-white text-gray-700 rounded-full text-xs sm:text-sm font-medium transition-all border border-gray-200 hover:border-black"
+                      className="px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 bg-gray-100 hover:bg-black hover:text-white text-gray-700 rounded-full text-xs sm:text-sm font-medium transition-all border border-gray-200 hover:border-black"
                     >
                       {category}
                     </button>
@@ -186,9 +186,9 @@ const SearchBar = () => {
             )}
           </div>
 
-          <div className="mt-4 text-center">
+          <div className="mt-3 sm:mt-4 text-center">
             <p className="text-xs text-gray-500 hidden sm:block">
-              Press <kbd className="px-2 py-1 bg-gray-200 rounded text-gray-700 font-mono">Enter</kbd> to search or <kbd className="px-2 py-1 bg-gray-200 rounded text-gray-700 font-mono">Esc</kbd> to close
+              Press <kbd className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-200 rounded text-gray-700 font-mono text-xs">Enter</kbd> to search or <kbd className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-200 rounded text-gray-700 font-mono text-xs">Esc</kbd> to close
             </p>
             <p className="text-xs text-gray-500 sm:hidden">
               Tap search or press Enter

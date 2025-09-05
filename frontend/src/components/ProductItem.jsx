@@ -1,22 +1,54 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { Link } from "react-router-dom";
 import WishlistButton from "./WishlistButton";
 import PropTypes from "prop-types";
 
-const ProductItem = ({ id, image, name, price, category, isNew, rating }) => {
+const ProductItem = ({ id, image, name, price, category, isNew, rating, imageClassName }) => {
   const { currency } = useContext(ShopContext);
+  const [imageError, setImageError] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
+
+  // Helper function to get the first valid image URL
+  const getImageSrc = () => {
+    if (!image || !Array.isArray(image) || image.length === 0) {
+      return "/placeholder.svg";
+    }
+    
+    // Find first non-empty image URL
+    const validImage = image.find(img => img && img.trim() !== "");
+    return validImage || "/placeholder.svg";
+  };
+
+  const handleImageLoad = () => {
+    setIsImageLoading(false);
+  };
+
+  const handleImageError = () => {
+    setImageError(true);
+    setIsImageLoading(false);
+  };
 
   return (
     <Link to={`/product/${id}`} className="block h-full group">
       <div className="flex flex-col h-full border border-gray-200 bg-white transition-all duration-300 hover:border-black">
         {/* Image Container */}
         <div className="relative aspect-square w-full overflow-hidden bg-gray-50">
+          {/* Loading Spinner */}
+          {isImageLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+              <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-gray-900"></div>
+            </div>
+          )}
+          
           <img
-            src={image?.[0] || "/placeholder.svg"}
-            alt={name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            src={imageError ? "/placeholder.svg" : getImageSrc()}
+            alt={name || "Product Image"}
+            className={imageClassName || "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"}
             loading="lazy"
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+            style={{ display: isImageLoading ? 'none' : 'block' }}
           />
           
           {/* Overlay */}
@@ -90,6 +122,7 @@ ProductItem.propTypes = {
   category: PropTypes.string,
   isNew: PropTypes.bool,
   rating: PropTypes.number,
+  imageClassName: PropTypes.string,
 };
 
 export default ProductItem;

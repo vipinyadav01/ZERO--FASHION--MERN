@@ -137,20 +137,20 @@ const Collection = () => {
     return (
         <>
             <SEO {...generateCollectionSEO()} />
-            <div className="min-h-screen flex flex-col lg:flex-row gap-8 pt-24 pb-8 border-t max-w-7xl mx-auto">
+            <div className="min-h-screen flex flex-col lg:flex-row gap-4 lg:gap-8 pt-16 sm:pt-20 lg:pt-24 pb-8 px-4 sm:px-6 lg:px-8 border-t max-w-7xl mx-auto">
                 {/* Filter options */}
             <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="lg:w-64"
+                className="w-full lg:w-64 lg:min-w-64 lg:flex-shrink-0"
             >
                 <button
                     onClick={() => setShowFilter(!showFilter)}
-                    className="mb-4 text-xl flex items-center cursor-pointer gap-2 lg:hidden"
+                    className="w-full mb-4 p-3 text-base sm:text-lg lg:text-xl flex items-center justify-between cursor-pointer gap-2 lg:hidden bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
                     aria-expanded={showFilter}
                     aria-controls="filter-options"
                 >
-                    FILTERS
+                    <span className="font-medium">FILTERS</span>
                     <motion.img
                         animate={{ rotate: showFilter ? 90 : 0 }}
                         transition={{ duration: 0.3 }}
@@ -192,11 +192,11 @@ const Collection = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex-1"
             >
-                <div className="flex justify-between items-center text-base sm:text-2xl mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <Title text1={"All"} text2={"COLLECTIONS"} />
                     <select
                         onChange={(e) => setSortType(e.target.value)}
-                        className="border-2 border-gray-300 text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full sm:w-auto border-2 border-gray-300 text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                         value={sortType}
                     >
                         <option value="relevant">Sort by: Relevant</option>
@@ -218,7 +218,7 @@ const Collection = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ staggerChildren: 0.1 }}
-                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+                        className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
                     >
                         {filterProducts.map((item) => (
                             <motion.div
@@ -227,7 +227,7 @@ const Collection = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 whileHover={{ y: -5 }}
                                 transition={{ duration: 0.3 }}
-                                className="product-card-container aspect-[3/4]"
+                                className="w-full"
                             >
                                 <ProductItem
                                     name={item.name}
@@ -237,7 +237,7 @@ const Collection = () => {
                                     category={item.category}
                                     isNew={item.isNew || false}
                                     rating={item.rating || 0}
-                                    imageClassName="w-full h-60 md:h-72 object-cover rounded-lg"
+                                    imageClassName="w-full h-48 xs:h-52 sm:h-60 md:h-64 lg:h-72 object-cover"
                                 />
                             </motion.div>
                         ))}
