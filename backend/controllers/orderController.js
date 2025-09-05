@@ -4,17 +4,21 @@ import ProductModel from "../models/productModel.js";
 import Stripe from "stripe";
 import Razorpay from "razorpay";
 import crypto from "crypto";
+import dotenv from "dotenv";
+
+
+dotenv.config();
 
 const currency = "inr";
 const deliveryFee = 10;
 
-// Initialize Stripe with proper error handling
 let stripe;
 try {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    console.error("STRIPE_SECRET_KEY is not configured");
-  } else {
+  if (process.env.STRIPE_SECRET_KEY) {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    console.log("Stripe initialized successfully");
+  } else {
+    console.log("Stripe not configured - missing STRIPE_SECRET_KEY");
   }
 } catch (error) {
   console.error("Failed to initialize Stripe:", error);
@@ -22,17 +26,11 @@ try {
 
 // Initialize Razorpay with both key_id and key_secret
 let razorpayInstance;
-try {
-  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-    console.error("RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is not configured");
-  } else {
-    razorpayInstance = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
-  }
-} catch (error) {
-  console.error("Failed to initialize Razorpay:", error);
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpayInstance = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
 }
 
 // Place order using Cash on Delivery Method

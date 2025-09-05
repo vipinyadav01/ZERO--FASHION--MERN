@@ -18,7 +18,7 @@ const Product = () => {
     addMultipleSizesToCart, 
     addToWishlist, 
     removeFromWishlist, 
-    checkWishlistStatus,
+    isProductInWishlist,
     isLoading 
   } = useContext(ShopContext)
   const [productData, setProductData] = useState(null) 
@@ -48,12 +48,12 @@ const Product = () => {
   useEffect(() => {
     const checkWishlist = async () => {
       if (productData && productData._id) {
-        const status = await checkWishlistStatus(productData._id)
+        const status = isProductInWishlist(productData._id)
         setIsInWishlist(status)
       }
     }
     checkWishlist()
-  }, [productData, checkWishlistStatus])
+  }, [productData, isProductInWishlist])
 
   const handleWishlistToggle = async () => {
     if (!productData) return
