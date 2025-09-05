@@ -184,8 +184,9 @@ const About = () => {
                                     <p className="text-sm sm:text-base text-gray-600">{milestone.description}</p>
                                 </div>
                             </div>
-                            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-indigo-600 rounded-full absolute left-4 sm:left-1/2 transform sm:-translate-x-1/2" />
+                            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-indigo-600 rounded-full absolute left-4 sm:left-1/2 transform sm:-translate-x-1/2"></div>
                         </motion.div>
+                    ))}
                 </div>
             </motion.div>
 
