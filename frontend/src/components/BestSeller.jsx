@@ -51,6 +51,9 @@ const BestSeller = () => {
               name={item.name}
               image={item.image}
               price={item.price}
+              category={item.category}
+              isNew={item.isNew || false}
+              rating={item.rating || 0}
             />
           </motion.div>
         ))}

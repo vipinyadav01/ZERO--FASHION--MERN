@@ -3,7 +3,7 @@ import React from 'react'
 
 function Title({ text1, text2 }) {
   return (
-    <div className="inline-flex gap-3 items-center mb-4 text-2xl sm:text-2xl lg:text-3xl">
+    <div className="inline-flex gap-3 items-center mb-4 text-2xl sm:text-xl lg:text-2xl">
       <span className="text-gray-500 font-asterion">
         {text1}
       </span>

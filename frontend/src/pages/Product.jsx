@@ -34,7 +34,8 @@ const Product = () => {
       const product = products.find((item) => item && item._id === productId)
       if (product) {
         setProductData(product)
-        setImage(product.image[0])
+        const firstImage = product.image && product.image.length > 0 ? product.image[0] : "/placeholder.svg"
+        setImage(firstImage)
       }
     }
     setLoading(false)
@@ -106,26 +107,38 @@ const Product = () => {
         {/*---------- product images ----------*/}
         <div className="flex-1 flex flex-col-reverse gap-6 lg:flex-row">
           <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto gap-4 lg:w-[20%] w-full no-scrollbar">
-            {productData.image.map((item, index) => (
-              <div
-                key={index}
-                onClick={() => setImage(item)}
-                className={`cursor-pointer border ${image === item ? "border-black" : "border-transparent"} transition-all duration-300`}
-              >
-                <img
-                  src={item || "/placeholder.svg"}
-                  className="w-24 h-24 lg:w-full lg:h-auto object-cover"
-                  alt={`${productData.name} - view ${index + 1}`}
-                />
+            {productData.image && productData.image.length > 0 ? (
+              productData.image.map((item, index) => (
+                <div
+                  key={index}
+                  onClick={() => setImage(item)}
+                  className={`cursor-pointer border ${image === item ? "border-black" : "border-transparent"} transition-all duration-300`}
+                >
+                  <img
+                    src={item || "/placeholder.svg"}
+                    className="w-24 h-24 lg:w-full lg:h-auto object-cover"
+                    alt={`${productData.name} - view ${index + 1}`}
+                    onError={(e) => {
+                      e.target.src = "/placeholder.svg";
+                    }}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="w-24 h-24 lg:w-full lg:h-auto bg-gray-200 flex items-center justify-center">
+                <span className="text-gray-500 text-xs">No images</span>
               </div>
-            ))}
+            )}
           </div>
 
           <div className="w-full lg:w-[80%] bg-gray-50">
             <img 
               src={image || "/placeholder.svg"} 
               className="w-full h-auto object-contain mix-blend-multiply" 
-              alt={productData.name} 
+              alt={productData.name}
+              onError={(e) => {
+                e.target.src = "/placeholder.svg";
+              }}
             />
           </div>
         </div>

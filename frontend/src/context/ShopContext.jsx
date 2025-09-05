@@ -5,14 +5,14 @@ import axios from "axios";
 import PropTypes from "prop-types";
 
 // Create context
-export const ShopContext = createContext();
+const ShopContext = createContext();
 
 // Create provider component
 const ShopContextProvider = ({ children }) => {
   // Configuration constants
   const currency = "₹";
   const delivery_fee = 10;
-  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
   // Auth-related state
   const [token, setToken] = useState(null);
@@ -44,9 +44,9 @@ const ShopContextProvider = ({ children }) => {
   };
 
   // Helper function to get auth header
-  const getAuthHeader = () => {
+  const getAuthHeader = useCallback(() => {
     return token ? { Authorization: `Bearer ${token}` } : {};
-  };
+  }, [token]);
 
   // Cart management functions
   const addToCart = useCallback(
@@ -99,7 +99,7 @@ const ShopContextProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [token, backendUrl]
+    [token, backendUrl, getAuthHeader]
   );
 
   // Add multiple sizes to cart at once
@@ -163,7 +163,7 @@ const ShopContextProvider = ({ children }) => {
         setCartItems(storedCart);
       }
     },
-    [token, backendUrl]
+    [token, backendUrl, getAuthHeader]
   );
 
   const getCartCount = useCallback(() => {
@@ -245,7 +245,7 @@ const ShopContextProvider = ({ children }) => {
         setIsLoading(false);
       }
     },
-    [token, backendUrl]
+    [token, backendUrl, getAuthHeader]
   );
 
   const getCartAmount = useCallback(() => {
@@ -304,20 +304,7 @@ const ShopContextProvider = ({ children }) => {
       // Don't show error toast for cart clearing as it's not critical
       // The local cart is already cleared
     }
-  }, [token, backendUrl]);
-
-  // Debounce function for wishlist operations
-  const debounce = (func, wait) => {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  };
+  }, [token, backendUrl, getAuthHeader]);
 
   // Wishlist management functions
   const addToWishlist = useCallback(async (productId) => {
@@ -365,7 +352,7 @@ const ShopContextProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [token, backendUrl]);
+  }, [token, backendUrl, getAuthHeader]);
 
   const removeFromWishlist = useCallback(async (productId) => {
     try {
@@ -421,7 +408,7 @@ const ShopContextProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [token, backendUrl]);
+  }, [token, backendUrl, getAuthHeader]);
 
   const getUserWishlist = useCallback(async () => {
     if (!token) {
@@ -446,7 +433,7 @@ const ShopContextProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [token, backendUrl]);
+  }, [token, backendUrl, getAuthHeader]);
 
   // Helper function to check if a product is in wishlist (using local data)
   const isProductInWishlist = useCallback((productId) => {
@@ -479,7 +466,7 @@ const ShopContextProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [token, backendUrl]);
+  }, [token, backendUrl, getAuthHeader]);
 
   // API Functions
   const getProductsData = useCallback(async () => {
@@ -526,7 +513,7 @@ const ShopContextProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [token, backendUrl]);
+  }, [token, backendUrl, getAuthHeader]);
 
   // Auth functions
   const login = useCallback(async (credentials) => {
@@ -692,4 +679,5 @@ ShopContextProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
+export { ShopContext };
 export default ShopContextProvider;

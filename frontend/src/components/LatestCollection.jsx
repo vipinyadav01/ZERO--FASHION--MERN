@@ -67,6 +67,9 @@ const LatestCollection = () => {
                                 image={item.image}
                                 name={item.name}
                                 price={item.price}
+                                category={item.category}
+                                isNew={item.isNew || false}
+                                rating={item.rating || 0}
                                 imageClassName="w-full h-48 sm:h-56 md:h-64 object-cover"
                             />
                         </motion.div>

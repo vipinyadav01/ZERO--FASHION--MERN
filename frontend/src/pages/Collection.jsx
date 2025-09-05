@@ -123,8 +123,6 @@ const Collection = () => {
             </div>
         </motion.div>
     );
-
-    // Generate dynamic SEO based on active filters
     const generateCollectionSEO = () => {
         if (category.length === 1 && subCategory.length === 1) {
             return generateCategorySEO(category[0], subCategory[0]);
@@ -136,7 +134,6 @@ const Collection = () => {
             return SEOConfigs.collection;
         }
     };
-
     return (
         <>
             <SEO {...generateCollectionSEO()} />
@@ -163,7 +160,6 @@ const Collection = () => {
                         aria-hidden="true"
                     />
                 </button>
-
                 <AnimatePresence>
                     {(showFilter || window.innerWidth >= 1024) && (
                         <motion.div
@@ -190,7 +186,6 @@ const Collection = () => {
                     )}
                 </AnimatePresence>
             </motion.div>
-
             {/* Right Side */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -239,6 +234,9 @@ const Collection = () => {
                                     id={item._id}
                                     price={item.price}
                                     image={item.image}
+                                    category={item.category}
+                                    isNew={item.isNew || false}
+                                    rating={item.rating || 0}
                                     imageClassName="w-full h-60 md:h-72 object-cover rounded-lg"
                                 />
                             </motion.div>

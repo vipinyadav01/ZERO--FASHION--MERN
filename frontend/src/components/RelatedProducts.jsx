@@ -28,6 +28,9 @@ export const RelatedProducts = ({ category, subCategory }) => {
             name={item.name}
             price={item.price}
             image={item.image}
+            category={item.category}
+            isNew={item.isNew || false}
+            rating={item.rating || 0}
           />
         ))}
       </div>
