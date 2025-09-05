@@ -96,29 +96,31 @@ const Breadcrumb = ({ customItems = null, className = '' }) => {
       
       {/* Visual Breadcrumb */}
       <nav 
-        className={`flex ${className}`} 
+        className={`flex w-full overflow-x-auto scrollbar-hide ${className}`} 
         aria-label="Breadcrumb"
       >
-        <ol className="inline-flex items-center space-x-1 md:space-x-3">
+        <ol className="flex items-center space-x-1 sm:space-x-2 md:space-x-3 whitespace-nowrap min-w-max px-1">
           {breadcrumbs.map((breadcrumb, index) => (
-            <li key={breadcrumb.href} className="inline-flex items-center">
+            <li key={breadcrumb.href} className="flex items-center shrink-0">
               {index > 0 && (
                 <ChevronRight 
-                  className="flex-shrink-0 h-4 w-4 text-gray-400 mx-2" 
+                  className="flex-shrink-0 h-3 w-3 sm:h-4 sm:w-4 text-gray-400 mx-1 sm:mx-2" 
                   aria-hidden="true" 
                 />
               )}
               {breadcrumb.current ? (
                 <span 
-                  className="text-sm font-medium text-gray-500 truncate"
+                  className="text-xs sm:text-sm font-medium text-gray-500 max-w-[120px] sm:max-w-[150px] md:max-w-none truncate"
                   aria-current="page"
+                  title={breadcrumb.name}
                 >
                   {breadcrumb.name}
                 </span>
               ) : (
                 <Link
                   to={breadcrumb.href}
-                  className="text-sm font-medium text-gray-900 hover:text-gray-700 truncate transition-colors duration-200"
+                  className="text-xs sm:text-sm font-medium text-gray-900 hover:text-gray-700 max-w-[120px] sm:max-w-[150px] md:max-w-none truncate transition-colors duration-200"
+                  title={breadcrumb.name}
                 >
                   {breadcrumb.name}
                 </Link>
