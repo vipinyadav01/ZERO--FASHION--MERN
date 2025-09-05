@@ -20,7 +20,6 @@ const SearchBar = () => {
     "T-Shirts", "Jeans", "Dresses", "Sneakers", "Jackets", 
     "Accessories", "Bags", "Watches", "Sunglasses", "Hoodies"
   ];
-
   const handleSearch = useCallback((e) => {
     e.preventDefault();
     if (search.trim()) {
@@ -106,8 +105,7 @@ const SearchBar = () => {
             }`}>
               <div className="absolute left-3 sm:left-4">
                 <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-              </div>
-              
+              </div>              
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}

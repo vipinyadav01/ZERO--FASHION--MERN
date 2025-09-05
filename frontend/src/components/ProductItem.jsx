@@ -13,13 +13,11 @@ const ProductItem = ({ id, image, name, price, category, isNew, rating, imageCla
   const getImageSrc = () => {
     if (!image || !Array.isArray(image) || image.length === 0) {
       return "/placeholder.svg";
-    }
-    
-    // Find first non-empty image URL
+    }    
+  // Find first non-empty image URL
     const validImage = image.find(img => img && img.trim() !== "");
     return validImage || "/placeholder.svg";
   };
-
   const handleImageLoad = () => {
     setIsImageLoading(false);
   };
@@ -53,7 +51,6 @@ const ProductItem = ({ id, image, name, price, category, isNew, rating, imageCla
           
           {/* Overlay */}
           <div className="absolute inset-0 bg-black bg-opacity-0 transition-all duration-300 group-hover:bg-opacity-10"></div>
-
           {/* Tags */}
           {isNew && (
             <div className="absolute left-0 top-0 bg-black py-1 px-3">
@@ -62,7 +59,6 @@ const ProductItem = ({ id, image, name, price, category, isNew, rating, imageCla
               </span>
             </div>
           )}
-          
           {category && (
             <div className="absolute bottom-0 left-0 bg-white py-1 px-3">
               <span className="text-xs uppercase tracking-wider font-medium text-black">

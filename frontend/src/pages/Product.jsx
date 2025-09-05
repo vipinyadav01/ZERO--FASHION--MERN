@@ -40,7 +40,6 @@ const Product = () => {
     }
     setLoading(false)
   }
-
   useEffect(() => {
     fetchProductData()
   }, [productId, products])
@@ -58,7 +57,6 @@ const Product = () => {
 
   const handleWishlistToggle = async () => {
     if (!productData) return
-    
     try {
       if (isInWishlist) {
         await removeFromWishlist(productData._id)
@@ -71,7 +69,6 @@ const Product = () => {
       console.error('Error toggling wishlist:', error)
     }
   }
-
   const handleSizeToggle = (size) => {
     if (selectedSizes.includes(size)) {
       setSelectedSizes(selectedSizes.filter(s => s !== size))

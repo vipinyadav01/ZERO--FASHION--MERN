@@ -22,7 +22,6 @@ const Collection = () => {
         return localStorage.getItem("sortType") || "relevant";
     });
     const [loading, setLoading] = useState(true);
-
     const toggleCategory = (e) => {
         const value = e.target.value;
         const updatedCategory = category.includes(value)
@@ -40,7 +39,6 @@ const Collection = () => {
         setSubCategory(updatedSubCategory);
         localStorage.setItem("subCategory", JSON.stringify(updatedSubCategory));
     };
-
     const applyFilter = () => {
         setLoading(true);
         let productsCopy = [...products];
@@ -88,14 +86,12 @@ const Collection = () => {
             applyFilter();
         }
     }, [products, category, subCategory, search, showSearch]);
-
     useEffect(() => {
         if (filterProducts.length > 0) {
             sortProduct();
         }
         localStorage.setItem("sortType", sortType);
     }, [sortType]);
-
     const FilterOption = ({ label, options, selectedOptions, toggleOption }) => (
         <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -271,5 +267,4 @@ const Collection = () => {
         </>
     );
 };
-
 export default Collection;
