@@ -1,5 +1,4 @@
-import React from 'react'
-
+import PropTypes from 'prop-types'
 
 function Title({ text1, text2, className = "", size = "default" }) {
   const getSizeClasses = () => {
@@ -14,7 +13,6 @@ function Title({ text1, text2, className = "", size = "default" }) {
         return "text-xl sm:text-2xl lg:text-3xl";
     }
   };
-
   return (
     <div className={`inline-flex flex-wrap gap-2 sm:gap-3 items-center mb-3 sm:mb-4 ${getSizeClasses()} ${className}`}>
       <span className="text-gray-500 font-asterion whitespace-nowrap">
@@ -26,6 +24,13 @@ function Title({ text1, text2, className = "", size = "default" }) {
       <span className="w-8 sm:w-12 md:w-16 lg:w-20 h-0.5 sm:h-1 bg-gray-700 block flex-shrink-0"></span>
     </div>
   )
+}
+
+Title.propTypes = {
+  text1: PropTypes.string.isRequired,
+  text2: PropTypes.string.isRequired,
+  className: PropTypes.string,
+  size: PropTypes.oneOf(['sm', 'default', 'lg', 'xl'])
 }
 
 export default Title
