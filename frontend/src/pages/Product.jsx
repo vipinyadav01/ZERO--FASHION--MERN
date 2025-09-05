@@ -3,12 +3,11 @@
 import { useContext, useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { ShopContext } from "../context/ShopContext"
-import { assets } from "../assets/assets"
 import RelatedProducts from "../components/RelatedProducts"
 import Title from "../components/Title"
 import SEO, { generateProductSEO } from "../components/SEO"
 import Breadcrumb, { generateProductBreadcrumbs } from "../components/Breadcrumb"
-import { Heart, ShoppingCart } from "lucide-react"
+import { Heart } from "lucide-react"
 
 const Product = () => {
   const { productId } = useParams()
