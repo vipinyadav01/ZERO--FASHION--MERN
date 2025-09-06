@@ -29,7 +29,7 @@ const CartItem = memo(({ item, onClick }) => {
       onClick={handleClick}
     >
       {/* Product Image */}
-      <div className="w-16 h-16 bg-stone-100 rounded-xl mr-4 overflow-hidden shadow-sm group-hover:shadow-lg transition-all duration-300">
+      <div className="w-16 h-16 rounded-xl mr-4 overflow-hidden shadow-sm group-hover:shadow-lg transition-all duration-300">
         <motion.img
           src={item.image || "/placeholder.svg"}
           alt={item.name || "Product"}

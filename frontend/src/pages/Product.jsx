@@ -1,6 +1,6 @@
 "use client"
 
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useState, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import { ShopContext } from "../context/ShopContext"
 import RelatedProducts from "../components/RelatedProducts"
@@ -27,7 +27,7 @@ const Product = () => {
   const [activeTab, setActiveTab] = useState("description")
   const [isInWishlist, setIsInWishlist] = useState(false)
 
-  const fetchProductData = () => {
+  const fetchProductData = useCallback(() => {
     setLoading(true)
     if (products && products.length > 0) {
       const product = products.find((item) => item && item._id === productId)
@@ -38,10 +38,11 @@ const Product = () => {
       }
     }
     setLoading(false)
-  }
+  }, [productId, products])
+
   useEffect(() => {
     fetchProductData()
-  }, [productId, products])
+  }, [fetchProductData])
 
   // Check wishlist status when product data is available
   useEffect(() => {
@@ -121,16 +122,16 @@ const Product = () => {
                 </div>
               ))
             ) : (
-              <div className="w-24 h-24 lg:w-full lg:h-auto bg-gray-200 flex items-center justify-center">
+              <div className="w-24 h-24 lg:w-full lg:h-auto flex items-center justify-center border border-gray-300">
                 <span className="text-gray-500 text-xs">No images</span>
               </div>
             )}
           </div>
 
-          <div className="w-full lg:w-[80%] bg-gray-50">
+          <div className="w-full lg:w-[80%]">
             <img 
               src={image || "/placeholder.svg"} 
-              className="w-full h-auto object-contain mix-blend-multiply" 
+              className="w-full h-auto object-contain" 
               alt={productData.name}
               onError={(e) => {
                 e.target.src = "/placeholder.svg";
