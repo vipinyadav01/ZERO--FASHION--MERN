@@ -16,7 +16,8 @@ const ProductItem = ({
   imageClassName,
   discount,
   originalPrice,
-  discountPercent
+  discountPercent,
+  loading = "lazy"
 }) => {
   const { currency } = useContext(ShopContext);
   const [imageError, setImageError] = useState(false);
@@ -114,7 +115,7 @@ const ProductItem = ({
               imageClassName || 
               "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             }`}
-            loading="lazy"
+            loading={loading}
             onLoad={handleImageLoad}
             onError={handleImageError}
           />
@@ -217,6 +218,7 @@ ProductItem.propTypes = {
   imageClassName: PropTypes.string,
   discount: PropTypes.number,
   originalPrice: PropTypes.number,
+  loading: PropTypes.oneOf(["lazy", "eager"]),
 };
 
 export default ProductItem;
