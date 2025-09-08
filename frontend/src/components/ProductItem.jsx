@@ -24,17 +24,17 @@ const ProductItem = ({
   // Helper function to get the first valid image URL
   const getImageSrc = useCallback(() => {
     if (!image || imageError) {
-      return "/api/placeholder/400/400";
+      return "/placeholder.svg";
     }
     
     // Handle both array and string formats
     if (Array.isArray(image)) {
       if (image.length === 0) {
-        return "/api/placeholder/400/400";
+        return "/placeholder.svg";
       }
       // Find first non-empty image URL
       const validImage = image.find(img => img && typeof img === 'string' && img.trim() !== "");
-      return validImage || "/api/placeholder/400/400";
+      return validImage || "/placeholder.svg";
     }
     
     // Handle string format
@@ -42,7 +42,7 @@ const ProductItem = ({
       return image;
     }
     
-    return "/api/placeholder/400/400";
+    return "/placeholder.svg";
   }, [image, imageError]);
 
   const handleImageLoad = useCallback(() => {
