@@ -54,7 +54,7 @@ export default defineConfig({
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}'],
                 runtimeCaching: [
                     {
-                        urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+                        urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com',
                         handler: 'CacheFirst',
                         options: {
                             cacheName: 'google-fonts-cache',
@@ -65,13 +65,13 @@ export default defineConfig({
                         }
                     },
                     {
-                        urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
+                        urlPattern: ({ url }) => url.origin === 'https://res.cloudinary.com',
                         handler: 'CacheFirst',
                         options: {
                             cacheName: 'cloudinary-images-cache',
                             expiration: {
                                 maxEntries: 100,
-                                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                                maxAgeSeconds: 60 * 60 * 24 * 30
                             }
                         }
                     }
