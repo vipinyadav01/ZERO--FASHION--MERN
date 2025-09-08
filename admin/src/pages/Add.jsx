@@ -27,6 +27,7 @@ const AddProduct = ({ token }) => {
     const [category, setCategory] = useState("Men");
     const [subCategory, setSubCategory] = useState("Topwear");
     const [bestseller, setBestseller] = useState(false);
+    const [discountPercent, setDiscountPercent] = useState(0);
     const [sizes, setSizes] = useState([]);
     const [loading, setLoading] = useState(false);
     const [dragOver, setDragOver] = useState(null);
@@ -92,6 +93,7 @@ const AddProduct = ({ token }) => {
         if (!name.trim()) newErrors.name = "Product name is required";
         if (!description.trim()) newErrors.description = "Product description is required";
         if (!price || price <= 0) newErrors.price = "Please enter a valid price";
+        if (discountPercent < 0 || discountPercent > 100) newErrors.discountPercent = "Discount must be 0-100";
         if (!sizes.length) newErrors.sizes = "Please select at least one size";
         if (!image1) newErrors.images = "Please upload at least one image";
 
@@ -109,6 +111,7 @@ const AddProduct = ({ token }) => {
         setPrice("");
         setSizes([]);
         setBestseller(false);
+        setDiscountPercent(0);
         setCategory("Men");
         setSubCategory("Topwear");
         setErrors({});
@@ -132,6 +135,7 @@ const AddProduct = ({ token }) => {
             formData.append("category", category);
             formData.append("subCategory", subCategory);
             formData.append("bestseller", bestseller);
+            formData.append("discountPercent", Number(discountPercent) || 0);
             formData.append("sizes", JSON.stringify(sizes));
 
             if (image1) formData.append("image1", image1.file);

@@ -19,6 +19,7 @@ const addProduct = async (req, res) => {
       subCategory,
       sizes,
       bestseller,
+      discountPercent,
     } = req.body;
 
     if (!name || !description || !price || !category || !subCategory) {
@@ -62,6 +63,7 @@ const addProduct = async (req, res) => {
       name,
       description,
       price: Number(price),
+      discountPercent: Number(discountPercent) || 0,
       category,
       subCategory,
       bestseller: bestseller === "true" ? true : false,
@@ -85,6 +87,47 @@ const listProduct = async (req, res) => {
   try {
     const products = await ProductModel.find({});
     res.json({ success: true, products });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// function for updating a product
+const updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.json({ success: false, message: "Product ID is required" });
+
+    const {
+      name,
+      description,
+      price,
+      category,
+      subCategory,
+      sizes,
+      bestseller,
+      discountPercent,
+    } = req.body;
+
+    const update = {};
+    if (name !== undefined) update.name = name;
+    if (description !== undefined) update.description = description;
+    if (price !== undefined) update.price = Number(price);
+    if (discountPercent !== undefined) update.discountPercent = Number(discountPercent) || 0;
+    if (category !== undefined) update.category = category;
+    if (subCategory !== undefined) update.subCategory = subCategory;
+    if (sizes !== undefined) {
+      try {
+        update.sizes = Array.isArray(sizes) ? sizes : JSON.parse(sizes);
+      } catch (_) {}
+    }
+    if (bestseller !== undefined) update.bestseller = (bestseller === "true" || bestseller === true);
+
+    const product = await ProductModel.findByIdAndUpdate(id, update, { new: true });
+    if (!product) return res.json({ success: false, message: "Product not found" });
+
+    res.json({ success: true, message: "Product updated successfully", product });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
@@ -147,4 +190,4 @@ const getLowStockProducts = async (req, res) => {
   }
 };
 
-export { listProduct, addProduct, removeProduct, singleProduct, getLowStockProducts };
+export { listProduct, addProduct, removeProduct, singleProduct, getLowStockProducts, updateProduct };

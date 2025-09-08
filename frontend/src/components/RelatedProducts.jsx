@@ -27,6 +27,7 @@ export const RelatedProducts = ({ category, subCategory }) => {
             id={item._id}
             name={item.name}
             price={item.price}
+            discountPercent={item.discountPercent}
             image={item.image}
             category={item.category}
             isNew={item.isNew || false}

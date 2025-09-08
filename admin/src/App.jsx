@@ -15,6 +15,7 @@ const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const Add = React.lazy(() => import("./pages/Add"));
 const List = React.lazy(() => import("./pages/List"));
 const Order = React.lazy(() => import("./pages/Order"));
+const EditProduct = React.lazy(() => import("./pages/EditProduct"));
 const OrderCharts = React.lazy(() => import("./pages/OrderCharts"));
 const UserProfile = React.lazy(() => import("./pages/UserProfile"));
 
@@ -137,6 +138,7 @@ const App = () => {
           { path: "/orders", Component: Order },
           { path: "/order-charts", Component: OrderCharts },
           { path: "/users", Component: UserProfile },
+          { path: "/edit/:id", Component: EditProduct },
           { path: "/admin-create", Component: CreateAdmin},
         ].map(({ path, Component }) => (
           <Route

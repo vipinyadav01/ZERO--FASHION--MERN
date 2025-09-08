@@ -81,7 +81,7 @@ export const getWishlist = async (req, res) => {
         const wishlistItems = await Wishlist.find({ userId })
             .populate({
                 path: 'productId',
-                select: 'name image price category subCategory description sizes'
+                select: 'name image price discountPercent category subCategory description sizes'
             })
             .sort({ addedAt: -1 }); // Sort by most recently added
 
@@ -94,8 +94,8 @@ export const getWishlist = async (req, res) => {
                 name: item.productId.name,
                 image: item.productId.image && item.productId.image.length > 0 ? item.productId.image[0] : '/placeholder.jpg',
                 originalPrice: item.productId.price,
-                discountedPrice: item.productId.price, // Assuming no discount for now
-                discount: 0, // Assuming no discount for now
+                discountedPrice: Math.round((item.productId.price * (100 - (item.productId.discountPercent || 0))) / 100),
+                discount: item.productId.discountPercent || 0,
                 inStock: true, // Assuming all products are in stock
                 category: item.productId.category,
                 subCategory: item.productId.subCategory,

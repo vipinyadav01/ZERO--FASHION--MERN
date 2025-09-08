@@ -5,6 +5,7 @@ import {
   removeProduct,
   singleProduct,
   getLowStockProducts,
+  updateProduct,
 } from "../controllers/productController.js";
 import adminAuth from "../middleware/adminAuth.js";
 import multer from "../middleware/multer.js";
@@ -27,8 +28,8 @@ productRouter.post("/remove", adminAuth, removeProduct);
 productRouter.post("/single", singleProduct);
 productRouter.get("/list", listProduct);
 productRouter.get("/low-stock", adminAuth, getLowStockProducts);
+productRouter.put("/update/:id", adminAuth, updateProduct);
 
-// Add sample data route (for development/testing)
 productRouter.post("/add-sample-data", async (req, res) => {
   try {
     const result = await insertSampleData();

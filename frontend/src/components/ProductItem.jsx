@@ -15,7 +15,8 @@ const ProductItem = ({
   rating, 
   imageClassName,
   discount,
-  originalPrice 
+  originalPrice,
+  discountPercent
 }) => {
   const { currency } = useContext(ShopContext);
   const [imageError, setImageError] = useState(false);
@@ -90,6 +91,13 @@ const ProductItem = ({
     );
   }, [rating]);
 
+  const effectiveDiscount = typeof discount === 'number' && discount > 0
+    ? discount
+    : (typeof discountPercent === 'number' && discountPercent > 0 ? discountPercent : 0);
+  const currentPrice = effectiveDiscount > 0
+    ? Math.round((Number(price || 0) * (100 - effectiveDiscount)) / 100)
+    : Number(price || 0);
+
   return (
     <div className="group h-full">
       <Link 
@@ -124,9 +132,9 @@ const ProductItem = ({
             )}
             
             {/* Discount Tag */}
-            {discount && (
+            {effectiveDiscount > 0 && (
               <div className="absolute right-2 top-2 bg-red-500 text-white px-2 py-1 text-xs font-semibold rounded-sm shadow-sm">
-                -{discount}%
+                -{effectiveDiscount}%
               </div>
             )}
             
@@ -158,15 +166,12 @@ const ProductItem = ({
           <div className="mt-auto">
             <div className="flex items-center justify-between">
               <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                {/* Current Price */}
                 <p className="text-lg sm:text-xl font-bold text-gray-900">
-                  {currency}{formatPrice(price)}
+                  {currency}{formatPrice(currentPrice)}
                 </p>
-                
-                {/* Original Price (if discounted) */}
-                {originalPrice && originalPrice > price && (
+                {effectiveDiscount > 0 && (
                   <p className="text-sm text-gray-500 line-through">
-                    {currency}{formatPrice(originalPrice)}
+                    {currency}{formatPrice(price)}
                   </p>
                 )}
               </div>

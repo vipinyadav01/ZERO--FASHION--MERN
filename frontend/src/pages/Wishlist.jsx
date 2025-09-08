@@ -64,6 +64,7 @@ const WishlistItem = ({ item, onRemove, onAddToCart, isLoading }) => {
                 image={item.image}
                 name={item.name}
                 price={item.discountedPrice}
+                discountPercent={item.discount}
                 category={item.category}
                 rating={item.rating || 0}
                 imageClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

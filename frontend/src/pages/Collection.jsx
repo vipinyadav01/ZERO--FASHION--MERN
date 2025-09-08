@@ -229,6 +229,7 @@ const Collection = () => {
                                     name={item.name}
                                     id={item._id}
                                     price={item.price}
+                                    discountPercent={item.discountPercent}
                                     image={item.image}
                                     category={item.category}
                                     isNew={item.isNew || false}

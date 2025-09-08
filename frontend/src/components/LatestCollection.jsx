@@ -66,6 +66,7 @@ const LatestCollection = () => {
                                 image={item.image}
                                 name={item.name}
                                 price={item.price}
+                                discountPercent={item.discountPercent}
                                 category={item.category}
                                 isNew={item.isNew || false}
                                 rating={item.rating || 0}
