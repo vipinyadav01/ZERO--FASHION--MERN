@@ -78,7 +78,7 @@ const App = () => {
                 <div className="flex-grow flex flex-col">
                     <Navbar />
 
-                    <main className="flex-grow px-4 sm:px-6 lg:px-8 pt-0 pb-4 sm:pb-6">
+                    <main className="flex-grow px-4 sm:px-6 lg:px-8 pt-0 pb-0 sm:pt-2 sm:pb-4 lg:pt-3 lg:pb-6">
                         <Routes>
                             <Route path="/" element={<Home />} />
                             <Route path="/collection" element={<Collection />} />

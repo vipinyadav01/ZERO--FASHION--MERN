@@ -133,7 +133,7 @@ const ProductItem = ({
             
             {/* Discount Tag */}
             {effectiveDiscount > 0 && (
-              <div className="absolute right-2 top-2 bg-red-500 text-white px-2 py-1 text-xs font-semibold rounded-sm shadow-sm">
+              <div className="absolute right-2 top-10 sm:top-12 bg-red-500 text-white px-2 py-1 text-xs font-semibold rounded-sm shadow-sm">
                 -{effectiveDiscount}%
               </div>
             )}
@@ -147,7 +147,7 @@ const ProductItem = ({
           </div>
 
           {/* Wishlist Button */}
-          <div className="absolute top-2 right-2 pointer-events-auto z-10">
+          <div className="absolute top-2 right-2 pointer-events-auto z-20">
             <WishlistButton productId={id} size="sm" />
           </div>
         </div>

@@ -2,7 +2,6 @@ import { memo } from "react";
 import { motion } from "framer-motion";
 import PropTypes from "prop-types";
 
-// Animation configuration
 const slideUpAnimation = {
   hidden: { y: 20, opacity: 0 },
   visible: { 
@@ -28,7 +27,6 @@ const CartItem = memo(({ item, onClick }) => {
       whileHover={{ x: 4 }}
       onClick={handleClick}
     >
-      {/* Product Image */}
       <div className="w-16 h-16 rounded-xl mr-4 overflow-hidden shadow-sm group-hover:shadow-lg transition-all duration-300">
         <motion.img
           src={item.image || "/placeholder.svg"}
@@ -42,7 +40,6 @@ const CartItem = memo(({ item, onClick }) => {
         />
       </div>
 
-      {/* Product Details */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-stone-800 truncate font-outfit group-hover:text-stone-900 transition-colors">
           {item.name || "Product"}
@@ -57,7 +54,6 @@ const CartItem = memo(({ item, onClick }) => {
         </div>
       </div>
 
-      {/* Price */}
       <p className="text-sm font-bold text-stone-900 whitespace-nowrap ml-3 group-hover:text-stone-800 transition-colors">
         ₹{item.price?.toFixed(2) || "0.00"}
       </p>

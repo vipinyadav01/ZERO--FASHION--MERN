@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
 import { Helmet } from 'react-helmet-async';
 import PropTypes from 'prop-types';
 import { ChevronRight } from 'lucide-react';
@@ -6,7 +6,6 @@ import { ChevronRight } from 'lucide-react';
 const Breadcrumb = ({ customItems = null, className = '' }) => {
   const location = useLocation();
   
-  // Generate breadcrumb items based on current path
   const generateBreadcrumbs = () => {
     if (customItems) return customItems;
     
@@ -15,7 +14,6 @@ const Breadcrumb = ({ customItems = null, className = '' }) => {
       { name: 'Home', href: '/', current: false }
     ];
     
-    // Add path-based breadcrumbs
     let currentPath = '';
     pathnames.forEach((pathname, index) => {
       currentPath += `/${pathname}`;
@@ -23,7 +21,6 @@ const Breadcrumb = ({ customItems = null, className = '' }) => {
       
       let name = pathname.charAt(0).toUpperCase() + pathname.slice(1);
       
-      // Customize names for specific routes
       switch (pathname) {
         case 'collection':
           name = 'Collection';
@@ -68,7 +65,6 @@ const Breadcrumb = ({ customItems = null, className = '' }) => {
   
   const breadcrumbs = generateBreadcrumbs();
   
-  // Generate structured data for breadcrumbs
   const generateStructuredData = () => {
     return {
       "@context": "https://schema.org",
@@ -82,19 +78,16 @@ const Breadcrumb = ({ customItems = null, className = '' }) => {
     };
   };
   
-  // Don't show breadcrumb on homepage
   if (breadcrumbs.length <= 1) return null;
   
   return (
     <>
-      {/* Structured Data */}
       <Helmet>
         <script type="application/ld+json">
           {JSON.stringify(generateStructuredData())}
         </script>
       </Helmet>
       
-      {/* Visual Breadcrumb */}
       <nav 
         className={`flex w-full overflow-x-auto scrollbar-hide ${className}`} 
         aria-label="Breadcrumb"
@@ -146,7 +139,6 @@ Breadcrumb.propTypes = {
 
 export default Breadcrumb;
 
-// Helper function to generate product breadcrumbs
 export const generateProductBreadcrumbs = (product) => {
   if (!product) return null;
   
@@ -167,7 +159,6 @@ export const generateProductBreadcrumbs = (product) => {
   ];
 };
 
-// Helper function to generate category breadcrumbs
 export const generateCategoryBreadcrumbs = (category, subcategory = null) => {
   const breadcrumbs = [
     { name: 'Home', href: '/', current: false },

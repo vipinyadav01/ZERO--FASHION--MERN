@@ -9,12 +9,10 @@ const BestSeller = () => {
   const [bestSeller, setBestSeller] = useState([]);
 
   useEffect(() => {
-    // Filter products to get only bestsellers
-    const bestProduct = products.filter((item) => item.bestseller); // assuming `bestseller` is a boolean
+    const bestProduct = products.filter((item) => item.bestseller); 
     setBestSeller(bestProduct.slice(0, 5));
   }, [products]);
 
-  // Added `products` as a dependency to re-run if `products` changes
 
   return (
     <section className="my-10 px-4 md:px-6 max-w-7xl mx-auto">
@@ -30,7 +28,6 @@ const BestSeller = () => {
         </p>
       </motion.div>
 
-      {/* Rendering best products */}
       <motion.div 
         className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 gap-y-8"
         initial={{ opacity: 0 }}
@@ -51,6 +48,7 @@ const BestSeller = () => {
               name={item.name}
               image={item.image}
               price={item.price}
+              discountPercent={item.discountPercent}
               category={item.category}
               isNew={item.isNew || false}
               rating={item.rating || 0}
