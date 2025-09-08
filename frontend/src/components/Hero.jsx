@@ -1,37 +1,18 @@
 import { useState, useEffect } from "react";
 import { ArrowRight, ShoppingBag, Heart, Clock, Play, Star, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import LazyImage from "./LazyImage";
 
-// Optimized HeroImage component
+// Optimized HeroImage component using LazyImage
 const HeroImage = ({ src, alt, className, loading = "eager", ...props }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  
   return (
-    <div className="relative w-full h-full">
-      {!imageLoaded && !imageError && (
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-gray-400 border-t-black rounded-full animate-spin" />
-        </div>
-      )}
-      <img 
-        src={src} 
-        alt={alt} 
-        className={`transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
-        loading={loading}
-        onLoad={() => setImageLoaded(true)}
-        onError={() => setImageError(true)}
-        {...props}
-      />
-      {imageError && (
-        <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
-          <div className="text-gray-500 text-center">
-            <div className="w-12 h-12 mx-auto mb-2 bg-gray-300 rounded" />
-            <p className="text-sm">Image unavailable</p>
-          </div>
-        </div>
-      )}
-    </div>
+    <LazyImage
+      src={src}
+      alt={alt}
+      className={className}
+      loading={loading}
+      {...props}
+    />
   );
 };
 

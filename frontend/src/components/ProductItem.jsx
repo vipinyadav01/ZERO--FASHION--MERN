@@ -2,29 +2,42 @@ import { useContext, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { Link } from "react-router-dom";
 import WishlistButton from "./WishlistButton";
+import LazyImage from "./LazyImage";
 import PropTypes from "prop-types";
 
 const ProductItem = ({ id, image, name, price, category, isNew, rating, imageClassName }) => {
   const { currency } = useContext(ShopContext);
-  const [imageError, setImageError] = useState(false);
-  const [isImageLoading, setIsImageLoading] = useState(true);
 
   // Helper function to get the first valid image URL
   const getImageSrc = () => {
-    if (!image || !Array.isArray(image) || image.length === 0) {
+    if (!image) {
       return "/placeholder.svg";
-    }    
-  // Find first non-empty image URL
-    const validImage = image.find(img => img && img.trim() !== "");
-    return validImage || "/placeholder.svg";
+    }
+    
+    // Handle both array and string formats
+    if (Array.isArray(image)) {
+      if (image.length === 0) {
+        return "/placeholder.svg";
+      }
+      // Find first non-empty image URL
+      const validImage = image.find(img => img && img.trim() !== "");
+      return validImage || "/placeholder.svg";
+    }
+    
+    // Handle string format (like in wishlist)
+    if (typeof image === 'string' && image.trim() !== "") {
+      return image;
+    }
+    
+    return "/placeholder.svg";
   };
+
   const handleImageLoad = () => {
-    setIsImageLoading(false);
+    console.log('Image loaded successfully:', getImageSrc());
   };
 
   const handleImageError = () => {
-    setImageError(true);
-    setIsImageLoading(false);
+    console.log('Image failed to load, using placeholder');
   };
 
   return (
@@ -32,25 +45,17 @@ const ProductItem = ({ id, image, name, price, category, isNew, rating, imageCla
       <div className="flex flex-col h-full border border-gray-200 bg-white transition-all duration-300 hover:border-black">
         {/* Image Container */}
         <div className="relative aspect-square w-full overflow-hidden">
-          {/* Loading Spinner */}
-          {isImageLoading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-gray-900"></div>
-            </div>
-          )}
-          
-          <img
-            src={imageError ? "/placeholder.svg" : getImageSrc()}
+          <LazyImage
+            src={getImageSrc()}
             alt={name || "Product Image"}
-            className={imageClassName || "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"}
+            className={`${imageClassName || "w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"}`}
             loading="lazy"
             onLoad={handleImageLoad}
             onError={handleImageError}
-            style={{ display: isImageLoading ? 'none' : 'block' }}
           />
           
           {/* Overlay */}
-          <div className="absolute inset-0 bg-black bg-opacity-0 transition-all duration-300 group-hover:bg-opacity-10"></div>
+          <div className="absolute inset-0 pointer-events-none bg-black/0 transition-colors duration-300 group-hover:bg-black/10"></div>
           {/* Tags */}
           {isNew && (
             <div className="absolute left-0 top-0 bg-black py-1 px-3">
@@ -112,7 +117,7 @@ const ProductItem = ({ id, image, name, price, category, isNew, rating, imageCla
 
 ProductItem.propTypes = {
   id: PropTypes.string.isRequired,
-  image: PropTypes.arrayOf(PropTypes.string),
+  image: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string), PropTypes.string]),
   name: PropTypes.string.isRequired,
   price: PropTypes.number.isRequired,
   category: PropTypes.string,

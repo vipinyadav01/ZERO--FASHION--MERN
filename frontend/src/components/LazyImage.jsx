@@ -1,185 +1,98 @@
-import { useState, useRef, useEffect, memo } from 'react';
-import PropTypes from 'prop-types';
+import { useState, useEffect, useCallback } from 'react';
+import { useLazyLoading } from '../hooks/useLazyLoading';
 
-const LazyImage = memo(({
-  src,
-  alt,
-  className = '',
-  width,
-  height,
+/**
+ * LazyImage Component
+ * 
+ * A performant image component with lazy loading using Intersection Observer API.
+ * Features:
+ * - Lazy loading with intersection observer
+ * - Loading states with smooth transitions
+ * - Error handling with fallback placeholder
+ * - Support for both 'lazy' and 'eager' loading modes
+ * 
+ * @param {string} src - Image source URL
+ * @param {string} alt - Alt text for accessibility
+ * @param {string} className - CSS classes
+ * @param {string} placeholder - Fallback image URL
+ * @param {string} loading - 'lazy' or 'eager'
+ * @param {function} onLoad - Callback when image loads
+ * @param {function} onError - Callback when image fails
+ */
+const LazyImage = ({ 
+  src, 
+  alt, 
+  className = '', 
   placeholder = '/placeholder.svg',
   loading = 'lazy',
   onLoad,
   onError,
-  priority = false,
-  ...props
+  ...props 
 }) => {
-  const [imageState, setImageState] = useState({
-    loaded: false,
-    error: false,
-    inView: priority || loading === 'eager'
-  });
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
-  const imgRef = useRef();
+  // Use the lazy loading hook
+  const { elementRef, isInView } = useLazyLoading({
+    rootMargin: '50px',
+    threshold: 0.1,
+    triggerOnce: true
+  });
 
-  const handleLoad = (e) => {
-    setImageState(prev => ({ ...prev, loaded: true }));
-    onLoad?.(e);
-  };
-
-  const handleError = (e) => {
-    setImageState(prev => ({ ...prev, error: true }));
-    onError?.(e);
-  };
-
-  // Simple intersection observer for lazy loading
+  // Reset states when src changes
   useEffect(() => {
-    if (priority || loading === 'eager' || imageState.inView) {
-      return;
-    }
+    setImageLoaded(false);
+    setImageError(false);
+  }, [src]);
 
-    if (!imgRef.current) return;
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true);
+    onLoad?.();
+  }, [onLoad]);
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setImageState(prev => ({ ...prev, inView: true }));
-          observer.disconnect();
-        }
-      },
-      {
-        threshold: 0.1,
-        rootMargin: '50px'
-      }
-    );
+  const handleImageError = useCallback(() => {
+    setImageError(true);
+    setImageLoaded(false);
+    onError?.();
+  }, [onError]);
 
-    observer.observe(imgRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [priority, loading, imageState.inView]);
-
-  const shouldShowImage = imageState.inView || priority || loading === 'eager';
-  const showPlaceholder = !imageState.loaded && !imageState.error && shouldShowImage;
+  const imageSrc = imageError ? placeholder : src;
+  const shouldShowImage = isInView || loading === 'eager';
 
   return (
-    <div 
-      ref={imgRef} 
-      className={`relative ${className}`}
-      style={{ width, height }}
-    >
+    <div ref={elementRef} className={`relative ${className}`}>
       {/* Loading placeholder */}
-      {showPlaceholder && (
-        <div 
-          className="absolute inset-0 bg-gray-100 flex items-center justify-center"
-          style={{ width, height }}
-        >
-          <div className="w-6 h-6 text-gray-400 animate-spin">
-            <svg fill="none" viewBox="0 0 24 24" className="w-full h-full opacity-50">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="31.416" strokeDashoffset="31.416">
-                <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/>
-                <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/>
-              </circle>
-            </svg>
+      {shouldShowImage && !imageLoaded && !imageError && (
+        <div className="absolute inset-0 bg-gray-100 animate-pulse flex items-center justify-center">
+          <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+        </div>
+      )}
+
+      {/* Error placeholder */}
+      {imageError && (
+        <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+          <div className="text-gray-500 text-center">
+            <div className="w-8 h-8 mx-auto mb-1 bg-gray-300 rounded" />
+            <p className="text-xs">Image unavailable</p>
           </div>
         </div>
       )}
-      
+
       {/* Actual image */}
       {shouldShowImage && (
         <img
-          src={imageState.error ? placeholder : src}
+          src={imageSrc}
           alt={alt}
-          width={width}
-          height={height}
-          loading={priority ? 'eager' : loading}
-          decoding="async" 
-          className={`transition-opacity duration-300 ${
-            imageState.loaded ? 'opacity-100' : 'opacity-0'
+          className={`w-full h-full object-cover transition-opacity duration-300 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
-          onLoad={handleLoad}
-          onError={handleError}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
           {...props}
         />
       )}
     </div>
   );
-});
-
-LazyImage.displayName = 'LazyImage';
-
-LazyImage.propTypes = {
-  src: PropTypes.string.isRequired,
-  alt: PropTypes.string.isRequired,
-  className: PropTypes.string,
-  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  placeholder: PropTypes.string,
-  loading: PropTypes.oneOf(['lazy', 'eager']),
-  onLoad: PropTypes.func,
-  onError: PropTypes.func,
-  priority: PropTypes.bool,
 };
 
 export default LazyImage;
-
-// Optimized Product Image Component
-export const ProductImage = memo(({ 
-  src, 
-  alt, 
-  productName,
-  className = '',
-  priority = false,
-  ...props 
-}) => {
-  const optimizedAlt = alt || `${productName} - Premium fashion item`;
-  
-  return (
-    <LazyImage
-      src={src}
-      alt={optimizedAlt}
-      loading={priority ? 'eager' : 'lazy'}
-      priority={priority}
-      className={`object-cover hover:scale-105 transition-transform duration-300 ${className}`}
-      {...props}
-    />
-  );
-});
-
-ProductImage.displayName = 'ProductImage';
-
-ProductImage.propTypes = {
-  src: PropTypes.string.isRequired,
-  alt: PropTypes.string,
-  productName: PropTypes.string,
-  className: PropTypes.string,
-  priority: PropTypes.bool,
-};
-
-// Optimized Hero Image Component
-export const HeroImage = memo(({
-  src,
-  alt = "Premium Fashion Collection",
-  className = '',
-  ...props
-}) => {
-  return (
-    <LazyImage
-      src={src}
-      alt={alt}
-      loading="eager" 
-      priority={true}
-      className={`w-full h-full object-cover ${className}`}
-      {...props}
-    />
-  );
-});
-
-HeroImage.displayName = 'HeroImage';
-
-HeroImage.propTypes = {
-  src: PropTypes.string.isRequired,
-  alt: PropTypes.string,
-  className: PropTypes.string,
-};
