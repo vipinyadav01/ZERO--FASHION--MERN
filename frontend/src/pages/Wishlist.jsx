@@ -17,20 +17,7 @@ import { ShopContext } from '../context/ShopContext';
 import Title from '../components/Title';
 import ProductItem from '../components/ProductItem';
 
-// Animation variants
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: { staggerChildren: 0.1 }
-    }
-};
-
-const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.2 } }
-};
+// (Animations for the grid removed to ensure immediate render)
 
 const WishlistItem = ({ item, onRemove, onAddToCart, isLoading }) => {
     const navigate = useNavigate();
@@ -294,15 +281,14 @@ const Wishlist = () => {
                     </div>
                 ) : filteredItems.length > 0 ? (
                     <motion.div
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="visible"
+                        initial={{ opacity: 1, y: 0 }}
+                        animate={{ opacity: 1, y: 0 }}
                         className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 xl:gap-8"
                     >
                         {filteredItems.map((item, index) => (
                             <motion.div
                                 key={item.id || index}
-                                variants={itemVariants}
+                                initial={false}
                                 whileHover={{ y: -4 }}
                                 className="w-full"
                             >
