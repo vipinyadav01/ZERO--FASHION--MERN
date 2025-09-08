@@ -15,6 +15,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import Title from '../components/Title';
+import ProductItem from '../components/ProductItem';
 
 // Animation variants
 const containerVariants = {
@@ -56,55 +57,20 @@ const WishlistItem = ({ item, onRemove, onAddToCart, isLoading }) => {
     };
 
     return (
-        <div
-            className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 overflow-hidden group"
-        >
-            {/* Product Image */}
-            <div className="relative aspect-square overflow-hidden">
-                <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer"
-                    onClick={handleViewProduct}
-                    loading="lazy"
-                />
-                
-                {/* Wishlist Icon */}
-                <div className="absolute top-3 right-3">
-                    <div className="bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-sm">
-                        <Heart className="w-4 h-4 text-red-500 fill-red-500" />
-                    </div>
-                </div>
+        <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 overflow-hidden group">
+            {/* Reuse ProductItem design */}
+            <ProductItem
+                id={item.productId}
+                image={item.image}
+                name={item.name}
+                price={item.discountedPrice}
+                category={item.category}
+                rating={item.rating || 0}
+                imageClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
 
-                {/* Category Badge */}
-                <div className="absolute bottom-3 left-3">
-                    <span className="bg-black/80 text-white text-xs px-2 py-1 rounded-full">
-                        {item.category}
-                    </span>
-                </div>
-            </div>
-
-            {/* Product Info */}
-            <div className="p-4">
-                <h3 
-                    className="font-medium text-gray-900 mb-2 line-clamp-2 cursor-pointer hover:text-blue-600 transition-colors"
-                    onClick={handleViewProduct}
-                >
-                    {item.name}
-                </h3>
-                
-                <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg font-bold text-gray-900">
-                        ₹{item.discountedPrice}
-                    </span>
-                    {item.discount > 0 && (
-                        <span className="text-sm text-gray-500 line-through">
-                            ₹{item.originalPrice}
-                        </span>
-                    )}
-                </div>
-
-                {/* Action Buttons */}
+            {/* Wishlist actions */}
+            <div className="px-4 pb-4 -mt-2">
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => onAddToCart(item)}
@@ -223,13 +189,13 @@ const Wishlist = () => {
         <div className="min-h-screen bg-gray-50 pt-20 pb-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
                     <div className="flex items-center gap-4">
                         <Title text1="My" text2="Wishlist" />
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-500">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-sm">
                             {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''}
                         </span>
 
@@ -326,19 +292,28 @@ const Wishlist = () => {
                         <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
                     </div>
                 ) : filteredItems.length > 0 ? (
-                    <div
-                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                    <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 xl:gap-8"
                     >
                         {filteredItems.map((item, index) => (
-                            <WishlistItem
+                            <motion.div
                                 key={item.id || index}
-                                item={item}
-                                onRemove={handleRemoveItem}
-                                onAddToCart={handleAddToCart}
-                                isLoading={isLoading}
-                            />
+                                variants={itemVariants}
+                                whileHover={{ y: -4 }}
+                                className="w-full"
+                            >
+                                <WishlistItem
+                                    item={item}
+                                    onRemove={handleRemoveItem}
+                                    onAddToCart={handleAddToCart}
+                                    isLoading={isLoading}
+                                />
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 ) : (
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -346,7 +321,7 @@ const Wishlist = () => {
                         className="text-center py-16"
                     >
                         <div className="max-w-md mx-auto">
-                            <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200">
+                            <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-200">
                                 <Heart className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                                     Your Wishlist is Empty

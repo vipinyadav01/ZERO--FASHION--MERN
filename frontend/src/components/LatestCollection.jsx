@@ -59,7 +59,7 @@ const LatestCollection = () => {
                             key={item._id || index}
                             variants={itemVariants}
                             whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                            className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300"
+                            className="bg-white  shadow-sm overflow-hidden hover:shadow-md transition-all duration-300"
                         >
                             <ProductItem
                                 id={item._id}
