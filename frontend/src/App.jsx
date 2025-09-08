@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { HelmetProvider } from "react-helmet-async";
 import "react-toastify/dist/ReactToastify.css";
@@ -27,6 +27,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
 const App = () => {
+    const location = useLocation();
     const [toastPosition, setToastPosition] = useState("top-right");
     const [isMobile, setIsMobile] = useState(false);
 
@@ -44,6 +45,11 @@ const App = () => {
         
         return () => window.removeEventListener("resize", handleResize);
     }, [handleResize]);
+
+    // Scroll to top on route change
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }, [location.pathname]);
 
     const toastConfig = {
         position: toastPosition,
@@ -72,7 +78,7 @@ const App = () => {
                 <div className="flex-grow flex flex-col">
                     <Navbar />
 
-                    <main className="flex-grow px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                    <main className="flex-grow px-4 sm:px-6 lg:px-8 pt-0 pb-4 sm:pb-6">
                         <Routes>
                             <Route path="/" element={<Home />} />
                             <Route path="/collection" element={<Collection />} />
