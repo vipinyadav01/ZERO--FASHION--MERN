@@ -203,34 +203,59 @@ const EditProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white py-20 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-transparent py-6 sm:py-10 md:py-20 px-2 sm:px-4 md:px-8">
+      <div className="max-w-full sm:max-w-3xl md:max-w-5xl lg:max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center mb-8">
-          <button
-            onClick={() => navigate("/profile")}
-            className="mr-4 p-2 rounded-lg bg-white shadow-md hover:shadow-lg transition-shadow"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
-          </button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Edit Profile</h1>
-            <p className="text-gray-600 mt-1">Update your name and profile picture</p>
+        <div className="mb-8 sm:mb-12">
+          <div className="flex items-center space-x-4 mb-4">
+            <button
+              onClick={() => navigate("/profile")}
+              className="p-2 sm:p-3 border border-gray-300 text-gray-600 hover:bg-black hover:text-white transition-all duration-300"
+            >
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Edit Profile</h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">Update your name and profile picture</p>
+            </div>
           </div>
+          <div className="h-px bg-black w-20"></div>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Terminal-style wrapper */}
+        <div className="border border-gray-200 hover:border-black transition-colors duration-300">
+          {/* Window bar */}
+          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-400"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-green-400"></span>
+            </div>
+            <div className="text-[11px] font-mono text-gray-500">profile/edit.log</div>
+            <div className="w-6" />
+          </div>
+
+          <div className="p-4 sm:p-6 lg:p-8">
+            {/* Code-like info block */}
+            <div className="border border-gray-200 p-3 sm:p-4 bg-white mb-6 sm:mb-8">
+              <div className="font-mono text-xs sm:text-sm leading-5 sm:leading-6">
+                <div className="break-all"><span className="text-gray-500">user:</span> <span className="text-black">{user?.name || ""}</span></div>
+                <div className="break-all"><span className="text-gray-500">email:</span> <span className="text-black">{user?.email || formData.email}</span></div>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Profile Image Section */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+          <div className="md:col-span-1">
+            <div className="border border-gray-200 p-4 sm:p-6 bg-white">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center">
                 <Camera className="w-5 h-5 mr-2" />
                 Profile Picture
               </h3>
               
               <div className="flex flex-col items-center">
-                <div className="relative mb-6">
-                  <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 border-4 border-white shadow-lg">
+                 <div className="relative mb-4 sm:mb-6">
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
                     {previewImage ? (
                       <img
                         src={previewImage}
@@ -255,10 +280,10 @@ const EditProfile = () => {
                   )}
                 </div>
 
-                <div className="w-full">
+                 <div className="w-full">
                   <label
                     htmlFor="imageInput"
-                    className="flex items-center justify-center w-full py-3 px-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                    className="flex items-center justify-center w-full py-2.5 sm:py-3 px-3 sm:px-4 border border-gray-300 cursor-pointer hover:border-black transition-colors text-sm sm:text-base"
                   >
                     <Upload className="w-5 h-5 mr-2 text-gray-500" />
                     <span className="text-gray-600">
@@ -281,9 +306,9 @@ const EditProfile = () => {
           </div>
 
           {/* Form Section */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+          <div className="md:col-span-2">
+            <div className="border border-gray-200 p-4 sm:p-6 bg-white">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center">
                 <User className="w-5 h-5 mr-2" />
                 Personal Information
               </h3>
@@ -293,13 +318,13 @@ const EditProfile = () => {
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                     Full Name
                   </label>
-                  <input
+                   <input
                     type="text"
                     id="name"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all ${
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 border text-sm sm:text-base focus:outline-none focus:border-black transition-colors ${
                       errors.name ? "border-red-500" : "border-gray-300"
                     }`}
                     placeholder="Enter your full name"
@@ -314,43 +339,43 @@ const EditProfile = () => {
                     Email Address
                     <span className="text-xs text-gray-500 ml-2">(Cannot be changed)</span>
                   </label>
-                  <div className="relative">
+                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
+                     <input
                       type="email"
                       id="email"
                       name="email"
                       value={formData.email}
                       disabled
-                      className="w-full pl-12 pr-4 py-3 border rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200"
+                      className="w-full pl-12 pr-4 py-2.5 sm:py-3 border bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200 text-sm sm:text-base"
                       placeholder="Enter your email address"
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Email address cannot be modified for security reasons</p>
                 </div>
 
-                <div className="pt-6 border-t border-gray-200">
-                  <div className="flex flex-col sm:flex-row gap-4">
+                 <div className="pt-4 sm:pt-6 border-t border-gray-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
                     <button
                       type="button"
                       onClick={() => navigate("/profile")}
-                      className="flex-1 py-3 px-6 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                      className="w-full py-2.5 sm:py-3 px-5 sm:px-6 border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors font-medium text-sm sm:text-base"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={updating}
-                      className="flex-1 bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      className="w-full bg-black text-white py-2.5 sm:py-3 px-5 sm:px-6 hover:bg-gray-800 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base"
                     >
                       {updating ? (
                         <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                          <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white mr-2"></div>
                           Updating...
                         </>
                       ) : (
                         <>
-                          <Save className="w-5 h-5 mr-2" />
+                          <Save className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                           Save Changes
                         </>
                       )}
@@ -360,7 +385,9 @@ const EditProfile = () => {
               </div>
             </div>
           </div>
-        </form>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   )
