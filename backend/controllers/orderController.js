@@ -69,18 +69,33 @@ const placeOrder = async (req, res) => {
 // Place order using Stripe Method
 const placeOrderStripe = async (req, res) => {
   try {
+    // Lazy initialization of Stripe if needed
+    if (!stripe && process.env.STRIPE_SECRET_KEY) {
+      stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    }
+
     // Check if Stripe is properly configured
     if (!stripe) {
       return res.status(500).json({
         success: false,
-        message: "Payment service is not configured"
+        message: "Stripe is not configured. Please add STRIPE_SECRET_KEY to your .env file."
       });
     }
 
     const { items, amount, address } = req.body;
     const userId = req.user._id;
     // Use deployed frontend URL as default origin
-    const origin = req.headers.origin || req.headers.referer || 'https://zerofashion.vercel.app';
+    // Use deployed frontend URL as default origin, but prioritize current request origin
+    let origin = req.headers.origin;
+    if (!origin && req.headers.referer) {
+      try {
+        const refererUrl = new URL(req.headers.referer);
+        origin = refererUrl.origin;
+      } catch (e) {
+        origin = 'https://zerofashion.vercel.app';
+      }
+    }
+    if (!origin) origin = 'https://zerofashion.vercel.app';
 
     // Validate required fields
     if (!items?.length || !amount || !address) {
@@ -113,17 +128,31 @@ const placeOrderStripe = async (req, res) => {
     await newOrder.save();
 
     // Calculate line items with proper amount conversion
-    const line_items = items.map((item) => ({
-      price_data: {
-        currency: currency.toLowerCase(), // Ensure lowercase currency
-        product_data: {
-          name: item.name,
-          images: item.image ? [item.image] : []
+    const line_items = items.map((item) => {
+      // Stripe requires absolute URLs for images. If image is local path, don't send it.
+      const isValidUrl = (url) => {
+        try {
+          new URL(url);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      };
+
+      const stripeImages = item.image && isValidUrl(item.image) ? [item.image] : [];
+
+      return {
+        price_data: {
+          currency: currency.toLowerCase(),
+          product_data: {
+            name: item.name,
+            images: stripeImages
+          },
+          unit_amount: Math.round(item.price * 100),
         },
-        unit_amount: Math.round(item.price * 100), // Convert to cents
-      },
-      quantity: item.quantity,
-    }));
+        quantity: item.quantity,
+      };
+    });
 
     // Add delivery fee if not already included in items
     const itemsTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -141,7 +170,7 @@ const placeOrderStripe = async (req, res) => {
     }
 
     // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
+    const stripeConfig = {
       customer_email: req.user.email,
       success_url: `${origin}/verify?success=true&orderId=${newOrder._id}`,
       cancel_url: `${origin}/verify?success=false&orderId=${newOrder._id}`,
@@ -151,12 +180,18 @@ const placeOrderStripe = async (req, res) => {
         orderId: newOrder._id.toString(),
         userId: userId.toString()
       },
-      payment_method_types: ['card'],
       billing_address_collection: 'required',
-      shipping_address_collection: {
-        allowed_countries: ['IN', 'US', 'CA', 'GB', 'AU'], // Add more countries as needed
-      }
-    });
+    };
+
+    // Use automatic payment methods (recommended)
+    // If not using automatic, default to ['card']
+    try {
+      stripeConfig.automatic_payment_methods = { enabled: true };
+    } catch (e) {
+      stripeConfig.payment_method_types = ['card'];
+    }
+
+    const session = await stripe.checkout.sessions.create(stripeConfig);
 
     // Save session ID to order
     newOrder.stripeSessionId = session.id;

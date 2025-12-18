@@ -1,4 +1,3 @@
-import React from 'react'
 import Hero from '../components/Hero'
 import LatestCollection from '../components/LatestCollection'
 import BestSeller from '../components/BestSeller'
@@ -10,13 +9,12 @@ const Home = () => {
   return (
     <>
       <SEO {...SEOConfigs.home} />
-      <div className="min-h-screen">
-        {/* Desktop navbar compensation */}
-        <div className="hidden lg:block h-16"></div>
-        
-        {/* Mobile navbar compensation handled in MobileNavbar component */}
-        <main className="relative">
+      <div className="w-full overflow-x-hidden">
+        <main>
+          {/* Hero section - handles its own navbar offset */}
           <Hero />
+          
+          {/* Rest of the content */}
           <div className="space-y-16 py-8">
             <LatestCollection />
             <BestSeller />
@@ -26,10 +24,11 @@ const Home = () => {
         </main>
         
         {/* Mobile bottom nav compensation */}
-        <div className="lg:hidden h-[68px]"></div>
+        <div className="md:hidden h-[68px]"></div>
       </div>
     </>
   )
 }
 
 export default Home
+
