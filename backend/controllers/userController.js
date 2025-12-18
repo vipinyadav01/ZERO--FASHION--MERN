@@ -122,7 +122,8 @@ const adminLogin = async (req, res) => {
       if (!isMatch) {
         return res.status(401).json({ success: false, message: "Invalid admin credentials" });
       }
-      const token = createToken(user._id, user.role || (user.isAdmin ? "admin" : "user"));
+      const isAdmin = user.role === "admin" || user.isAdmin === true;
+      const token = createToken(user._id, isAdmin ? "admin" : "user");
       return res.status(200).json({
         success: true,
         token,
@@ -130,8 +131,8 @@ const adminLogin = async (req, res) => {
           _id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role || (user.isAdmin ? "admin" : "user"),
-          isAdmin: user.isAdmin || user.role === "admin",
+          role: isAdmin ? "admin" : "user",
+          isAdmin: isAdmin,
         },
       });
     }
@@ -432,6 +433,10 @@ const getAllUsers = async (req, res) => {
         { name: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
       ];
+    }
+    
+    if (req.query.role && req.query.role !== "all") {
+      query.role = req.query.role;
     }
 
     const [users, total] = await Promise.all([

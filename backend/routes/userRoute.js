@@ -27,6 +27,7 @@ userRouter.post("/admin-login", adminLogin);
 userRouter.get("/user", authUser, userDetails);
 userRouter.get("/profile", authUser, getUserProfile);
 userRouter.get("/all", adminAuth, getAllUsers);
+userRouter.get("/list", adminAuth, getAllUsers);
 userRouter.get("/recent", adminAuth, getRecentUsers);
 
 // Add error handling for multer

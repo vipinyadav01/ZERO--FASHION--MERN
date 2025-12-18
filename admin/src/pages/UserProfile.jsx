@@ -1,16 +1,20 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 import {
-  AlertCircle,
+  RefreshCcw,
+  LayoutGrid,
+  ShieldAlert,
+  Users,
+  ShieldCheck,
+  UserCheck
 } from "lucide-react";
 import { backendUrl } from "../constants";
-import UsersHeader from "../components/users/UsersHeader";
 import UsersSearch from "../components/users/UsersSearch";
 import UsersPagination from "../components/users/UsersPagination";
 import UsersTable from "../components/users/UsersTable";
-import UsersListMobile from "../components/users/UsersListMobile";
 import UserEditModal from "../components/users/UserEditModal";
 import UserDeleteModal from "../components/users/UserDeleteModal";
 
@@ -19,13 +23,14 @@ const UserProfile = ({ token }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalAction, setModalAction] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [editForm, setEditForm] = useState({ name: "", email: "", isAdmin: false });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [page, setPage] = useState(1);
-  const [limit] = useState(20);
+  const [limit] = useState(10);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -34,399 +39,195 @@ const UserProfile = ({ token }) => {
   const isFetching = useRef(false);
   const debounceTimeout = useRef(null);
 
-  useEffect(() => {
-    if (token) {
-      fetchUsers();
-    } else {
-      setError("Authentication required");
-      setLoading(false);
-    }
-
-    return () => {
-      isMounted.current = false;
-      if (debounceTimeout.current) {
-        clearTimeout(debounceTimeout.current);
-      }
-    };
-  }, [token, page]);
-
-  useEffect(() => {
-    if (token) {
-      setPage(1);
-      fetchUsers(1);
-    }
-  }, [searchTerm]);
-
-  const fetchUsers = async (targetPage = page) => {
+  const fetchUsers = useCallback(async (targetPage = page) => {
     if (isFetching.current || !token) return;
-
     isFetching.current = true;
     setLoading(true);
     setError(null);
 
     try {
       const response = await axios.get(`${backendUrl}/api/user/all`, {
-        params: { page: targetPage, limit, search: searchTerm },
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+        params: { 
+          page: targetPage, 
+          limit, 
+          search: searchTerm,
+          role: roleFilter 
         },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!isMounted.current) return;
 
       if (response.data.success) {
         const usersData = Array.isArray(response.data.users) ? response.data.users : response.data.users || [];
-        
         setUsers(usersData);
         setTotal(response.data.total || usersData.length);
         setTotalPages(response.data.totalPages || 1);
-        
-        if (usersData.length === 0 && (response.data.total || 0) === 0) {
-          toast.info("No users found in the database. Try creating some users first.");
-        }
       } else {
-        throw new Error(response.data.message || "Unexpected response format from server.");
+        throw new Error(response.data.message || "Protocol desynchronized");
       }
     } catch (err) {
       if (!isMounted.current) return;
-      const status = err.response?.status;
-      const message = err.response?.data?.message || err.message;
-      setError(
-        status === 403
-          ? "Access denied: Admin privileges required."
-          : status === 401
-          ? "Unauthorized: Please log in as admin."
-          : message
-      );
-      toast.error(message);
-      if (status === 401 || status === 403) {
-        navigate("/login");
-      }
+      setError(err.response?.data?.message || err.message);
+      if (err.response?.status === 401 || err.response?.status === 403) navigate("/login");
     } finally {
-      if (isMounted.current) {
-        setLoading(false);
-      }
+      if (isMounted.current) setLoading(false);
       isFetching.current = false;
     }
-  };
+  }, [token, page, limit, searchTerm, roleFilter, navigate]);
 
-  const validateEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
+  useEffect(() => {
+    if (token) fetchUsers();
+    else { setError("Authentication required"); setLoading(false); }
+    return () => { isMounted.current = false; if (debounceTimeout.current) clearTimeout(debounceTimeout.current); };
+  }, [token, page, fetchUsers]);
 
-  const createSampleUsers = async () => {
-    if (isSubmitting || !token) return;
-
-    setIsSubmitting(true);
-
-    const sampleUsers = [
-      { name: "Amit Sharma", email: "amit.sharma@example.com", password: "password123" },
-      { name: "Priya Singh", email: "priya.singh@example.com", password: "password123" },
-      { name: "Rahul Verma", email: "rahul.verma@example.com", password: "password123" },
-      { name: "Sneha Patel", email: "sneha.patel@example.com", password: "password123" },
-      { name: "Vikram Rao", email: "vikram.rao@example.com", password: "password123" },
-    ];
-
-    try {
-      let createdCount = 0;
-      let adminCreated = false;
-
-      for (const userData of sampleUsers) {
-        try {
-          const registerResponse = await axios.post(
-            `${backendUrl}/api/user/register`,
-            userData,
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-
-          if (registerResponse.data.success) {
-            createdCount++;
-            if (userData.email === "testadmin@zerofashion.vercel.app") {
-              await axios.post(
-                `${backendUrl}/api/user/admin-update`,
-                {
-                  userId: registerResponse.data.user._id,
-                  name: userData.name,
-                  email: userData.email,
-                  role: "admin",
-                },
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                  },
-                }
-              );
-              adminCreated = true;
-            }
-          }
-        } catch (userError) {
-          if (userError.response?.data?.message?.includes("already exists")) {
-            
-          } else {
-            throw userError;
-          }
-        }
-      }
-
-      if (createdCount > 0) {
-        toast.success(`Created ${createdCount} sample users${adminCreated ? " (including 1 admin)" : ""}`);
-        await fetchUsers(1);
-        setPage(1);
-      } else {
-        toast.info("Sample users already exist in the database");
-      }
-    } catch (error) {
-      toast.error("Failed to create sample users");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  useEffect(() => {
+    if (token) { setPage(1); fetchUsers(1); }
+  }, [searchTerm, roleFilter, token, fetchUsers]);
 
   const handleEdit = async () => {
-    if (!selectedUser?._id) {
-      toast.error("Invalid user selected.");
-      return;
-    }
-
-    if (!editForm.name.trim()) {
-      toast.error("Name is required.");
-      return;
-    }
-
-    if (!validateEmail(editForm.email)) {
-      toast.error("Invalid email format.");
-      return;
-    }
-
+    if (!selectedUser?._id) return;
     setIsSubmitting(true);
     try {
-      const response = await axios.post(
-        `${backendUrl}/api/user/admin-update`,
-        {
-          userId: selectedUser._id,
-          name: editForm.name.trim(),
-          email: editForm.email.trim(),
-          role: editForm.isAdmin ? "admin" : "user",
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!isMounted.current) return;
+      const response = await axios.post(`${backendUrl}/api/user/admin-update`, {
+        userId: selectedUser._id,
+        name: editForm.name.trim(),
+        email: editForm.email.trim(),
+        role: editForm.isAdmin ? "admin" : "user",
+      }, { headers: { Authorization: `Bearer ${token}` } });
 
       if (response.data.success) {
         setUsers(users.map((u) => (u._id === selectedUser._id ? response.data.user : u)));
-        toast.success("User updated successfully.");
+        toast.success("Identity updated");
         closeModal();
       }
     } catch (err) {
-      if (!isMounted.current) return;
-      const message = err.response?.data?.message || "Failed to update user.";
-      toast.error(message);
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        navigate("/login");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+      toast.error(err.response?.data?.message || "Update failed");
+    } finally { setIsSubmitting(false); }
   };
 
   const handleDelete = async () => {
-    if (!selectedUser?._id) {
-      toast.error("Invalid user selected.");
-      return;
-    }
-
+    if (!selectedUser?._id) return;
     setIsSubmitting(true);
     try {
-      const response = await axios.delete(
-        `${backendUrl}/api/user/delete/${selectedUser._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!isMounted.current) return;
-
+      const response = await axios.delete(`${backendUrl}/api/user/delete/${selectedUser._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (response.data.success) {
         await fetchUsers(page);
-        toast.success("User deleted successfully.");
+        toast.success("Principal decommissioned");
         closeModal();
-      } else {
-        throw new Error(response.data.message || "Delete failed");
       }
-    } catch (err) {
-      if (!isMounted.current) return;
-      const message = err.response?.data?.message || err.message || "Failed to delete user.";
-      toast.error(`Failed to delete user: ${message}`);
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        navigate("/login");
-      }
-    } finally {
-      setIsSubmitting(false);
+    } catch (err) { 
+      toast.error(err.response?.data?.message || "Decommissioning failed"); 
     }
+    finally { setIsSubmitting(false); }
   };
 
   const handleSearchChange = (value) => {
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-    debounceTimeout.current = setTimeout(() => {
-      setSearchTerm(value);
-    }, 300);
+    debounceTimeout.current = setTimeout(() => setSearchTerm(value), 300);
   };
 
   const closeModal = () => {
-    setIsModalOpen(false);
-    setModalAction(null);
-    setSelectedUser(null);
+    setIsModalOpen(false); setModalAction(null); setSelectedUser(null);
     setEditForm({ name: "", email: "", isAdmin: false });
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    try {
-      return new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    } catch {
-      return "Invalid Date";
-    }
-  };
-
-
-  if (error) {
+  if (loading && users.length === 0) {
     return (
-              <div className="min-h-screen px-3 pt-8 pb-6 sm:pt-10 lg:pt-12">
-        <div className="max-w-md mx-auto">
-          <div className="relative overflow-hidden rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-6 text-center">
-            <div className="space-y-4">
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-red-500/20 to-red-600/20 flex items-center justify-center">
-                <AlertCircle className="w-8 h-8 text-red-400" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-white">Error Loading Users</h3>
-                <p className="text-sm text-slate-400">{error}</p>
-              </div>
-              <button
-                onClick={() => fetchUsers(page)}
-                className="w-full mt-4 py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 active:scale-95"
-              >
-                Try Again
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
-    );
-  }
-
-  if (loading) {
-    return (
-            <div className="min-h-screen">
-      <div className="px-3 pt-8 pb-6 sm:px-4 sm:pt-10 lg:px-6 lg:pt-12">
-        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-          {/* Header skeleton */}
-          <div className="relative overflow-hidden rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-6 animate-pulse">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <div className="h-5 w-48 bg-slate-700/60 rounded" />
-                <div className="h-3 w-32 bg-slate-700/50 rounded" />
-              </div>
-              <div className="h-8 w-24 bg-slate-700/60 rounded" />
-            </div>
-          </div>
-
-          {/* Filters skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="h-11 bg-slate-800/60 border border-slate-700/50 rounded-xl animate-pulse" />
-            <div className="h-11 bg-slate-800/60 border border-slate-700/50 rounded-xl animate-pulse" />
-          </div>
-
-          {/* List skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div key={i} className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/50 animate-pulse">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-full bg-slate-700/60" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-1/2 bg-slate-700/60 rounded" />
-                    <div className="h-3 w-1/3 bg-slate-700/50 rounded" />
-                  </div>
-                </div>
-                <div className="mt-3 h-8 w-full bg-slate-700/40 rounded-lg" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
     );
   }
 
   return (
-            <div className="min-h-screen">
-      <div className="px-3 pt-8 pb-6 sm:px-4 sm:pt-10 lg:px-6 lg:pt-12">
-        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-          <UsersHeader
-            total={total}
-            loading={loading}
-            isSubmitting={isSubmitting}
-            onRefresh={() => fetchUsers(page)}
-            onAddSample={createSampleUsers}
-          />
-
-          <UsersSearch
-            value={searchTerm}
-            onChange={handleSearchChange}
-            onClear={() => {
-              setSearchTerm("");
-              const input = document.querySelector('input[type="text"]');
-              if (input) input.value = "";
-            }}
-          />
-
-          <UsersPagination
-            page={page}
-            totalPages={totalPages}
-            onPrev={() => page > 1 && setPage(page - 1)}
-            onNext={() => page < totalPages && setPage(page + 1)}
-          />
-
-          {users.length === 0 ? (
-            <div className="relative overflow-hidden rounded-2xl bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 p-6 text-center">
-              <div className="space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-slate-500/20 to-slate-600/20 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-slate-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 11C16 13.2091 14.2091 15 12 15C9.79086 15 8 13.2091 8 11C8 8.79086 9.79086 7 12 7C14.2091 7 16 8.79086 16 11Z" stroke="currentColor" strokeWidth="1.5"/><path d="M20.3536 20.3536C18.2091 22.4981 15.2091 24 12 24C8.79086 24 5.79086 22.4981 3.64645 20.3536C5.79086 18.2091 8.79086 16.7071 12 16.7071C15.2091 16.7071 18.2091 18.2091 20.3536 20.3536Z" stroke="currentColor" strokeWidth="1.5"/></svg>
+    <div className="min-h-screen p-4 sm:p-6 lg:p-10">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Users Control Header */}
+        <header className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0f] border border-slate-800/60 p-8 sm:p-12 shadow-2xl">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/10 blur-[100px] -mr-48 -mt-48 rounded-full animate-pulse"></div>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+                  <LayoutGrid className="w-8 h-8 text-indigo-400" />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-white">No Users Found</h3>
-                  <p className="text-sm text-slate-400">
-                    {searchTerm
-                      ? "Try adjusting your search criteria"
-                      : "No users available in the system. Create some sample users to get started."}
-                  </p>
-                </div>
+                <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase whitespace-nowrap">
+                  Personnel <span className="text-indigo-500">Registry</span>
+                </h1>
               </div>
+              <p className="text-slate-400 text-lg font-medium max-w-md">
+                Manage your global user base. Audit identities, elevate privileges, and maintain ecosystem integrity.
+              </p>
             </div>
-          ) : (
-            <div className="space-y-3 sm:space-y-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="px-6 py-4 bg-slate-900/50 border border-slate-800 rounded-3xl backdrop-blur-md">
+                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Global Reach</p>
+                <p className="text-3xl font-black text-white">{total}</p>
+              </div>
+              <button 
+                onClick={() => fetchUsers(page)} 
+                className="p-5 bg-slate-900 border border-slate-800 text-slate-400 hover:text-white rounded-[2rem] transition-all active:scale-95"
+              >
+                <RefreshCcw className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
+          {/* Controls Bar: Search & Role Filters */}
+          <div className="relative z-10 mt-12 flex flex-col lg:flex-row gap-6">
+            <div className="flex-1">
+              <UsersSearch value={searchTerm} onChange={handleSearchChange} onClear={() => setSearchTerm("")} />
+            </div>
+            <div className="bg-slate-900/80 border border-slate-800 p-1.5 rounded-[2rem] flex gap-1">
+              {[
+                { id: "all", label: "All Personnel", icon: Users },
+                { id: "admin", label: "Authority", icon: ShieldCheck },
+                { id: "user", label: "Customers", icon: UserCheck }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setRoleFilter(tab.id)}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                    roleFilter === tab.id 
+                    ? "bg-indigo-600 text-white shadow-lg" 
+                    : "text-slate-500 hover:text-slate-300"
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </header>
+
+        {error ? (
+          <div className="bg-rose-500/10 border border-rose-500/20 rounded-[2.5rem] p-12 text-center">
+             <ShieldAlert className="w-16 h-16 text-rose-500 mx-auto mb-6" />
+             <h2 className="text-2xl font-bold text-white mb-2">Access Interrupted</h2>
+             <p className="text-slate-400 mb-8">{error}</p>
+          </div>
+        ) : users.length === 0 ? (
+          <div className="bg-[#0a0a0f] border border-slate-800/60 rounded-[2.5rem] p-20 text-center">
+             <div className="w-20 h-20 bg-slate-950 border border-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                <Users className="w-10 h-10 text-slate-800" />
+             </div>
+             <h3 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter">No Identities Found</h3>
+             <p className="text-slate-400 max-w-sm mx-auto">
+               The current segment returns zero results. Adjust filters or synchronize with the master database.
+             </p>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            <div className="bg-[#0a0a0f] border border-slate-800/60 rounded-[2.5rem] overflow-hidden shadow-2xl">
               <UsersTable
                 users={users}
-                formatDate={formatDate}
+                formatDate={(d) => new Date(d).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                 onEdit={(user) => {
                   setSelectedUser(user);
                   setEditForm({ name: user.name || "", email: user.email || "", isAdmin: user.role === "admin" });
@@ -439,32 +240,18 @@ const UserProfile = ({ token }) => {
                   setIsModalOpen(true);
                 }}
               />
+            </div>
 
-              <UsersListMobile
-                users={users}
-                formatDate={formatDate}
-                onEdit={(user) => {
-                  setSelectedUser(user);
-                  setEditForm({ name: user.name || "", email: user.email || "", isAdmin: user.role === "admin" });
-                  setModalAction("edit");
-                  setIsModalOpen(true);
-                }}
-                onDelete={(user) => {
-                  setSelectedUser(user);
-                  setModalAction("delete");
-                  setIsModalOpen(true);
-                }}
-              />
-
-              <UsersPagination
+            <div className="flex justify-center">
+               <UsersPagination
                 page={page}
                 totalPages={totalPages}
                 onPrev={() => page > 1 && setPage(page - 1)}
                 onNext={() => page < totalPages && setPage(page + 1)}
               />
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <UserEditModal
@@ -485,6 +272,10 @@ const UserProfile = ({ token }) => {
       />
     </div>
   );
+};
+
+UserProfile.propTypes = {
+  token: PropTypes.string.isRequired
 };
 
 export default UserProfile;

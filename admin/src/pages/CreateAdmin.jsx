@@ -2,10 +2,21 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { backendUrl } from "../constants";
+import { 
+    Users, 
+    ShieldCheck, 
+    Mail, 
+    Lock, 
+    User, 
+    ArrowRight,
+    ChevronLeft
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const CreateAdmin = ({ token }) => {
   const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -15,114 +26,141 @@ const CreateAdmin = ({ token }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim() || !form.password) {
-      toast.error("All fields are required");
+      toast.error("Security credentials incomplete");
       return;
     }
     if (form.password.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      toast.error("Password complexity requirements not met");
       return;
     }
     if (form.password !== form.confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error("Password synchronization failed");
       return;
     }
 
     const authToken = token || sessionStorage.getItem("token");
-    if (!authToken) {
-      toast.error("Unauthorized");
-      return;
-    }
-
     setSubmitting(true);
     try {
       const res = await axios.post(
         `${backendUrl}/api/user/admin-create`,
         { name: form.name.trim(), email: form.email.trim(), password: form.password },
-        { headers: { Authorization: `Bearer ${authToken}`, "Content-Type": "application/json" } }
+        { headers: { Authorization: `Bearer ${authToken}` } }
       );
 
-      if (!res.data?.success || !res.data?.user?._id) {
-        throw new Error(res.data?.message || "Failed to create admin");
+      if (res.data?.success) {
+        toast.success("Security principal established");
+        setForm({ name: "", email: "", password: "", confirmPassword: "" });
       }
-
-      toast.success("Admin created successfully");
-      setForm({ name: "", email: "", password: "", confirmPassword: "" });
     } catch (err) {
-      const message = err.response?.data?.message || err.message || "Failed to create admin";
-      toast.error(message);
+      toast.error(err.response?.data?.message || "Protocol error");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-            <div className="min-h-screen px-3 pt-8 pb-6 sm:pt-10 lg:pt-12">
-      <div className="max-w-lg mx-auto">
-        <div className="relative overflow-hidden rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-white">Create Admin</h1>
-            <p className="text-slate-400 text-sm mt-1">Create a new administrator account</p>
-          </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Name</label>
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                className="w-full px-3 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
-                placeholder="Admin name"
-                disabled={submitting}
-              />
+    <div className="min-h-screen p-4 sm:p-6 lg:p-10 flex items-center justify-center">
+      <div className="max-w-xl w-full space-y-8">
+        
+        {/* Teams Header */}
+        <div className="text-center space-y-4 mb-10">
+            <div className="inline-flex p-4 bg-indigo-500/10 rounded-3xl border border-indigo-500/20 mb-4">
+                <ShieldCheck className="w-10 h-10 text-indigo-400" />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                className="w-full px-3 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
-                placeholder="admin@example.com"
-                disabled={submitting}
-              />
+            <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase">
+                Establish <span className="text-indigo-500">Authority</span>
+            </h1>
+            <p className="text-slate-400 font-medium max-w-sm mx-auto">
+                Provision new administrative access for your executive team.
+            </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="bg-[#0a0a0f] border border-slate-800/60 rounded-[2.5rem] p-8 sm:p-12 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-[80px] -mr-32 -mt-32 rounded-full"></div>
+          
+          <div className="space-y-6 relative z-10">
+            <div className="space-y-2">
+              <label className="text-slate-500 text-[10px] font-black uppercase tracking-widest pl-1">Legal Identity</label>
+              <div className="relative group">
+                <User className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 group-focus-within:text-indigo-400 transition-colors" />
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl pl-14 pr-6 py-4 text-white font-bold placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/40 transition-all"
+                  placeholder="FULL NAME"
+                  disabled={submitting}
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                autoComplete="new-password"
-                className="w-full px-3 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
-                placeholder="At least 8 characters"
-                disabled={submitting}
-              />
+
+            <div className="space-y-2">
+              <label className="text-slate-500 text-[10px] font-black uppercase tracking-widest pl-1">Communication Node</label>
+              <div className="relative group">
+                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 group-focus-within:text-indigo-400 transition-colors" />
+                <input
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl pl-14 pr-6 py-4 text-white font-bold placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/40 transition-all font-mono"
+                  placeholder="ADMIN@ZEROFASHION.COM"
+                  disabled={submitting}
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Confirm Password</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                autoComplete="new-password"
-                className="w-full px-3 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
-                placeholder="Re-enter password"
-                disabled={submitting}
-              />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <label className="text-slate-500 text-[10px] font-black uppercase tracking-widest pl-1">Access Key</label>
+                    <div className="relative group">
+                        <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 group-focus-within:text-indigo-400 transition-colors" />
+                        <input
+                            type="password"
+                            name="password"
+                            value={form.password}
+                            onChange={handleChange}
+                            autoComplete="new-password"
+                            className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl pl-14 pr-6 py-4 text-white font-bold placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/40 transition-all"
+                            placeholder="********"
+                            disabled={submitting}
+                        />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-slate-500 text-[10px] font-black uppercase tracking-widest pl-1">Key Verification</label>
+                    <div className="relative group">
+                        <ShieldCheck className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 group-focus-within:text-indigo-400 transition-colors" />
+                        <input
+                            type="password"
+                            name="confirmPassword"
+                            value={form.confirmPassword}
+                            onChange={handleChange}
+                            autoComplete="new-password"
+                            className="w-full bg-slate-900/50 border border-slate-800 rounded-2xl pl-14 pr-6 py-4 text-white font-bold placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/40 transition-all"
+                            placeholder="********"
+                            disabled={submitting}
+                        />
+                    </div>
+                </div>
             </div>
+
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 disabled:opacity-50"
+              className="w-full mt-6 py-5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-indigo-600/20 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
             >
-              {submitting ? "Creating..." : "Create Admin"}
+              {submitting ? "PROVISIONING..." : "ESTABLISH AUTHORITY"}
+              {!submitting && <ArrowRight className="w-5 h-5" />}
             </button>
-          </form>
-        </div>
+          </div>
+        </form>
+
+        <button onClick={() => navigate(-1)} className="mx-auto flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">
+            <ChevronLeft className="w-4 h-4" />
+            Back to Team Operations
+        </button>
       </div>
     </div>
   );

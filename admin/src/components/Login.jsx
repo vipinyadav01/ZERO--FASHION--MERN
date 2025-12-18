@@ -3,9 +3,13 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { backendUrl } from "../constants";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Shield, Zap } from "lucide-react";
+import PropTypes from "prop-types";
+import { Eye, EyeOff, LogIn, Mail, Lock, AlertCircle, Shield, Sparkles } from "lucide-react";
 
-const useTokenExpiration = (setToken) => {
+const Login = ({ setToken }) => {
+    const navigate = useNavigate();
+    
+    // Internal state for managing token with expiry logic
     useEffect(() => {
         const token = sessionStorage.getItem("token");
         if (token) {
@@ -18,12 +22,6 @@ const useTokenExpiration = (setToken) => {
         setToken(token);
     };
 
-    return setTokenWithExpiry;
-};
-
-const Login = ({ setToken }) => {
-    const navigate = useNavigate();
-    const setTokenWithExpiry = useTokenExpiration(setToken);
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -36,17 +34,6 @@ const Login = ({ setToken }) => {
         password: false,
     });
 
-    useEffect(() => {
-        const handleBeforeUnload = () => {
-        };
-
-        window.addEventListener("beforeunload", handleBeforeUnload);
-
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-        };
-    }, []);
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -57,61 +44,44 @@ const Login = ({ setToken }) => {
     };
 
     const handleBlur = (field) => {
-        setTouched((prev) => ({
-            ...prev,
-            [field]: true,
-        }));
+        setTouched((prev) => ({ ...prev, [field]: true }));
     };
 
-    const validateEmail = (email) => {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    };
+    const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         setIsLoading(true);
         setError(null);
 
-        setTouched({
-            email: true,
-            password: true,
-        });
+        setTouched({ email: true, password: true });
 
         if (!validateEmail(formData.email)) {
-            setError("Please enter a valid email address");
+            setError("Identity node invalid");
             setIsLoading(false);
             return;
         }
 
         if (formData.password.length < 6) {
-            setError("Password must be at least 6 characters");
+            setError("Security key criteria not met");
             setIsLoading(false);
             return;
         }
 
         try {
-            const response = await axios.post(
-                `${backendUrl}/api/user/admin-login`,
-                formData,
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
+            const response = await axios.post(`${backendUrl}/api/user/admin-login`, formData, {
+                headers: { "Content-Type": "application/json" }
+            });
 
             if (response?.data?.success) {
                 setTokenWithExpiry(response.data.token);
-                toast.success("Welcome back");
+                toast.success("Identity Verified. Portal Open.");
                 navigate("/dashboard");
             } else {
-                throw new Error(response.data.message || "Login failed");
+                throw new Error(response.data.message || "Credential rejection");
             }
         } catch (error) {
-            const errorMessage =
-                error.response?.data?.message ||
-                error.message ||
-                "Something went wrong. Please try again.";
+            const errorMessage = error.response?.data?.message || "Autonomous security rejection";
             setError(errorMessage);
             toast.error(errorMessage);
         } finally {
@@ -119,97 +89,69 @@ const Login = ({ setToken }) => {
         }
     };
 
-    const getInputErrorClass = (field) => {
+    const getInputClass = (field) => {
+        const base = "w-full pl-14 pr-12 py-5 bg-black/40 border rounded-2xl outline-none transition-all duration-500 placeholder-slate-600 font-black tracking-tight uppercase";
         if (touched[field]) {
-            if (field === "email" && !validateEmail(formData.email)) {
-                return "border-red-500/50 focus:ring-red-500/30 focus:border-red-500 bg-red-500/5";
-            }
-            if (field === "password" && formData.password.length < 6) {
-                return "border-red-500/50 focus:ring-red-500/30 focus:border-red-500 bg-red-500/5";
-            }
+            if (field === "email" && !validateEmail(formData.email)) return `${base} border-rose-500/50 bg-rose-500/5 text-rose-200`;
+            if (field === "password" && formData.password.length < 6) return `${base} border-rose-500/50 bg-rose-500/5 text-rose-200`;
         }
-        return "border-white/10 focus:ring-emerald-500/30 focus:border-emerald-400 bg-white/5 hover:bg-white/10";
+        return `${base} border-slate-800 focus:border-indigo-500/60 focus:ring-4 focus:ring-indigo-500/10 text-white`;
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center w-full bg-black p-4 sm:p-6 md:p-8 relative overflow-hidden">
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
+        <div className="min-h-screen flex items-center justify-center w-full bg-[#050508] p-4 sm:p-6 md:p-8 relative overflow-hidden font-['Montserrat']">
+            {/* Dynamic Background */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-40 -right-40 w-[40rem] h-[40rem] bg-indigo-600/10 rounded-full blur-[120px] animate-pulse"></div>
+                <div className="absolute -bottom-40 -left-40 w-[40rem] h-[40rem] bg-purple-600/10 rounded-full blur-[120px] animate-pulse delay-1000"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.05)_0%,transparent_70%)]"></div>
             </div>
 
-            <div className="flex overflow-hidden rounded-3xl shadow-2xl max-w-6xl w-full bg-white/5 backdrop-blur-xl border border-white/10 relative z-10">
-                <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-black via-gray-900 to-black text-white p-12 relative overflow-hidden flex-col justify-between">
-                    <div className="absolute inset-0 opacity-10">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
-                        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_48%,rgba(255,255,255,0.05)_49%,rgba(255,255,255,0.05)_51%,transparent_52%)]"></div>
-                    </div>
-                    
+            <div className="flex flex-col lg:flex-row overflow-hidden rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] max-w-6xl w-full bg-[#0a0a0f]/80 backdrop-blur-3xl border border-slate-800 relative z-10 transition-all duration-1000">
+                {/* Branding Panel */}
+                <div className="lg:w-1/2 bg-gradient-to-br from-indigo-950 via-[#0a0a0f] to-slate-950 text-white p-12 lg:p-20 relative overflow-hidden flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800">
                     <div className="relative z-10">
-                        <div className="w-16 h-16 bg-gradient-to-br from-white to-gray-300 rounded-2xl flex items-center justify-center mb-8 shadow-2xl">
-                            <img 
-                                src="/logo.png" 
-                                alt="ZeroFashion Logo" 
-                                className="w-12 h-12 object-contain"
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextSibling.style.display = 'block';
-                                }}
-                            />
+                        <div className="w-20 h-20 bg-gradient-to-br from-indigo-500/20 to-purple-600/20 rounded-[2rem] border border-white/10 flex items-center justify-center mb-12 backdrop-blur-xl shadow-2xl">
+                             <Sparkles className="w-10 h-10 text-indigo-400" />
                         </div>
                         
-                        <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                            ZeroFashion
+                        <h2 className="text-6xl font-black mb-6 tracking-tighter uppercase italic">
+                            Zero<span className="text-indigo-500">Fashion</span>
                         </h2>
-                        <h3 className="text-2xl font-light mb-4 text-emerald-400">Admin Portal</h3>
-                        <p className="text-gray-300 mb-8 text-lg leading-relaxed">
-                            Experience next-generation fashion management with our sophisticated admin dashboard. 
-                            Streamline operations, analyze trends, and drive growth.
+                        <h3 className="text-sm font-black tracking-[0.4em] uppercase text-indigo-400 mb-8 px-1">Management Node</h3>
+                        <p className="text-slate-400 text-lg leading-relaxed font-medium max-w-md">
+                            Welcome to the executive nexus. Quantify and command your fashion empire through high-fidelity data streams.
                         </p>
                     </div>
                     
-                    <div className="space-y-6 relative z-10">
-                        <div className="flex items-center space-x-4 group">
-                            <div className="bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 p-4 rounded-2xl border border-emerald-500/20 group-hover:border-emerald-400/40 transition-all duration-300">
-                                <Shield className="h-6 w-6 text-emerald-400" />
+                    <div className="space-y-8 relative z-10 mt-12 lg:mt-0">
+                        <div className="flex items-center space-x-5 group">
+                            <div className="bg-indigo-500/10 p-4 rounded-2xl border border-indigo-500/20 group-hover:bg-indigo-500/20 transition-all duration-500">
+                                <Shield className="h-6 w-6 text-indigo-400" />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-white">Enterprise Security</h3>
-                                <p className="text-gray-400 text-sm">Bank-grade encryption & protection</p>
-                            </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-4 group">
-                            <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 p-4 rounded-2xl border border-blue-500/20 group-hover:border-blue-400/40 transition-all duration-300">
-                                <Zap className="h-6 w-6 text-blue-400" />
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-white">Lightning Fast</h3>
-                                <p className="text-gray-400 text-sm">Real-time data & instant updates</p>
+                                <h3 className="font-black text-white uppercase text-xs tracking-widest">Enclave Security</h3>
+                                <p className="text-slate-500 text-sm font-medium">Identity verified via secure protocols</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="w-full lg:w-1/2 p-6 sm:p-8 md:p-12 bg-gradient-to-b from-white/5 to-transparent">
+                {/* Login Form Panel */}
+                <div className="w-full lg:w-1/2 p-10 sm:p-14 lg:p-20 bg-[#0a0a0f]">
                     <div className="max-w-md mx-auto">
-                        <div className="text-center mb-10">
-                            <h1 className="text-4xl font-bold text-white mb-4">
-                                Welcome Back
+                        <div className="mb-12">
+                            <h1 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase whitespace-nowrap italic">
+                                Identity <span className="text-indigo-500 font-black italic">Sync</span>
                             </h1>
-                            <p className="text-gray-400 text-lg">
-                                Sign in to continue to your dashboard
-                            </p>
+                            <p className="text-slate-500 font-medium tracking-tight">Verify credentials to bypass enclave security.</p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="block text-sm font-medium text-gray-300" htmlFor="email">
-                                    Email Address
-                                </label>
+                            <div className="space-y-3">
+                                <label className="text-slate-500 text-[10px] font-black uppercase tracking-widest pl-1" htmlFor="email">Identity Node</label>
                                 <div className="relative group">
-                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-400 transition-colors duration-300">
+                                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
                                         <Mail className="h-5 w-5" />
                                     </div>
                                     <input
@@ -219,35 +161,20 @@ const Login = ({ setToken }) => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         onBlur={() => handleBlur("email")}
-                                        className={`w-full pl-12 pr-4 py-4 bg-black/20 backdrop-blur-sm text-white border rounded-2xl outline-none transition-all duration-300 placeholder-gray-500 ${getInputErrorClass("email")}`}
-                                        placeholder="admin@zerofashion.vercel.app"
+                                        className={getInputClass("email")}
+                                        placeholder="ADMIN_NODE@ZEROFASHION.COM"
                                         required
                                         disabled={isLoading}
                                     />
                                 </div>
-                                {touched.email && !validateEmail(formData.email) && (
-                                    <p className="text-red-400 text-sm mt-2 flex items-center bg-red-500/10 rounded-lg p-2">
-                                        <AlertCircle className="h-4 w-4 mr-2" />
-                                        Please enter a valid email address
-                                    </p>
-                                )}
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 <div className="flex justify-between items-center">
-                                    <label className="block text-sm font-medium text-gray-300" htmlFor="password">
-                                        Password
-                                    </label>
-                                    <button
-                                        type="button"
-                                        className="text-sm text-emerald-400 hover:text-emerald-300 font-medium focus:outline-none transition-colors duration-300"
-                                        onClick={() => toast.info("Contact your administrator to reset your password.")}
-                                    >
-                                        Forgot password?
-                                    </button>
+                                    <label className="text-slate-500 text-[10px] font-black uppercase tracking-widest pl-1" htmlFor="password">Security Key</label>
                                 </div>
                                 <div className="relative group">
-                                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-400 transition-colors duration-300">
+                                    <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
                                         <Lock className="h-5 w-5" />
                                     </div>
                                     <input
@@ -257,67 +184,51 @@ const Login = ({ setToken }) => {
                                         value={formData.password}
                                         onChange={handleChange}
                                         onBlur={() => handleBlur("password")}
-                                        className={`w-full pl-12 pr-12 py-4 bg-black/20 backdrop-blur-sm text-white border rounded-2xl outline-none transition-all duration-300 placeholder-gray-500 ${getInputErrorClass("password")}`}
-                                        placeholder="••••••••"
+                                        className={getInputClass("password")}
+                                        placeholder="********"
                                         required
                                         disabled={isLoading}
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-emerald-300 focus:outline-none transition-colors duration-300"
-                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                        className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
                                     >
                                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                                     </button>
                                 </div>
-                                {touched.password && formData.password.length < 6 && (
-                                    <p className="text-red-400 text-sm mt-2 flex items-center bg-red-500/10 rounded-lg p-2">
-                                        <AlertCircle className="h-4 w-4 mr-2" />
-                                        Password must be at least 6 characters
-                                    </p>
-                                )}
                             </div>
 
                             {error && (
-                                <div className="text-sm text-red-400 bg-red-500/10 backdrop-blur-sm rounded-2xl p-4 flex items-start border border-red-500/20">
-                                    <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                                <div className="text-[10px] font-black uppercase tracking-widest text-rose-500 bg-rose-500/5 border border-rose-500/20 rounded-2xl p-4 flex items-center gap-3 animate-in slide-in-from-top-2">
+                                    <AlertCircle className="h-5 w-5 shrink-0" />
                                     <span>{error}</span>
                                 </div>
                             )}
 
                             <button
-                                className={`w-full py-4 px-6 rounded-2xl text-black bg-gradient-to-r from-white to-gray-200 flex items-center justify-center space-x-3 transition-all duration-300 shadow-lg font-semibold ${
-                                    isLoading 
-                                    ? "opacity-75 cursor-not-allowed" 
-                                    : "hover:shadow-white/20 hover:scale-[1.02] active:scale-[0.98] hover:from-emerald-400 hover:to-emerald-300"
+                                className={`w-full py-5 px-6 rounded-[2rem] text-white bg-indigo-600 flex items-center justify-center gap-4 transition-all duration-500 shadow-xl shadow-indigo-600/20 font-black uppercase tracking-[0.2em] group italic text-xs ${
+                                    isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-indigo-500 hover:scale-[1.02] active:scale-[0.98]"
                                 }`}
                                 type="submit"
                                 disabled={isLoading}
                             >
                                 {isLoading ? (
                                     <>
-                                        <div className="w-5 h-5 border-t-2 border-b-2 border-black rounded-full animate-spin"></div>
-                                        <span>Authenticating...</span>
+                                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                                        <span>Syncing...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <LogIn className="h-5 w-5" />
-                                        <span>Sign in to Dashboard</span>
+                                        <span>Access Portal</span>
+                                        <LogIn className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                                     </>
                                 )}
                             </button>
 
-                            <div className="text-center pt-6">
-                                <p className="text-sm text-gray-400">
-                                    Having trouble logging in?{" "}
-                                    <button
-                                        type="button"
-                                        className="text-emerald-400 hover:text-emerald-300 font-medium focus:outline-none transition-colors duration-300"
-                                        onClick={() => toast.info("Please contact your administrator for assistance.")}
-                                    >
-                                        Get Help
-                                    </button>
+                            <div className="text-center pt-8 border-t border-slate-800/50">
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">
+                                    ZeroFashion Enclave Security Active © 2024
                                 </p>
                             </div>
                         </form>
@@ -326,6 +237,10 @@ const Login = ({ setToken }) => {
             </div>
         </div>
     );
+};
+
+Login.propTypes = {
+    setToken: PropTypes.func.isRequired
 };
 
 export default Login;

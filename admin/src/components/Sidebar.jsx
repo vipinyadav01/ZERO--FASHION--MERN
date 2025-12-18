@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -19,207 +19,156 @@ import PropTypes from "prop-types";
 
 const Sidebar = ({ onWidthChange, onLogout }) => {
     const [isCollapsed, setIsCollapsed] = useState(() => {
-        return window.innerWidth < 768 ? true : JSON.parse(localStorage.getItem("sidebarCollapsed") || "false");
+        return window.innerWidth < 1024 ? true : JSON.parse(localStorage.getItem("sidebarCollapsed") || "false");
     });
     const [user, setUser] = useState(null);
     const [isHovering, setIsHovering] = useState(false);
-    const [isLoadingUser, setIsLoadingUser] = useState(true);
+    
     const navigate = useNavigate();
 
-    // Compute effective expanded state (expanded when not collapsed or when hovered while collapsed)
     const isEffectivelyExpanded = !isCollapsed || (isCollapsed && isHovering);
-    const computedWidthPx = isEffectivelyExpanded ? 280 : 80;
+    const computedWidthPx = isEffectivelyExpanded ? 280 : 88;
+
+    const fetchUser = useCallback(async () => {
+        try {
+            const token = sessionStorage.getItem("token");
+            if (token) {
+                const response = await axios.get(`${backendUrl}/api/user/user`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (response.data?.success) setUser(response.data.user);
+            }
+        } catch (error) {
+            console.error("Sidebar auth telemetry failure", error);
+            setUser({ name: "Executive", email: "admin@zerofashion.com", role: "Super Admin" });
+        }
+    }, []);
 
     useEffect(() => {
         localStorage.setItem("sidebarCollapsed", JSON.stringify(isCollapsed));
     }, [isCollapsed]);
 
-    // Notify parent about width changes (also on hover)
     useEffect(() => {
         onWidthChange(computedWidthPx);
     }, [computedWidthPx, onWidthChange]);
 
-    // Auto-collapse on small screens for better responsiveness
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth < 768) {
-                setIsCollapsed(true);
-            }
+            if (window.innerWidth < 1024) setIsCollapsed(true);
         };
         window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                setIsLoadingUser(true);
-                const token = sessionStorage.getItem("token");
-                if (token) {
-                    const response = await axios.get(`${backendUrl}/api/user/user`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    if (response.data?.success && response.data?.user) {
-                        setUser(response.data.user);
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching user:", error);
-                
-                setUser({
-                    name: "Admin",
-                    email: "admin@zerofashion.vercel.app",
-                    role: "Administrator"
-                });
-            } finally {
-                setIsLoadingUser(false);
-            }
-        };
         fetchUser();
-    }, []);
+        return () => window.removeEventListener("resize", handleResize);
+    }, [fetchUser]);
 
     const handleLogout = () => {
-        // Clear all storage comprehensively
         sessionStorage.clear();
         localStorage.clear();
-        
-        // Call parent logout function if provided
-        if (onLogout) {
-            onLogout();
-        }
-        
-        toast.success("Logged out successfully");
+        if (onLogout) onLogout();
+        toast.success("Identity session terminated");
         navigate("/login", { replace: true });
     };
 
     const navigationItems = [
-        { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-        { path: "/add", icon: PlusCircle, label: "Add Product" },
-        { path: "/list", icon: ListTodo, label: "Product List" },
-        { path: "/orders", icon: ShoppingCart, label: "Orders" },
-        { path: "/order-charts", icon: BarChart3, label: "Order Charts" },
-        { path: "/users", icon: User, label: "User Profile" },
-        { path: "/admin-create", icon: Users, label: "Create Admin" },
+        { path: "/dashboard", icon: LayoutDashboard, label: "Overview" },
+        { path: "/users", icon: User, label: "Registry" },
+        { path: "/add", icon: PlusCircle, label: "Propose Asset" },
+        { path: "/list", icon: ListTodo, label: "Asset Vault" },
+        { path: "/orders", icon: ShoppingCart, label: "Order Hub" },
+        { path: "/order-charts", icon: BarChart3, label: "Market Pulse" },
+        { path: "/admin-create", icon: Users, label: "Teams" },
     ];
 
     return (
-        <div
-            className={`fixed left-0 top-0 h-full bg-gradient-to-b from-slate-900 to-slate-800 border-r border-slate-700/50 shadow-2xl backdrop-blur-xl transition-all duration-300 z-50 ${
-                isEffectivelyExpanded ? "w-72" : "w-20"
+        <aside
+            className={`fixed left-0 top-0 h-full bg-[#0a0a0f] border-r border-slate-800/60 shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] z-[100] ${
+                isEffectivelyExpanded ? "w-72" : "w-[88px]"
             }`}
-            onMouseEnter={() => {
-                if (window.innerWidth >= 768) setIsHovering(true);
-            }}
+            onMouseEnter={() => window.innerWidth >= 1024 && setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
         >
-            {/* Header with Logo */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
-                <div className="flex items-center space-x-3">
-                    <img src={logo} alt="Logo" className="h-8 w-8 rounded-lg" />
+            <div className="flex flex-col h-full py-8 px-4">
+                
+                {/* Brand Logo */}
+                <div className={`flex items-center gap-4 mb-12 px-2 transition-all duration-300 ${!isEffectivelyExpanded ? "justify-center" : ""}`}>
+                    <div className="relative group">
+                        <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+                        <img src={logo} alt="Zero Fashion" className="relative h-10 w-10 rounded-xl object-contain bg-black p-1 border border-slate-700/50" />
+                    </div>
                     {isEffectivelyExpanded && (
-                        <div>
-                            <h1 className="text-white font-bold text-lg">Zero Fashion</h1>
-                            <p className="text-slate-400 text-xs">Admin Panel</p>
+                        <div className="flex flex-col">
+                            <span className="text-white font-black text-xl tracking-tighter uppercase leading-none italic">Zero</span>
+                            <span className="text-indigo-500 font-bold text-xs uppercase tracking-widest mt-0.5">Fashion</span>
                         </div>
                     )}
                 </div>
-               
-            </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-2">
-                {navigationItems.map((item) => (
-                    <NavLink
-                        key={item.path}
-                        to={item.path}
-                        title={!isEffectivelyExpanded ? item.label : undefined}
-                        className={({ isActive }) =>
-                            `flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 group outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 ${
-                                isActive
-                                    ? "bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-white shadow-lg"
-                                    : "text-slate-300 hover:bg-slate-800/60 hover:text-white hover:border-slate-600/60 border border-transparent"
-                            }`
-                        }
-                    >
-                        <item.icon className="h-5 w-5 flex-shrink-0" />
-                        {isEffectivelyExpanded && <span className="font-medium">{item.label}</span>}
-                    </NavLink>
-                ))}
-            </nav>
-
-            {/* User Profile & Logout */}
-            <div className="p-4 border-t border-slate-700/50">
-                {isLoadingUser ? (
-                    <div className="mb-4">
-                        <div className="flex items-center space-x-3 mb-3">
-                            <div className="h-12 w-12 rounded-full bg-slate-700 animate-pulse"></div>
-                            {!isCollapsed && (
-                                <div className="flex-1 space-y-2">
-                                    <div className="h-4 bg-slate-700 rounded animate-pulse"></div>
-                                    <div className="h-3 bg-slate-700 rounded animate-pulse w-3/4"></div>
-                                    <div className="h-3 bg-slate-700 rounded animate-pulse w-1/2"></div>
-                                </div>
-                            )}
-                        </div>
-                        <div className="h-10 bg-slate-700 rounded-lg animate-pulse"></div>
-                    </div>
-                ) : user ? (
-                    <div className="mb-4">
-                        <div className="flex items-center space-x-3 mb-3">
-                            <div className="h-12 w-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center overflow-hidden shadow-lg">
-                                {user.profileImage ? (
-                                    <img
-                                        src={user.profileImage}
-                                        alt={user.name || "User"}
-                                        className="h-12 w-12 object-cover rounded-full"
-                                        onError={(e) => {
-                                            
-                                            e.target.style.display = 'none';
-                                            e.target.nextSibling.style.display = 'flex';
-                                        }}
-                                    />
-                                ) : null}
-                                <span 
-                                    className={`text-white font-bold text-lg ${user.profileImage ? 'hidden' : 'flex'} items-center justify-center`}
-                                    style={{ display: user.profileImage ? 'none' : 'flex' }}
-                                >
-                                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-                                </span>
+                {/* Nav Menu */}
+                <nav className="flex-1 space-y-1.5 custom-scrollbar overflow-y-auto overflow-x-hidden">
+                    {navigationItems.map((item) => (
+                        <NavLink
+                            key={item.path}
+                            to={item.path}
+                            className={({ isActive }) =>
+                                `flex items-center gap-4 px-3 py-3.5 rounded-2xl transition-all duration-300 group outline-none overflow-hidden ${
+                                    isActive
+                                        ? "bg-indigo-600/10 text-white border border-indigo-500/20 shadow-[0_0_20px_rgba(79,70,229,0.1)]"
+                                        : "text-slate-500 hover:bg-slate-800/40 hover:text-slate-200 border border-transparent"
+                                }`
+                            }
+                        >
+                            <div className={`transition-transform duration-300 group-active:scale-90 ${!isEffectivelyExpanded ? "mx-auto" : ""}`}>
+                                <item.icon className={`h-6 w-6 stroke-[1.5px] transition-colors ${!isEffectivelyExpanded ? "group-hover:text-indigo-400" : ""}`} />
                             </div>
                             {isEffectivelyExpanded && (
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-white font-semibold text-sm truncate">{user.name || "User"}</p>
-                                    <p className="text-slate-400 text-xs truncate">{user.email || "user@example.com"}</p>
-                                    <p className="text-indigo-400 text-xs font-medium">{user.role || "User"}</p>
+                                <span className="font-bold text-sm tracking-tight uppercase whitespace-nowrap italic">{item.label}</span>
+                            )}
+                            {isEffectivelyExpanded && (
+                                <div className="ml-auto w-1 h-3 rounded-full bg-indigo-500 opacity-0 group-[.active]:opacity-100 transition-opacity"></div>
+                            )}
+                        </NavLink>
+                    ))}
+                </nav>
+
+                {/* Footer Section */}
+                <div className="mt-auto pt-8 border-t border-slate-800/50 space-y-4">
+                    {user && (
+                        <div className={`flex items-center gap-4 p-2 rounded-2xl transition-all duration-300 ${!isEffectivelyExpanded ? "justify-center" : "bg-slate-800/20"}`}>
+                            <div className="relative flex-shrink-0">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-sm shadow-lg">
+                                    {user.name?.charAt(0) || "E"}
+                                </div>
+                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#0a0a0f] rounded-full shadow-sm"></div>
+                            </div>
+                            {isEffectivelyExpanded && (
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-white font-black text-[10px] truncate uppercase tracking-wider italic">{user.name}</p>
+                                    <p className="text-slate-500 text-[9px] truncate tracking-tight">{user.email}</p>
                                 </div>
                             )}
                         </div>
-                        
-                        {/* Logout Button */}
+                    )}
+
+                    <div className="space-y-1">
                         <button
                             onClick={handleLogout}
-                            className="w-full flex items-center justify-center space-x-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-red-600/20 to-red-700/20 hover:from-red-600/30 hover:to-red-700/30 text-red-400 hover:text-red-300 border border-red-500/30 transition-all duration-200 group shadow-lg"
+                            className={`w-full flex items-center gap-4 px-3 py-3 rounded-2xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all group duration-300 ${!isEffectivelyExpanded ? "justify-center" : ""}`}
                         >
-                            <LogOut className="h-4 w-4" />
-                            {isEffectivelyExpanded && <span className="text-sm font-medium">Logout</span>}
+                            <LogOut className="h-6 w-6 stroke-[1.5px]" />
+                            {isEffectivelyExpanded && <span className="text-xs font-black uppercase tracking-widest">Terminate Session</span>}
                         </button>
                     </div>
-                ) : null}
-            </div>
 
-            <button
-                type="button"
-                aria-label={isEffectivelyExpanded ? "Collapse sidebar" : "Expand sidebar"}
-                aria-expanded={isEffectivelyExpanded}
-                onClick={() => setIsCollapsed((prev) => !prev)}
-                className="absolute bottom-6 left-1/2 -translate-x-1/2 p-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 hover:text-white transition-colors shadow-lg focus-visible:ring-2 focus-visible:ring-indigo-500/40"
-                style={{ zIndex: 60 }}
-            >
-                <ChevronLeft
-                    className={`h-4 w-4 transition-transform ${!isEffectivelyExpanded ? "rotate-180" : ""}`}
-                />
-            </button>
-        </div>
+                    {/* Collapse Toggle */}
+                    <button
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                        className="hidden lg:flex w-full items-center justify-center py-2 text-slate-600 hover:text-white transition-colors"
+                    >
+                        <ChevronLeft className={`h-5 w-5 transition-transform duration-500 ${!isEffectivelyExpanded ? "rotate-180" : ""}`} />
+                    </button>
+                </div>
+            </div>
+        </aside>
     );
 };
 

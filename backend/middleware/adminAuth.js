@@ -9,16 +9,19 @@ const adminAuth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (decoded.role !== "admin") {
+    // Be flexible with the role check in the token, but always verify with DB
+    if (decoded.role !== "admin" && !decoded.isAdmin) {
+      // If the token doesn't explicitly say admin, we still allow proceeding to the DB check
+    }
+
+    const user = await UserModel.findById(decoded.id).select("_id role isAdmin");
+    const isAdmin = user && (user.role === "admin" || user.isAdmin === true);
+    
+    if (!isAdmin) {
       return res.status(403).json({ success: false, message: "Admin access required" });
     }
 
-    const user = await UserModel.findById(decoded.id).select("_id role");
-    if (!user || user.role !== "admin") {
-      return res.status(403).json({ success: false, message: "Admin access required" });
-    }
-
-    req.user = { _id: user._id, role: decoded.role };
+    req.user = { id: user._id, _id: user._id, role: user.role || "admin" };
     next();
   } catch (error) {
     console.error("Admin Auth Error:", error);
