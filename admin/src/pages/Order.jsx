@@ -5,17 +5,15 @@ import { toast } from "react-toastify";
 import {
     Truck,
     Package,
-    MapPin,
     Phone,
     ChevronDown,
     ShoppingBag,
     Clock,
-    AlertCircle,
     CheckCircle,
     Search,
     Filter,
-    ArrowUpDown,
-    Check
+    XCircle,
+    CreditCard
 } from "lucide-react";
 
 const Order = () => {
@@ -30,7 +28,7 @@ const Order = () => {
         const token = sessionStorage.getItem("token");
 
         if (!token) {
-            setError("Please log in to view orders.");
+            setError("Authentication required");
             setLoading(false);
             return;
         }
@@ -80,13 +78,13 @@ const Order = () => {
             );
             if (response.data.success) {
                 await fetchAllOrders();
-                toast.success("Order status updated successfully");
+                toast.success("Order status updated");
             } else {
                 toast.error(response.data.message);
             }
         } catch (error) {
             console.error("Error updating status:", error);
-            toast.error(error.response?.data?.message || "Failed to update order status");
+            toast.error(error.response?.data?.message || "Failed to update status");
         }
     };
 
@@ -117,7 +115,7 @@ const Order = () => {
             case "Shipped": return Truck;
             case "Out for Delivery": return Truck;
             case "Delivered": return CheckCircle;
-            case "Cancelled": return AlertCircle;
+            case "Cancelled": return XCircle; // Replaced AlertCircle with XCircle for Cancelled
             default: return Package;
         }
     };
@@ -137,105 +135,70 @@ const Order = () => {
     if (loading && orders.length === 0) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-400 font-medium animate-pulse">Loading execution queue...</p>
-                </div>
+                 <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen p-4 sm:p-6 lg:p-10">
-            <div className="max-w-7xl mx-auto space-y-8">
+        <div className="min-h-screen p-6 lg:p-10 font-sans text-slate-100">
+            <div className="max-w-6xl mx-auto space-y-6">
                 
-                {/* Executive Header */}
-                <header className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0f] border border-slate-800/60 p-8 sm:p-12 shadow-2xl">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/10 blur-[100px] -mr-48 -mt-48 rounded-full animate-pulse"></div>
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-                        <div>
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
-                                    <ShoppingBag className="w-8 h-8 text-indigo-400" />
-                                </div>
-                                <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase">
-                                    Order <span className="text-indigo-500">Hub</span>
-                                </h1>
-                            </div>
-                            <p className="text-slate-400 text-lg font-medium max-w-md">
-                                Dispatching excellence. Track and manage your global fulfillment operations in real-time.
-                            </p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-4">
-                            <div className="px-6 py-4 bg-slate-900/50 border border-slate-800 rounded-3xl backdrop-blur-md">
-                                <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Queue Depth</p>
-                                <p className="text-3xl font-black text-white">{orders.length}</p>
-                            </div>
-                            <div className="px-6 py-4 bg-indigo-500/10 border border-indigo-500/20 rounded-3xl backdrop-blur-md">
-                                <p className="text-indigo-400 text-xs font-bold uppercase tracking-widest mb-1">In Process</p>
-                                <p className="text-3xl font-black text-indigo-300">
-                                    {orders.filter(o => !["Delivered", "Cancelled"].includes(o.status)).length}
-                                </p>
-                            </div>
-                        </div>
+                {/* Header */}
+                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-white mb-2">Order Management</h1>
+                        <p className="text-slate-400 text-sm">Track and process customer orders.</p>
                     </div>
+                     <div className="flex gap-4">
+                         <div className="bg-[#0f111a] border border-slate-800 rounded-lg px-4 py-2 flex items-center gap-3">
+                            <span className="text-slate-400 text-xs uppercase font-medium">Pending Orders</span>
+                            <span className="text-white font-bold">{orders.filter(o => !["Delivered", "Cancelled"].includes(o.status)).length}</span>
+                         </div>
+                     </div>
+                </div>
 
-                    {/* Filter & Search Bar */}
-                    <div className="relative z-10 mt-12 flex flex-col lg:flex-row gap-4">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                            <input
-                                type="text"
-                                placeholder="Search by Order ID or Customer Name..."
-                                className="w-full bg-slate-900/80 border border-slate-800 text-white rounded-[2rem] pl-14 pr-6 py-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all font-medium placeholder-slate-600"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
-                        <div className="flex gap-4">
-                            <div className="relative group">
-                                <Filter className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400" />
-                                <select
-                                    className="appearance-none bg-slate-900/80 border border-slate-800 text-white rounded-[2rem] pl-14 pr-12 py-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all font-bold tracking-tight cursor-pointer min-w-[200px]"
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                >
-                                    <option value="">Status Filter</option>
-                                    {uniqueStatuses.map(s => <option key={s} value={s}>{s}</option>)}
-                                </select>
-                                <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 pointer-events-none group-hover:text-white transition-colors" />
-                            </div>
-                            <button
-                                onClick={fetchAllOrders}
-                                className="p-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[2rem] transition-all shadow-xl shadow-indigo-600/20 active:scale-95"
-                            >
-                                <ArrowUpDown className="w-6 h-6" />
-                            </button>
-                        </div>
+                {/* Filters */}
+                <div className="bg-[#0f111a] border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+                     <div className="relative flex-1 w-full md:max-w-md">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <input
+                            type="text"
+                            placeholder="Search by ID or customer name..."
+                            className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-slate-500"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
                     </div>
-                </header>
+                     <div className="relative w-full md:w-auto">
+                        <select
+                            className="w-full appearance-none bg-slate-900 border border-slate-700 text-white text-sm rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:border-indigo-500 cursor-pointer min-w-[160px]"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="">All Statuses</option>
+                            {uniqueStatuses.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none" />
+                    </div>
+                </div>
 
                 {error ? (
-                    <div className="bg-rose-500/10 border border-rose-500/20 rounded-[2rem] p-12 text-center">
-                        <AlertCircle className="w-16 h-16 text-rose-500 mx-auto mb-6" />
-                        <h2 className="text-2xl font-bold text-white mb-2">System Interruption</h2>
-                        <p className="text-slate-400 mb-8">{error}</p>
-                        <button onClick={fetchAllOrders} className="px-8 py-3 bg-rose-500 text-white rounded-2xl font-bold hover:bg-rose-600 transition-all">
-                            Refresh Connection
-                        </button>
+                    <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-8 text-center">
+                         <h2 className="text-lg font-bold text-white mb-1">Unable to Load Orders</h2>
+                         <p className="text-slate-400 text-sm mb-4">{error}</p>
+                         <button onClick={fetchAllOrders} className="text-rose-400 hover:text-rose-300 text-sm font-medium underline">Retry Connection</button>
                     </div>
                 ) : filteredOrders.length === 0 ? (
-                    <div className="bg-[#0a0a0f] border border-slate-800/60 rounded-[2.5rem] p-20 text-center">
-                        <div className="w-24 h-24 bg-slate-900 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-slate-800 shadow-inner">
-                            <Package className="w-12 h-12 text-slate-700" />
-                        </div>
-                        <h3 className="text-3xl font-black text-white mb-4">No Entries Detected</h3>
-                        <p className="text-slate-400 max-w-sm mx-auto text-lg">
-                            The requested parameters returned zero results. Broaden your search or check alternative statuses.
-                        </p>
+                    <div className="bg-[#0f111a] border border-slate-800 rounded-xl p-12 text-center flex flex-col items-center">
+                         <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mb-4 border border-slate-800">
+                             <ShoppingBag className="w-8 h-8 text-slate-600" />
+                         </div>
+                         <h3 className="text-lg font-medium text-white mb-2">No orders found</h3>
+                         <p className="text-slate-500 text-sm">No orders match your current search criteria.</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-6">
+                    <div className="space-y-4">
                         {filteredOrders.map((order) => {
                             const StatusIcon = getStatusIcon(order.status);
                             const isExpanded = expandedOrder === order._id;
@@ -243,157 +206,112 @@ const Order = () => {
                             return (
                                 <div
                                     key={order._id}
-                                    className={`group relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0f] border border-slate-800/60 transition-all duration-500 ${isExpanded ? "ring-2 ring-indigo-500/40 shadow-2xl py-2" : "hover:border-slate-600 hover:bg-slate-900/40"}`}
+                                    className={`bg-[#0f111a] border border-slate-800 rounded-xl overflow-hidden transition-all duration-300 ${isExpanded ? "ring-1 ring-slate-700" : "hover:border-slate-700"}`}
                                 >
-                                    {/* Summary Bar */}
+                                    {/* Order Summary Row */}
                                     <div 
-                                        className="p-8 cursor-pointer flex flex-col lg:flex-row lg:items-center gap-8"
+                                        className="p-5 cursor-pointer flex flex-col md:flex-row md:items-center gap-6"
                                         onClick={() => toggleOrderExpansion(order._id)}
                                     >
-                                        <div className="flex items-center gap-6 min-w-0 flex-1">
-                                            <div className={`p-4 rounded-3xl border ${getStatusStyles(order.status)} shrink-0`}>
-                                                <StatusIcon className="w-7 h-7" />
+                                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                                            <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center shrink-0">
+                                                <Package className="w-5 h-5 text-slate-500" />
                                             </div>
                                             <div className="min-w-0">
-                                                <div className="flex items-center gap-3 mb-1">
-                                                    <span className="text-slate-500 font-mono text-xs uppercase tracking-tighter">ID: {order._id.slice(-12)}</span>
-                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusStyles(order.status)}`}>
-                                                        {order.status}
-                                                    </span>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h3 className="text-white font-semibold truncate">
+                                                        {order.address.firstName} {order.address.lastName}
+                                                    </h3>
+                                                    <span className="text-slate-500 text-xs">#{order._id.slice(-6).toUpperCase()}</span>
                                                 </div>
-                                                <h3 className="text-2xl font-black text-white truncate leading-none">
-                                                    {order.address.firstName} {order.address.lastName}
-                                                </h3>
-                                                <p className="text-slate-400 text-sm mt-1 font-medium italic">
-                                                    {order.address.city}, {order.address.country}
-                                                </p>
+                                                <div className="flex items-center gap-2 text-xs text-slate-400">
+                                                    <span>{new Date(order.date).toLocaleDateString()}</span>
+                                                    <span>•</span>
+                                                    <span>{order.items.length} Items</span>
+                                                    <span>•</span>
+                                                    <span>₹{order.amount.toLocaleString()}</span>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="flex flex-wrap items-center gap-8 shrink-0">
-                                            <div className="text-left lg:text-right">
-                                                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">Transaction</p>
-                                                <p className="text-2xl font-black text-white">₹{order.amount.toLocaleString()}</p>
+                                        <div className="flex items-center justify-between md:justify-end gap-4 md:gap-8">
+                                            <div className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5 ${getStatusStyles(order.status)}`}>
+                                                <StatusIcon className="w-3.5 h-3.5" />
+                                                {order.status}
                                             </div>
-                                            <div className="text-left lg:text-right">
-                                                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">Inventory</p>
-                                                <p className="text-2xl font-black text-indigo-400">{order.items.length} Units</p>
-                                            </div>
-                                            <div className="h-10 w-px bg-slate-800 hidden lg:block"></div>
-                                            <button 
-                                                className={`p-4 rounded-2xl transition-all duration-300 ${isExpanded ? "bg-indigo-600 text-white rotate-180" : "bg-slate-900 text-slate-400 group-hover:text-white"}`}
-                                            >
-                                                <ChevronDown className="w-6 h-6" />
-                                            </button>
+                                            
+                                            <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                                         </div>
                                     </div>
 
-                                    {/* Expanded Panel */}
+                                    {/* Expanded Details */}
                                     {isExpanded && (
-                                        <div className="px-8 pb-10 border-t border-slate-800/60 mt-4 animate-in fade-in slide-in-from-top-4 duration-500">
-                                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-10">
+                                        <div className="border-t border-slate-800 p-6 bg-slate-900/30">
+                                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                                 
-                                                {/* Dispatch Details */}
-                                                <div className="space-y-8">
+                                                {/* Left Column: Items & Payment */}
+                                                <div className="lg:col-span-2 space-y-6">
                                                     <div>
-                                                        <h4 className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                                                            <MapPin className="w-4 h-4" /> Logistics Node
-                                                        </h4>
-                                                        <div className="bg-slate-900/60 border border-slate-800/60 rounded-3xl p-6 space-y-4">
-                                                            <div className="space-y-1">
-                                                                <p className="text-white font-bold text-lg">{order.address.firstName} {order.address.lastName}</p>
-                                                                <p className="text-slate-400 font-medium leading-relaxed">
-                                                                    {order.address.street}<br />
-                                                                    {order.address.city}, {order.address.state} {order.address.zipcode}<br />
-                                                                    {order.address.country}
-                                                                </p>
-                                                            </div>
-                                                            <div className="flex items-center gap-3 pt-4 border-t border-slate-800">
-                                                                <Phone className="w-4 h-4 text-indigo-500" />
-                                                                <p className="text-white font-mono text-sm">{order.address.phone}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div>
-                                                        <h4 className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                                                            <Truck className="w-4 h-4" /> Operational Command
-                                                        </h4>
-                                                        <div className="relative group">
-                                                            <select
-                                                                onChange={(e) => statusHandler(e, order._id)}
-                                                                value={order.status}
-                                                                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl p-5 appearance-none focus:outline-none transition-colors shadow-lg shadow-indigo-600/10"
-                                                            >
-                                                                {uniqueStatuses.map(s => <option key={s} value={s}>{s}</option>)}
-                                                            </select>
-                                                            <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 text-white pointer-events-none" />
-                                                        </div>
-                                                        <p className="text-slate-500 text-[10px] mt-4 font-bold uppercase tracking-widest text-center">Update Fulfillment Status</p>
-                                                    </div>
-                                                </div>
-
-                                                {/* Manifest */}
-                                                <div className="lg:col-span-2 space-y-8">
-                                                    <div>
-                                                        <h4 className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                                                            <Package className="w-4 h-4" /> Cargo Manifest
-                                                        </h4>
-                                                        <div className="grid gap-4">
+                                                        <h4 className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">Order Items</h4>
+                                                        <div className="space-y-3">
                                                             {order.items.map((item, idx) => (
-                                                                <div key={idx} className="flex items-center gap-6 p-4 bg-slate-900/40 border border-slate-800/60 rounded-3xl hover:bg-slate-800/40 transition-colors">
-                                                                    <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center border border-slate-700/50">
-                                                                        <Package className="w-8 h-8 text-indigo-500/40" />
-                                                                    </div>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <h5 className="text-white font-bold text-lg truncate uppercase tracking-tight">{item.name}</h5>
-                                                                        <div className="flex items-center gap-4 mt-1">
-                                                                            <span className="text-slate-500 text-xs font-bold uppercase tracking-widest bg-slate-800 px-3 py-1 rounded-lg">Size: {item.size}</span>
-                                                                            <span className="text-indigo-400 text-xs font-bold uppercase tracking-widest bg-indigo-500/10 px-3 py-1 rounded-lg">Qty: {item.quantity}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="text-right">
-                                                                        <p className="text-white font-black text-xl">₹{(item.price || 0).toLocaleString()}</p>
-                                                                    </div>
+                                                                <div key={idx} className="flex items-center gap-4 p-3 bg-slate-900 border border-slate-800 rounded-lg">
+                                                                     <div className="w-12 h-12 bg-slate-800 rounded-md flex items-center justify-center shrink-0">
+                                                                        <ShoppingBag className="w-5 h-5 text-slate-600" />
+                                                                     </div>
+                                                                     <div className="flex-1 min-w-0">
+                                                                         <h5 className="text-slate-200 text-sm font-medium truncate">{item.name}</h5>
+                                                                         <p className="text-slate-500 text-xs">Size: {item.size} • Qty: {item.quantity}</p>
+                                                                     </div>
+                                                                     <div className="text-right">
+                                                                         <p className="text-slate-300 text-sm font-medium">₹{(item.price || 0).toLocaleString()}</p>
+                                                                     </div>
                                                                 </div>
                                                             ))}
                                                         </div>
                                                     </div>
 
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                        <div className="bg-[#0f0f1a] border border-slate-800/80 rounded-3xl p-8">
-                                                            <h5 className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-6 border-b border-slate-800 pb-4">Verification</h5>
-                                                            <div className="space-y-4">
-                                                                <div className="flex justify-between items-center">
-                                                                    <p className="text-slate-400 font-bold text-xs uppercase">Method</p>
-                                                                    <p className="text-white font-black font-mono tracking-tighter">{order.paymentMethod}</p>
-                                                                </div>
-                                                                <div className="flex justify-between items-center">
-                                                                    <p className="text-slate-400 font-bold text-xs uppercase">Status</p>
-                                                                    <div className={`flex items-center gap-2 font-black ${order.payment ? "text-emerald-500" : "text-amber-500"}`}>
-                                                                        {order.payment && <Check className="w-4 h-4" />}
-                                                                        {order.payment ? "CLEAR" : "HOLD"}
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex justify-between items-center">
-                                                                    <p className="text-slate-400 font-bold text-xs uppercase">Timestamp</p>
-                                                                    <p className="text-white font-mono text-xs">{new Date(order.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
-                                                                </div>
+                                                    <div className="flex items-center gap-2 text-sm text-slate-400 bg-slate-900/50 p-3 rounded-lg border border-slate-800/50 w-fit">
+                                                        <CreditCard className="w-4 h-4" />
+                                                        <span>Payment Method: <span className="text-slate-200 font-medium">{order.paymentMethod}</span></span>
+                                                        <span className="mx-2">•</span>
+                                                        <span className={order.payment ? "text-emerald-400 font-medium" : "text-amber-400 font-medium"}>
+                                                            {order.payment ? "PAID" : "PENDING"}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Right Column: Shipping & Status Update */}
+                                                <div className="space-y-6">
+                                                     <div>
+                                                        <h4 className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">Shipping Details</h4>
+                                                        <div className="text-sm text-slate-300 space-y-1">
+                                                            <p className="font-medium text-white">{order.address.firstName} {order.address.lastName}</p>
+                                                            <p>{order.address.street}</p>
+                                                            <p>{order.address.city}, {order.address.state} {order.address.zipcode}</p>
+                                                            <p>{order.address.country}</p>
+                                                            <div className="flex items-center gap-2 mt-2 text-slate-400">
+                                                                <Phone className="w-3.5 h-3.5" />
+                                                                {order.address.phone}
                                                             </div>
                                                         </div>
-                                                        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-8 shadow-xl shadow-indigo-600/10 relative overflow-hidden">
-                                                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-16 -mt-16 rounded-full"></div>
-                                                            <h5 className="text-indigo-200 text-[10px] font-black uppercase tracking-widest mb-6 border-b border-white/10 pb-4">Final Value</h5>
-                                                            <div className="flex items-baseline gap-2">
-                                                                <span className="text-indigo-200 text-lg font-bold">₹</span>
-                                                                <span className="text-5xl font-black text-white leading-none tracking-tighter italic">
-                                                                    {order.amount.toLocaleString()}
-                                                                </span>
-                                                            </div>
-                                                            <p className="text-indigo-200/60 text-xs font-bold mt-4 uppercase tracking-[0.2em]">Fulfillment Value</p>
+                                                    </div>
+
+                                                    <div>
+                                                        <h4 className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">Update Status</h4>
+                                                        <div className="relative">
+                                                            <select
+                                                                onChange={(e) => statusHandler(e, order._id)}
+                                                                value={order.status}
+                                                                className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg pl-4 pr-10 py-2.5 focus:outline-none focus:border-indigo-500 transition-colors appearance-none cursor-pointer"
+                                                            >
+                                                                {uniqueStatuses.map(s => <option key={s} value={s}>{s}</option>)}
+                                                            </select>
+                                                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
                                                         </div>
                                                     </div>
                                                 </div>
+
                                             </div>
                                         </div>
                                     )}

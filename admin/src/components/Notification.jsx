@@ -3,21 +3,17 @@ import axios from "axios";
 import { backendUrl } from "../constants";
 import {
     Bell,
-    X,
     ShoppingCart,
     Package,
     User,
-    Clock,
-    Sparkles,
-    CheckCircle2,
     RefreshCcw,
-    Trash2
+    Trash2,
+    AlertCircle
 } from "lucide-react";
 
 /**
- * Executive Notification Hub
- * Orchestrates a unified stream of real-time logistical telemetry and system alerts.
- * Synchronizes with the backend Notification service while providing high-fidelity fallback insights.
+ * Notification Component
+ * Displays system alerts and activity updates.
  */
 const Notification = () => {
     const [notifications, setNotifications] = useState([]);
@@ -37,9 +33,9 @@ const Notification = () => {
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
         if (minutes < 1) return "Just now";
-        if (minutes < 60) return `${minutes} MIN AGO`;
-        if (hours < 24) return `${hours} HOURS AGO`;
-        return `${days} DAYS AGO`;
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        return `${days}d ago`;
     }, []);
 
     const fetchNotifications = useCallback(async () => {
@@ -57,14 +53,14 @@ const Notification = () => {
                 if (response.data?.success) {
                     realNotifications = response.data.notifications.map(n => ({
                         ...n,
-                        isReal: true // Flag to distinguish from synthesized activity
+                        isReal: true
                     }));
                 }
             } catch (authErr) {
-                console.warn("Primary notification sync interrupted", authErr.message);
+                console.warn("Notification sync failed", authErr.message);
             }
 
-            // 2. Auxiliary Insights: Sync recent activity from logistical streams
+            // 2. Auxiliary Insights: Sync recent activity
             const processedActivity = [];
             try {
                 const [ordersRes, usersRes, stockRes] = await Promise.all([
@@ -77,8 +73,8 @@ const Notification = () => {
                     ordersRes.data.orders.slice(0, 3).forEach(order => {
                         processedActivity.push({
                             id: `order-${order._id}`,
-                            title: 'Order Dispatch',
-                            message: `Order #${order._id.slice(-6)} received from ${order.address?.firstName || 'Principal'}`,
+                            title: 'New Order',
+                            message: `Order #${order._id.slice(-6)} received`,
                             time: order.date,
                             read: false,
                             type: "order",
@@ -91,8 +87,8 @@ const Notification = () => {
                     usersRes.data.users.slice(0, 2).forEach(user => {
                         processedActivity.push({
                             id: `user-${user._id}`,
-                            title: 'Principal Enrolled',
-                            message: `Identity '${user.name || user.email}' successfully synchronized`,
+                            title: 'New User',
+                            message: `${user.name || user.email} joined`,
                             time: user.createdAt,
                             read: false,
                             type: "user",
@@ -105,8 +101,8 @@ const Notification = () => {
                     stockRes.data.products.slice(0, 2).forEach(p => {
                         processedActivity.push({
                             id: `stock-${p._id}`,
-                            title: 'Stock Depletion',
-                            message: `Asset '${p.name}' requires replenishment (${p.stock || 0} unit(s) remaining)`,
+                            title: 'Low Stock Alert',
+                            message: `${p.name}: ${p.stock || 0} units left`,
                             time: new Date(),
                             read: false,
                             type: "stock",
@@ -115,10 +111,10 @@ const Notification = () => {
                     });
                 }
             } catch (activityErr) {
-                console.warn("Activity stream sync failure", activityErr.message);
+                console.warn("Activity sync failed", activityErr.message);
             }
 
-            // Merge and prioritize: System notifications first, then activity
+            // Merge and prioritize
             const unified = [...realNotifications, ...processedActivity];
             unified.sort((a, b) => new Date(b.createdAt || b.time) - new Date(a.createdAt || a.time));
             
@@ -126,7 +122,7 @@ const Notification = () => {
             setUnreadCount(unified.filter(n => !n.read).length);
 
         } catch (error) {
-            console.error('Critical telemetry failure in Notification Hub', error);
+            console.error('Notification error', error);
         } finally {
             setIsLoading(false);
         }
@@ -176,7 +172,7 @@ const Notification = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             } catch (err) {
-                console.warn("Persistence failure for read status", err.message);
+                console.warn("Read status update failed", err.message);
             }
         }
     };
@@ -191,7 +187,7 @@ const Notification = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
         } catch (err) {
-            console.warn("Bulk persistence failure", err.message);
+            console.warn("Mark all read failed", err.message);
         }
     };
 
@@ -210,7 +206,7 @@ const Notification = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             } catch (err) {
-                console.warn("Persistence failure for deletion", err.message);
+                console.warn("Delete failed", err.message);
             }
         }
     };
@@ -220,108 +216,95 @@ const Notification = () => {
             case 'order': return <ShoppingCart className="h-4 w-4 text-indigo-400" />;
             case 'stock': return <Package className="h-4 w-4 text-amber-500" />;
             case 'user': return <User className="h-4 w-4 text-emerald-400" />;
-            default: return <Sparkles className="h-4 w-4 text-purple-400" />;
+            default: return <AlertCircle className="h-4 w-4 text-slate-400" />;
         }
     };
 
     return (
-        <div className="fixed top-8 right-8 z-[150]" ref={notificationRef}>
+        <div className="fixed top-6 right-6 z-[100]" ref={notificationRef}>
             <div className="relative group">
                 <button
                     onClick={() => setShowNotifications(!showNotifications)}
-                    className={`relative p-4 rounded-2xl bg-[#0a0a0f]/80 backdrop-blur-xl border border-slate-800 transition-all duration-300 shadow-2xl hover:scale-110 active:scale-95 ${showNotifications ? "border-indigo-500 shadow-[0_0_30px_rgba(79,70,229,0.2)]" : "hover:border-slate-700"}`}
-                    aria-label="Intelligence Hub"
+                    className={`relative p-3 rounded-xl bg-[#0f111a] border transition-all duration-200 shadow-lg hover:bg-slate-800 ${showNotifications ? "border-indigo-500 text-white" : "border-slate-800 text-slate-400"}`}
+                    aria-label="Notifications"
                 >
-                    <Bell className={`h-6 w-6 transition-colors ${unreadCount > 0 ? "text-indigo-400 animate-pulse" : "text-slate-500 group-hover:text-slate-300"}`} />
+                    <Bell className="h-5 w-5" />
                     {unreadCount > 0 && (
-                        <div className="absolute -top-1.5 -right-1.5 h-6 w-6 bg-indigo-600 rounded-full border-2 border-[#0a0a0f] flex items-center justify-center shadow-lg">
-                            <span className="text-[10px] font-black text-white">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                        <div className="absolute -top-1 -right-1 h-5 w-5 bg-indigo-600 rounded-full border-2 border-[#0f111a] flex items-center justify-center">
+                            <span className="text-[10px] font-bold text-white">{unreadCount > 9 ? '9+' : unreadCount}</span>
                         </div>
                     )}
                 </button>
 
-                {/* Dropdown Environment */}
+                {/* Dropdown */}
                 {showNotifications && (
-                    <div className="absolute top-full right-0 mt-6 w-[22rem] sm:w-[26rem] bg-[#0a0a0f] border border-slate-800 rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="absolute top-full right-0 mt-4 w-80 sm:w-96 bg-[#0f111a] border border-slate-800 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                         
                         {/* Header */}
-                        <div className="p-6 border-b border-slate-800/80 bg-slate-900/40 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Sparkles className="h-5 w-5 text-indigo-400" />
-                                <h3 className="text-white font-black text-xs uppercase tracking-[.2em] italic">Intelligence Feed</h3>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <button onClick={fetchNotifications} disabled={isLoading} className="p-2 text-slate-500 hover:text-white transition-colors">
-                                    <RefreshCcw className={`h-4 w-4 ${isLoading ? "animate-spin text-indigo-500" : ""}`} />
+                        <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+                            <h3 className="text-white font-semibold text-sm">Notifications</h3>
+                            <div className="flex items-center gap-2">
+                                <button onClick={fetchNotifications} disabled={isLoading} className="p-1.5 text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800">
+                                    <RefreshCcw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
                                 </button>
                                 {unreadCount > 0 && (
-                                    <button onClick={markAllAsRead} className="px-3 py-1.5 bg-indigo-600/10 border border-indigo-500/30 text-indigo-400 text-[8px] font-black uppercase tracking-widest rounded-lg hover:bg-indigo-600 hover:text-white transition-all">
-                                        Wipe Logs
+                                    <button onClick={markAllAsRead} className="px-2 py-1 text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
+                                        Mark all read
                                     </button>
                                 )}
-                                <button onClick={() => setShowNotifications(false)} className="p-2 text-slate-500 hover:text-rose-400 transition-colors">
-                                    <X className="h-4 w-4" />
-                                </button>
                             </div>
                         </div>
 
                         {/* List Section */}
-                        <div className="max-h-[32rem] overflow-y-auto custom-scrollbar p-3 space-y-2">
+                        <div className="max-h-[24rem] overflow-y-auto custom-scrollbar">
                             {notifications.length === 0 ? (
-                                <div className="py-20 text-center space-y-4">
-                                    <div className="w-16 h-16 bg-slate-900/50 rounded-3xl border border-slate-800 flex items-center justify-center mx-auto opacity-20">
-                                        <Bell className="h-8 w-8 text-slate-400" />
+                                <div className="py-12 text-center">
+                                    <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <Bell className="h-6 w-6 text-slate-600" />
                                     </div>
-                                    <p className="text-slate-600 text-[10px] font-black uppercase tracking-[.2em]">Zero Telemetry Found</p>
+                                    <p className="text-slate-500 text-sm">No new notifications</p>
                                 </div>
                             ) : (
-                                notifications.map((n) => (
-                                    <div
-                                        key={n._id || n.id}
-                                        onClick={() => markAsRead(n)}
-                                        className={`group relative p-4 rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden ${
-                                            n.read 
-                                                ? 'bg-transparent border-transparent hover:bg-slate-900/30' 
-                                                : 'bg-indigo-600/5 border-indigo-500/20 hover:border-indigo-500/40'
-                                        }`}
-                                    >
-                                        {!n.read && <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />}
-                                        <div className="flex items-start gap-4">
-                                            <div className={`p-3 rounded-xl ${n.read ? "bg-slate-900/50" : "bg-indigo-500/10"} transition-colors`}>
-                                                {getIcon(n.type)}
-                                            </div>
-                                            <div className="flex-1 min-w-0 space-y-1">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <h4 className={`text-xs font-black uppercase tracking-tight italic ${n.read ? 'text-slate-400' : 'text-white'}`}>
-                                                        {n.title}
-                                                    </h4>
-                                                    <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-1 shrink-0">
-                                                        <Clock className="w-2.5 h-2.5" />
-                                                        {formatTime(n.createdAt || n.time)}
-                                                    </span>
+                                <div className="divide-y divide-slate-800">
+                                    {notifications.map((n) => (
+                                        <div
+                                            key={n._id || n.id}
+                                            onClick={() => markAsRead(n)}
+                                            className={`group relative p-4 transition-colors cursor-pointer hover:bg-slate-900/50 ${
+                                                n.read ? 'opacity-70' : 'bg-indigo-900/10'
+                                            }`}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <div className={`mt-0.5 p-2 rounded-lg ${n.read ? "bg-slate-800" : "bg-slate-800/80"} shrink-0`}>
+                                                    {getIcon(n.type)}
                                                 </div>
-                                                <p className={`text-[11px] leading-relaxed transition-colors ${n.read ? 'text-slate-600' : 'text-slate-400'}`}>
-                                                    {n.message}
-                                                </p>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between gap-2 mb-0.5">
+                                                        <p className={`text-sm font-medium truncate ${n.read ? 'text-slate-400' : 'text-slate-200'}`}>
+                                                            {n.title}
+                                                        </p>
+                                                        <span className="text-[10px] text-slate-500 whitespace-nowrap">
+                                                            {formatTime(n.createdAt || n.time)}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                                        {n.message}
+                                                    </p>
+                                                </div>
+                                                <button 
+                                                    onClick={(e) => deleteItem(n, e)}
+                                                    className="p-1.5 text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 rounded opacity-0 group-hover:opacity-100 transition-all self-center"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
                                             </div>
-                                            <button 
-                                                onClick={(e) => deleteItem(n, e)}
-                                                className="absolute right-2 bottom-2 p-2 text-slate-700 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all scale-75"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
+                                            {!n.read && (
+                                                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-500"></div>
+                                            )}
                                         </div>
-                                    </div>
-                                ))
+                                    ))}
+                                </div>
                             )}
-                        </div>
-
-                        {/* Footer Statistics */}
-                        <div className="p-4 bg-slate-950/80 border-t border-slate-800/60 flex items-center justify-center">
-                            <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[.3em] text-slate-600 italic">
-                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                                Enclave Security Verified
-                            </div>
                         </div>
                     </div>
                 )}

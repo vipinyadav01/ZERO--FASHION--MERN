@@ -4,12 +4,11 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import {
-  RefreshCcw,
-  LayoutGrid,
-  ShieldAlert,
+  RefreshCw,
   Users,
   ShieldCheck,
-  UserCheck
+  User,
+  AlertCircle
 } from "lucide-react";
 import { backendUrl } from "../constants";
 import UsersSearch from "../components/users/UsersSearch";
@@ -64,7 +63,7 @@ const UserProfile = ({ token }) => {
         setTotal(response.data.total || usersData.length);
         setTotalPages(response.data.totalPages || 1);
       } else {
-        throw new Error(response.data.message || "Protocol desynchronized");
+        throw new Error(response.data.message || "Failed to fetch users");
       }
     } catch (err) {
       if (!isMounted.current) return;
@@ -99,7 +98,7 @@ const UserProfile = ({ token }) => {
 
       if (response.data.success) {
         setUsers(users.map((u) => (u._id === selectedUser._id ? response.data.user : u)));
-        toast.success("Identity updated");
+        toast.success("User updated successfully");
         closeModal();
       }
     } catch (err) {
@@ -116,11 +115,11 @@ const UserProfile = ({ token }) => {
       });
       if (response.data.success) {
         await fetchUsers(page);
-        toast.success("Principal decommissioned");
+        toast.success("User deleted successfully");
         closeModal();
       }
     } catch (err) { 
-      toast.error(err.response?.data?.message || "Decommissioning failed"); 
+      toast.error(err.response?.data?.message || "Delete failed"); 
     }
     finally { setIsSubmitting(false); }
   };
@@ -138,93 +137,80 @@ const UserProfile = ({ token }) => {
   if (loading && users.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 lg:p-10">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen p-6 lg:p-10 font-sans text-slate-100">
+      <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Users Control Header */}
-        <header className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0f] border border-slate-800/60 p-8 sm:p-12 shadow-2xl">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/10 blur-[100px] -mr-48 -mt-48 rounded-full animate-pulse"></div>
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
-                  <LayoutGrid className="w-8 h-8 text-indigo-400" />
+              <h1 className="text-2xl font-bold text-white mb-2">User Management</h1>
+              <p className="text-slate-400 text-sm">View and manage user accounts and permissions.</p>
+            </div>
+            <div className="flex items-center gap-4">
+                <div className="bg-[#0f111a] border border-slate-800 rounded-lg px-4 py-2 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-slate-400" />
+                    <span className="text-white font-medium">{total}</span>
+                    <span className="text-slate-500 text-xs text-uppercase">Total Users</span>
                 </div>
-                <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase whitespace-nowrap">
-                  Personnel <span className="text-indigo-500">Registry</span>
-                </h1>
-              </div>
-              <p className="text-slate-400 text-lg font-medium max-w-md">
-                Manage your global user base. Audit identities, elevate privileges, and maintain ecosystem integrity.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="px-6 py-4 bg-slate-900/50 border border-slate-800 rounded-3xl backdrop-blur-md">
-                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Global Reach</p>
-                <p className="text-3xl font-black text-white">{total}</p>
-              </div>
-              <button 
-                onClick={() => fetchUsers(page)} 
-                className="p-5 bg-slate-900 border border-slate-800 text-slate-400 hover:text-white rounded-[2rem] transition-all active:scale-95"
-              >
-                <RefreshCcw className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-
-          {/* Controls Bar: Search & Role Filters */}
-          <div className="relative z-10 mt-12 flex flex-col lg:flex-row gap-6">
-            <div className="flex-1">
-              <UsersSearch value={searchTerm} onChange={handleSearchChange} onClear={() => setSearchTerm("")} />
-            </div>
-            <div className="bg-slate-900/80 border border-slate-800 p-1.5 rounded-[2rem] flex gap-1">
-              {[
-                { id: "all", label: "All Personnel", icon: Users },
-                { id: "admin", label: "Authority", icon: ShieldCheck },
-                { id: "user", label: "Customers", icon: UserCheck }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setRoleFilter(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                    roleFilter === tab.id 
-                    ? "bg-indigo-600 text-white shadow-lg" 
-                    : "text-slate-500 hover:text-slate-300"
-                  }`}
+                <button 
+                  onClick={() => fetchUsers(page)} 
+                  className="p-2.5 bg-[#0f111a] border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
                 >
-                  <tab.icon className="w-4 h-4" />
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  <RefreshCw className="w-4 h-4" />
                 </button>
-              ))}
             </div>
-          </div>
-        </header>
+        </div>
+
+        {/* Controls */}
+        <div className="bg-[#0f111a] border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="w-full md:max-w-md">
+                <UsersSearch value={searchTerm} onChange={handleSearchChange} onClear={() => setSearchTerm("")} />
+            </div>
+            <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+               {[
+                  { id: "all", label: "All Users", icon: Users },
+                  { id: "admin", label: "Admins", icon: ShieldCheck },
+                  { id: "user", label: "Customers", icon: User }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setRoleFilter(tab.id)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                      roleFilter === tab.id 
+                      ? "bg-indigo-600 text-white" 
+                      : "text-slate-400 hover:text-white hover:bg-slate-800"
+                    }`}
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+            </div>
+        </div>
 
         {error ? (
-          <div className="bg-rose-500/10 border border-rose-500/20 rounded-[2.5rem] p-12 text-center">
-             <ShieldAlert className="w-16 h-16 text-rose-500 mx-auto mb-6" />
-             <h2 className="text-2xl font-bold text-white mb-2">Access Interrupted</h2>
-             <p className="text-slate-400 mb-8">{error}</p>
+          <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-8 text-center">
+             <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-4" />
+             <h2 className="text-lg font-bold text-white mb-1">Error Loading Users</h2>
+             <p className="text-slate-400 text-sm">{error}</p>
           </div>
         ) : users.length === 0 ? (
-          <div className="bg-[#0a0a0f] border border-slate-800/60 rounded-[2.5rem] p-20 text-center">
-             <div className="w-20 h-20 bg-slate-950 border border-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-8">
-                <Users className="w-10 h-10 text-slate-800" />
+          <div className="bg-[#0f111a] border border-slate-800 rounded-xl p-12 text-center flex flex-col items-center">
+             <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mb-4 border border-slate-800">
+                <Users className="w-8 h-8 text-slate-600" />
              </div>
-             <h3 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter">No Identities Found</h3>
-             <p className="text-slate-400 max-w-sm mx-auto">
-               The current segment returns zero results. Adjust filters or synchronize with the master database.
-             </p>
+             <h3 className="text-lg font-medium text-white mb-2">No users found</h3>
+             <p className="text-slate-500 text-sm">Adjust your search or filters to find what you&apos;re looking for.</p>
           </div>
         ) : (
-          <div className="space-y-8">
-            <div className="bg-[#0a0a0f] border border-slate-800/60 rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <div className="space-y-6">
+            <div className="bg-[#0f111a] border border-slate-800 rounded-xl overflow-hidden">
               <UsersTable
                 users={users}
                 formatDate={(d) => new Date(d).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -242,7 +228,7 @@ const UserProfile = ({ token }) => {
               />
             </div>
 
-            <div className="flex justify-center">
+            <div className="flex justify-center border-t border-slate-800/50 pt-6">
                <UsersPagination
                 page={page}
                 totalPages={totalPages}

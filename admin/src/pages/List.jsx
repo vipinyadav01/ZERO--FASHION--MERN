@@ -1,23 +1,19 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { backendUrl, currency } from "../constants";
+import { backendUrl } from "../constants";
+import PropTypes from 'prop-types';
 import { 
   Trash2, 
   Search, 
   Plus, 
   Package,
-  Edit3,
+  Edit2,
   Filter,
-  Grid3X3,
+  Grid,
   List as ListIcon,
-  X,
   ChevronLeft,
-  ChevronRight,
-  MoreVertical,
-  Layers,
-  Sparkles,
-  ArrowUpDown
+  ChevronRight
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -27,7 +23,7 @@ const List = ({ token }) => {
   const [deleting, setDeleting] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState('grid'); 
+  const [viewMode, setViewMode] = useState('list'); // Default to list view for better admin data density
   const [selectedCategory, setSelectedCategory] = useState('');
   const itemsPerPage = viewMode === 'grid' ? 12 : 10;
   const navigate = useNavigate();
@@ -39,18 +35,18 @@ const List = ({ token }) => {
       if (response.data.success) {
         setList(response.data.products);
       } else {
-        toast.error(response.data.message || "Failed to fetch inventory");
+        toast.error(response.data.message || "Failed to fetch products");
       }
     } catch (error) {
-      console.error("Error fetching inventory:", error);
-      toast.error("Network synchronization failed");
+      console.error("Error fetching products:", error);
+      toast.error("Failed to load products");
     } finally {
       setLoading(false);
     }
   };
 
   const handleRemoveProduct = async (id) => {
-    if (!window.confirm("CONFIRMATION: Deleting this product is permanent.")) return;
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
 
     try {
       setDeleting(id);
@@ -61,14 +57,14 @@ const List = ({ token }) => {
       );
 
       if (response.data.success) {
-        toast.success("Asset decommissioned successfully");
+        toast.success("Product deleted successfully");
         await fetchList();
       } else {
         toast.error(response.data.message);
       }
     } catch (error) {
-      console.error("Error decommissioning asset:", error);
-      toast.error("Operation failed");
+      console.error("Error deleting product:", error);
+      toast.error("Failed to delete product");
     } finally {
       setDeleting(null);
     }
@@ -95,209 +91,218 @@ const List = ({ token }) => {
   if (loading && list.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 lg:p-10">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen p-6 lg:p-10 font-sans text-slate-100">
+      <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Inventory Header */}
-        <header className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0f] border border-slate-800/60 p-8 sm:p-12 shadow-2xl">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/10 blur-[100px] -mr-48 -mt-48 rounded-full animate-pulse"></div>
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
-                  <Layers className="w-8 h-8 text-indigo-400" />
-                </div>
-                <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase">
-                  Inventory <span className="text-indigo-500">Vault</span>
-                </h1>
-              </div>
-              <p className="text-slate-400 text-lg font-medium max-w-md">
-                Manage your global asset repository. High-frequency inventory tracking and catalog control.
-              </p>
+              <h1 className="text-2xl font-bold text-white mb-2">Product Management</h1>
+              <p className="text-slate-400 text-sm">Manage your product catalog, inventory, and pricing.</p>
             </div>
             <button
               onClick={() => navigate('/add')}
-              className="px-10 py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase rounded-[2rem] transition-all shadow-xl shadow-indigo-600/20 flex items-center gap-3 group active:scale-95"
+              className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-indigo-500/20"
             >
-              <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
-              Ingest Asset
+              <Plus className="w-4 h-4" />
+              Add Product
             </button>
-          </div>
+        </div>
 
-          {/* Search & Utility Bar */}
-          <div className="relative z-10 mt-12 flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+        {/* Filters & Controls */}
+        <div className="bg-[#0f111a] border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+           <div className="relative flex-1 w-full md:max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="text"
-                placeholder="Search collection..."
-                className="w-full bg-slate-900/80 border border-slate-800 text-white rounded-[2rem] pl-14 pr-6 py-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all font-medium placeholder-slate-600"
+                placeholder="Search products..."
+                className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-slate-500"
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
               />
-            </div>
-            <div className="flex gap-4">
-              <select
-                className="appearance-none bg-slate-900/80 border border-slate-800 text-white rounded-[2rem] px-8 py-5 focus:outline-none transition-all font-bold tracking-tight cursor-pointer min-w-[180px]"
-                value={selectedCategory}
-                onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
-              >
-                <option value="">All Segments</option>
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <div className="bg-slate-900/80 border border-slate-800 rounded-[2rem] flex p-1.5">
-                {[
-                  { id: 'grid', icon: Grid3X3 },
-                  { id: 'list', icon: ListIcon }
-                ].map(m => (
-                  <button
-                    key={m.id}
-                    onClick={() => setViewMode(m.id)}
-                    className={`p-3.5 rounded-[1.5rem] transition-all ${viewMode === m.id ? "bg-indigo-600 text-white shadow-lg" : "text-slate-500 hover:text-slate-300"}`}
+           </div>
+           
+           <div className="flex gap-3 w-full md:w-auto">
+              <div className="relative">
+                 <select
+                    className="appearance-none bg-slate-900 border border-slate-700 text-white text-sm rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:border-indigo-500 cursor-pointer min-w-[140px]"
+                    value={selectedCategory}
+                    onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
                   >
-                    <m.icon className="w-5 h-5" />
-                  </button>
-                ))}
+                    <option value="">All Categories</option>
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none" />
               </div>
-            </div>
-          </div>
-        </header>
 
+              <div className="bg-slate-900 border border-slate-700 rounded-lg flex p-1">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-1.5 rounded-md transition-all ${viewMode === 'grid' ? "bg-slate-700 text-white" : "text-slate-500 hover:text-slate-300"}`}
+                >
+                  <Grid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? "bg-slate-700 text-white" : "text-slate-500 hover:text-slate-300"}`}
+                >
+                  <ListIcon className="w-4 h-4" />
+                </button>
+              </div>
+           </div>
+        </div>
+
+        {/* Content */}
         {list.length === 0 ? (
-          <div className="bg-[#0a0a0f] border border-slate-800/60 rounded-[2.5rem] p-20 text-center">
-             <div className="w-24 h-24 bg-slate-900 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-slate-800">
-               <Package className="w-12 h-12 text-slate-700" />
+          <div className="bg-[#0f111a] border border-slate-800 rounded-xl p-12 text-center flex flex-col items-center">
+             <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mb-4 border border-slate-800">
+               <Package className="w-8 h-8 text-slate-600" />
              </div>
-             <h3 className="text-3xl font-black text-white mb-4">Repository Empty</h3>
-             <button onClick={() => navigate('/add')} className="text-indigo-400 font-bold hover:text-indigo-300 underline underline-offset-8 transition-colors">Initialize First Asset</button>
+             <h3 className="text-lg font-medium text-white mb-2">No products found</h3>
+             <p className="text-slate-500 text-sm mb-6">Get started by creating your first product.</p>
+             <button onClick={() => navigate('/add')} className="text-indigo-400 text-sm font-medium hover:text-indigo-300 hover:underline">Create Product</button>
           </div>
         ) : (
           <>
             {viewMode === 'grid' ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {currentItems.map((item) => (
-                  <div key={item._id} className="group relative bg-[#0a0a0f] border border-slate-800/60 rounded-[2rem] overflow-hidden hover:border-indigo-500/40 transition-all duration-500 shadow-xl">
-                    <div className="aspect-[3/4] relative overflow-hidden bg-slate-900">
+                  <div key={item._id} className="bg-[#0f111a] border border-slate-800 rounded-xl overflow-hidden hover:border-slate-600 transition-all group">
+                    <div className="aspect-square relative bg-slate-900 overflow-hidden">
                       <img 
                         src={item.image?.[0] || "/placeholder.svg"} 
                         alt={item.name} 
-                        className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-60"></div>
-                      <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                          <button 
                             onClick={(e) => { e.stopPropagation(); navigate(`/edit/${item._id}`); }}
-                            className="p-3 bg-white text-slate-950 rounded-2xl hover:bg-indigo-500 hover:text-white transition-all shadow-xl"
+                            className="p-2 bg-white text-slate-900 rounded-lg hover:bg-indigo-500 hover:text-white shadow-lg transition-colors"
                          >
-                            <Edit3 className="w-4 h-4" />
+                            <Edit2 className="w-3.5 h-3.5" />
                          </button>
                          <button 
                             onClick={(e) => { e.stopPropagation(); handleRemoveProduct(item._id); }}
-                            className="p-3 bg-rose-600 text-white rounded-2xl hover:bg-rose-500 transition-all shadow-xl"
+                            className="p-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 shadow-lg transition-colors"
                          >
-                            {deleting === item._id ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Trash2 className="w-4 h-4" />}
+                            <Trash2 className="w-3.5 h-3.5" />
                          </button>
                       </div>
                     </div>
-                    <div className="p-5">
-                      <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">{item.category}</p>
-                      <h4 className="text-white font-bold text-sm truncate uppercase tracking-tight">{item.name}</h4>
-                      <p className="text-indigo-400 font-black text-lg mt-2">₹{item.price.toLocaleString()}</p>
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                          <span className="text-xs font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-400">{item.category}</span>
+                          <span className="font-semibold text-white">₹{item.price.toLocaleString()}</span>
+                      </div>
+                      <h4 className="text-slate-200 text-sm font-medium truncate mb-1">{item.name}</h4>
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                          <span>Stock: {item.stock || 0}</span>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="bg-[#0a0a0f] border border-slate-800/60 rounded-[2.5rem] overflow-hidden shadow-2xl">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-800/60 bg-slate-900/30">
-                      <th className="px-8 py-6 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Asset</th>
-                      <th className="px-8 py-6 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Segment</th>
-                      <th className="px-8 py-6 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Valuation</th>
-                      <th className="px-8 py-6 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] text-right">Operations</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/40">
-                    {currentItems.map((item) => (
-                      <tr key={item._id} className="hover:bg-slate-900/40 transition-colors group">
-                        <td className="px-8 py-5">
-                          <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-800 shrink-0">
-                              <img src={item.image?.[0]} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-white font-bold text-lg truncate uppercase tracking-tight">{item.name}</p>
-                              <p className="text-slate-500 text-xs font-mono lowercase">ID: {item._id.slice(-12)}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-8 py-5">
-                          <span className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 text-[10px] font-black uppercase tracking-widest">{item.category}</span>
-                        </td>
-                        <td className="px-8 py-5">
-                          <p className="text-white font-black text-xl italic">₹{item.price.toLocaleString()}</p>
-                        </td>
-                        <td className="px-8 py-5 text-right">
-                          <div className="flex justify-end gap-3">
-                            <button 
-                              onClick={() => navigate(`/edit/${item._id}`)}
-                              className="p-3 bg-slate-900 text-slate-400 rounded-2xl hover:bg-indigo-600 hover:text-white transition-all"
-                            >
-                              <Edit3 className="w-5 h-5" />
-                            </button>
-                            <button 
-                              onClick={() => handleRemoveProduct(item._id)}
-                              className="p-3 bg-slate-900 text-slate-400 rounded-2xl hover:bg-rose-500 hover:text-white transition-all"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="bg-[#0f111a] border border-slate-800 rounded-xl overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="bg-slate-900/50 border-b border-slate-800 text-slate-400">
+                          <th className="px-6 py-4 font-medium">Product</th>
+                          <th className="px-6 py-4 font-medium">Category</th>
+                          <th className="px-6 py-4 font-medium">Stock</th>
+                          <th className="px-6 py-4 font-medium">Price</th>
+                          <th className="px-6 py-4 font-medium text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800">
+                        {currentItems.map((item) => (
+                          <tr key={item._id} className="hover:bg-slate-900/40 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-slate-800 overflow-hidden shrink-0">
+                                  <img src={item.image?.[0]} alt="" className="w-full h-full object-cover" />
+                                </div>
+                                <div>
+                                  <p className="text-white font-medium truncate max-w-[200px]">{item.name}</p>
+                                  <p className="text-slate-500 text-xs">ID: {item._id.slice(-8)}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-800 text-slate-300">
+                                {item.category}
+                              </span>
+                            </td>
+                             <td className="px-6 py-4">
+                                <span className={`text-xs font-medium ${!item.stock || item.stock < 10 ? 'text-rose-400' : 'text-slate-300'}`}>
+                                    {item.stock || 0} units
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 text-white font-medium">
+                              ₹{item.price.toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex justify-end gap-2">
+                                <button 
+                                  onClick={() => navigate(`/edit/${item._id}`)}
+                                  className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-lg transition-all"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => handleRemoveProduct(item._id)}
+                                  className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-all"
+                                >
+                                  {deleting === item._id ? <div className="w-4 h-4 border-2 border-slate-500 border-t-transparent rounded-full animate-spin"></div> : <Trash2 className="w-4 h-4" />}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                </div>
               </div>
             )}
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between pt-6">
-                <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">
-                  Showing <span className="text-white">{indexOfFirstItem + 1}</span> to <span className="text-white">{Math.min(indexOfLastItem, filteredProducts.length)}</span> of <span className="text-white">{filteredProducts.length}</span> Assets
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-800/50">
+                <p className="text-slate-500 text-sm">
+                  Showing <span className="text-white font-medium">{indexOfFirstItem + 1}</span> to <span className="text-white font-medium">{Math.min(indexOfLastItem, filteredProducts.length)}</span> of <span className="text-white font-medium">{filteredProducts.length}</span> results
                 </p>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <button 
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(p => p - 1)}
-                    className="p-4 bg-slate-900 border border-slate-800 rounded-2xl text-slate-400 hover:text-white disabled:opacity-30 transition-all"
+                    className="p-2 border border-slate-700 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    <ChevronLeft className="w-6 h-6" />
+                    <ChevronLeft className="w-4 h-4" />
                   </button>
-                  <div className="flex bg-slate-900 border border-slate-800 rounded-2xl px-2">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(v => (
-                      <button 
-                        key={v}
-                        onClick={() => setCurrentPage(v)}
-                        className={`w-12 h-12 flex items-center justify-center font-black transition-all ${currentPage === v ? "text-indigo-400" : "text-slate-500 hover:text-slate-300"}`}
-                      >
-                        {v}
-                      </button>
-                    ))}
+                  <div className="flex gap-1">
+                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(v => (
+                       <button
+                         key={v}
+                         onClick={() => setCurrentPage(v)}
+                         className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${currentPage === v ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+                       >
+                         {v}
+                       </button>
+                     ))}
                   </div>
                   <button 
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(p => p + 1)}
-                    className="p-4 bg-slate-900 border border-slate-800 rounded-2xl text-slate-400 hover:text-white disabled:opacity-30 transition-all"
+                    className="p-2 border border-slate-700 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    <ChevronRight className="w-6 h-6" />
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -307,6 +312,10 @@ const List = ({ token }) => {
       </div>
     </div>
   );
+};
+
+List.propTypes = {
+  token: PropTypes.string.isRequired
 };
 
 export default List;
