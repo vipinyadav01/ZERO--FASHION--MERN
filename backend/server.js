@@ -3,6 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/mongodb.js";
 import connectCloudinary from "./config/cloudinary.js";
+import helmet from "helmet";
+import hpp from "hpp";
+import rateLimit from "express-rate-limit";
 
 // Load environment variables
 dotenv.config();
@@ -20,7 +23,46 @@ const app = express();
 app.set("trust proxy", 1); // Trust first proxy (needed for Vercel/Heroku rate limiting)
 const port = process.env.PORT || 4000;
 
-app.use(cors());
+// Security Middleware
+app.use(helmet()); // Secure HTTP headers
+app.use(hpp()); // Prevent HTTP Parameter Pollution
+
+// Global Rate Limiting (DDoS Protection)
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300, // Limit each IP to 300 requests per windowMs
+  message: { success: false, message: "Too many requests, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/api", globalLimiter); // Apply to all API routes
+
+// CORS Configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:4000",
+  process.env.FRONTEND_URL,
+  process.env.ADMIN_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, or Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      // For development, you might want to log this but still allow it if you are stuck
+      console.warn(`Blocked by CORS: ${origin}`);
+      // callback(new Error('Not allowed by CORS')); // Uncomment to enforce strict CORS
+      callback(null, true); // Temporarily allow all for smooth dev experience, CHANGE THIS IN PROD
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Custom middleware to sanitize data (fixes Express 5 req.query setter issue)
