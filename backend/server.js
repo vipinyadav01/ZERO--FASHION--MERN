@@ -17,6 +17,7 @@ import notificationRouter from "./routes/notificationRoute.js";
 import mongoSanitize from "express-mongo-sanitize";
 
 const app = express();
+app.set("trust proxy", 1); // Trust first proxy (needed for Vercel/Heroku rate limiting)
 const port = process.env.PORT || 4000;
 
 app.use(cors());

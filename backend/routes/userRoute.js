@@ -23,13 +23,33 @@ import rateLimit from "express-rate-limit";
 
 const userRouter = express.Router();
 
-// Rate limiter for login routes
+// Rate limiter for login routes (IP based)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // Limit each IP to 10 login requests per windowMs
   message: { success: false, message: "Too many login attempts, please try again after 15 minutes" },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Rate limiter for Authenticated Users (Tracks User ID from Token)
+const userActionLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour window
+  max: 50, // Limit each USER to 50 sensitive actions per hour
+  message: { success: false, message: "Too many requests from this account, please try again after an hour" },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req, res) => {
+    // IMPORTANT: This uses the user ID from the decoded token (req.user)
+    // Fallback to IP if req.user is missing (e.g. if middleware failed)
+    return req.user && req.user._id ? req.user._id.toString() : req.ip;
+  },
+  handler: (req, res, next, options) => {
+    // Log the event for monitoring
+    const userId = req.user && req.user._id ? req.user._id : "Unknown";
+    console.warn(`Rate limit exceeded for User: ${userId} (IP: ${req.ip})`);
+    res.status(options.statusCode).json(options.message);
+  }
 });
 
 userRouter.post("/register", loginLimiter, registerUser);
@@ -41,7 +61,6 @@ userRouter.get("/all", adminAuth, getAllUsers);
 userRouter.get("/list", adminAuth, getAllUsers);
 userRouter.get("/recent", adminAuth, getRecentUsers);
 
-// Add error handling for multer
 const handleUpload = (req, res, next) => {
   upload.single("profileImage")(req, res, (err) => {
     if (err instanceof multer.MulterError) {
@@ -65,11 +84,11 @@ const handleUpload = (req, res, next) => {
   });
 };
 
-userRouter.post("/update", authUser, handleUpload, updateProfile);
+userRouter.post("/update", authUser, userActionLimiter, handleUpload, updateProfile);
 userRouter.post("/admin-update", adminAuth, adminUpdateUser);
 userRouter.post("/admin-reset-password", adminAuth, loginLimiter, adminResetPassword);
 userRouter.post("/admin-create", adminAuth, loginLimiter, adminCreateUser);
 userRouter.delete("/delete/:id", adminAuth, deleteUser);
-userRouter.post("/cancel-order", authUser, cancelOrder);
+userRouter.post("/cancel-order", authUser, userActionLimiter, cancelOrder);
 
 export default userRouter;
