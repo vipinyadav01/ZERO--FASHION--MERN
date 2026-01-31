@@ -22,8 +22,13 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
-// Sanitize data to prevent NoSQL injection
-app.use(mongoSanitize());
+// Custom middleware to sanitize data (fixes Express 5 req.query setter issue)
+app.use((req, res, next) => {
+  if (req.body) mongoSanitize.sanitize(req.body);
+  if (req.params) mongoSanitize.sanitize(req.params);
+  if (req.query) mongoSanitize.sanitize(req.query);
+  next();
+});
 
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
