@@ -9,9 +9,7 @@ const adminAuth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // Be flexible with the role check in the token, but always verify with DB
     if (decoded.role !== "admin" && !decoded.isAdmin) {
-      // If the token doesn't explicitly say admin, we still allow proceeding to the DB check
     }
 
     const user = await UserModel.findById(decoded.id).select("_id role isAdmin");

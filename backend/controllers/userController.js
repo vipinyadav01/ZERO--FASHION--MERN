@@ -442,8 +442,11 @@ const getAllUsers = async (req, res) => {
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
     const skip = (page - 1) * limit;
-    const search = (req.query.search || "").trim();
-
+    
+    // Explicitly validate types to prevent NoSQL injection via object payloads
+    const searchArg = req.query.search;
+    const search = (typeof searchArg === 'string' ? searchArg : "").trim();
+    
     const query = {};
     if (search) {
       query.$or = [
@@ -452,8 +455,10 @@ const getAllUsers = async (req, res) => {
       ];
     }
     
-    if (req.query.role && req.query.role !== "all") {
-      query.role = req.query.role;
+    const roleArg = req.query.role;
+    // Only apply role filter if it's a valid string and not 'all'
+    if (roleArg && typeof roleArg === 'string' && roleArg !== "all") {
+      query.role = roleArg;
     }
 
     const [users, total] = await Promise.all([

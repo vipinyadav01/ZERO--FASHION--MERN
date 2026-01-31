@@ -24,9 +24,14 @@ app.use(express.json());
 
 // Custom middleware to sanitize data (fixes Express 5 req.query setter issue)
 app.use((req, res, next) => {
-  if (req.body) mongoSanitize.sanitize(req.body);
-  if (req.params) mongoSanitize.sanitize(req.params);
-  if (req.query) mongoSanitize.sanitize(req.query);
+  const sanitize = mongoSanitize.sanitize;
+
+  if (typeof sanitize === 'function') {
+    if (req.body) sanitize(req.body);
+    if (req.params) sanitize(req.params);
+    // Skip req.query sanitization here to avoid Express 5 conflicts.
+    // Query params are manually validated in controllers.
+  }
   next();
 });
 

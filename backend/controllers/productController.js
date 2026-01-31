@@ -20,9 +20,10 @@ const addProduct = async (req, res) => {
       sizes,
       bestseller,
       discountPercent,
+      stock,
     } = req.body;
 
-    if (!name || !description || !price || !category || !subCategory) {
+    if (!name || !description || !price || !category || !subCategory || !stock) {
       return res.json({ success: false, message: "All fields are required" });
     }
 
@@ -69,6 +70,7 @@ const addProduct = async (req, res) => {
       bestseller: bestseller === "true" ? true : false,
       sizes: JSON.parse(sizes),
       image: imageUrl,
+      stock: Number(stock),
       date: Date.now()
     };
 
@@ -108,6 +110,7 @@ const updateProduct = async (req, res) => {
       sizes,
       bestseller,
       discountPercent,
+      stock,
     } = req.body;
 
     const update = {};
@@ -115,6 +118,7 @@ const updateProduct = async (req, res) => {
     if (description !== undefined) update.description = description;
     if (price !== undefined) update.price = Number(price);
     if (discountPercent !== undefined) update.discountPercent = Number(discountPercent) || 0;
+    if (stock !== undefined) update.stock = Number(stock);
     if (category !== undefined) update.category = category;
     if (subCategory !== undefined) update.subCategory = subCategory;
     if (sizes !== undefined) {
@@ -170,15 +174,18 @@ const singleProduct = async (req, res) => {
 // Get low stock products for notifications (Admin)
 const getLowStockProducts = async (req, res) => {
   try {
-    const { threshold = 10 } = req.query;
+    const thresholdParam = req.query.threshold;
+    const threshold = (!isNaN(parseInt(thresholdParam))) ? parseInt(thresholdParam) : 10;
     
     const products = await ProductModel.find({
-      stock: { $lte: parseInt(threshold) }
+      stock: { $lte: threshold }
     })
     .sort({ stock: 1 })
     .limit(10)
     .select("_id name stock price category")
     .lean();
+    
+    console.log(`Found ${products.length} low stock products`);
 
     res.json({ 
       success: true, 
