@@ -7,6 +7,12 @@ import OrderModel from "../models/orderModel.js";
 import { processStripeRefund, processRazorPayRefund } from "./orderController.js";
 import { v2 as cloudinary } from "cloudinary";
 import { Readable } from "stream";
+import mongoSanitize from "express-mongo-sanitize";
+
+// Helper to escape regex characters
+const escapeRegex = (string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
 
 // Create JWT token
 const createToken = (id, role = "user") => {
@@ -30,7 +36,11 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    const user = await UserModel.findOne({ email }).select("+password");
+    // Sanitize email explicitly
+    const cleanEmail = mongoSanitize.sanitize(email);
+    
+    // Use explicit $eq to prevent operator injection
+    const user = await UserModel.findOne({ email: { $eq: cleanEmail } }).select("+password");
     if (!user) {
       return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
@@ -81,15 +91,19 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "Password should be at least 8 characters long" });
     }
 
-    const exists = await UserModel.findOne({ email });
+    // Sanitize inputs
+    const cleanName = mongoSanitize.sanitize(name);
+    const cleanEmail = mongoSanitize.sanitize(email);
+
+    const exists = await UserModel.findOne({ email: { $eq: cleanEmail } });
     if (exists) {
       return res.status(400).json({ success: false, message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new UserModel({
-      name,
-      email,
+      name: cleanName,
+      email: cleanEmail,
       password: hashedPassword,
       role: "user",
       isAdmin: false,
@@ -129,8 +143,11 @@ const adminLogin = async (req, res) => {
       return res.status(400).json({ success: false, message: "Email and password are required" });
     }
 
-    // Prefer DB-based admin authentication
-    let user = await UserModel.findOne({ email }).select("+password role isAdmin name email");
+    // Sanitize email
+    const cleanEmail = mongoSanitize.sanitize(email);
+
+    // Prefer DB-based admin authentication with explicit $eq
+    let user = await UserModel.findOne({ email: { $eq: cleanEmail } }).select("+password role isAdmin name email");
     if (user) {
       if (user.role !== "admin" && !user.isAdmin) {
         return res.status(403).json({ success: false, message: "User is not an admin" });
@@ -449,9 +466,13 @@ const getAllUsers = async (req, res) => {
     
     const query = {};
     if (search) {
+      // Sanitize and escape regex
+      const cleanSearch = mongoSanitize.sanitize(search);
+      const safeSearch = escapeRegex(cleanSearch);
+      
       query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
+        { name: { $regex: safeSearch, $options: "i" } },
+        { email: { $regex: safeSearch, $options: "i" } },
       ];
     }
     
@@ -617,15 +638,18 @@ const adminCreateUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });
     }
 
-    const exists = await UserModel.findOne({ email });
+    const cleanName = mongoSanitize.sanitize(name);
+    const cleanEmail = mongoSanitize.sanitize(email);
+
+    const exists = await UserModel.findOne({ email: { $eq: cleanEmail } });
     if (exists) {
       return res.status(400).json({ success: false, message: "User already exists" });
     }
 
     const hashed = await bcrypt.hash(password, 10);
     const newAdmin = await UserModel.create({
-      name,
-      email,
+      name: cleanName,
+      email: cleanEmail,
       password: hashed,
       role: "admin",
       isAdmin: true,

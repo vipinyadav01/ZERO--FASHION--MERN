@@ -82,9 +82,10 @@ const placeOrderStripe = async (req, res) => {
       });
     }
 
-    const { items, amount, address } = req.body;
+    const { items, address } = req.body;
+    let { amount } = req.body;
     const userId = req.user._id;
-    // Use deployed frontend URL as default origin
+
     // Use deployed frontend URL as default origin, but prioritize current request origin
     let origin = req.headers.origin;
     if (!origin && req.headers.referer) {
@@ -98,19 +99,37 @@ const placeOrderStripe = async (req, res) => {
     if (!origin) origin = 'https://zerofashion.vercel.app';
 
     // Validate required fields
-    if (!items?.length || !amount || !address) {
+    if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Missing required order information"
+        message: "Your cart is empty or items format is invalid"
       });
     }
 
-    // Validate amount
-    if (amount <= 0) {
+    if (!address) {
+      return res.status(400).json({
+        success: false,
+        message: "Shipping address is missing"
+      });
+    }
+
+    // Explicitly convert amount to number to avoid type issues
+    amount = Number(amount);
+    if (!amount || isNaN(amount) || amount <= 0) {
       return res.status(400).json({
         success: false,
         message: "Invalid order amount"
       });
+    }
+
+    // Validate Item Structure
+    for (const item of items) {
+      if (!item.name || !item.price || !item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid item data: ${item.name || 'Unknown Item'} missing required fields`
+        });
+      }
     }
 
     const orderData = {
@@ -148,25 +167,29 @@ const placeOrderStripe = async (req, res) => {
             name: item.name,
             images: stripeImages
           },
-          unit_amount: Math.round(item.price * 100),
+          unit_amount: Math.round(Number(item.price) * 100), // Ensure price is number
         },
-        quantity: item.quantity,
+        quantity: Number(item.quantity),
       };
     });
 
     // Add delivery fee if not already included in items
-    const itemsTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const itemsTotal = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
     const deliveryFeeAmount = Math.max(0, amount - itemsTotal);
     
     if (deliveryFeeAmount > 0) {
-      line_items.push({
-        price_data: {
-          currency: currency.toLowerCase(),
-          product_data: { name: "Delivery Fee" },
-          unit_amount: Math.round(deliveryFeeAmount * 100),
-        },
-        quantity: 1,
-      });
+      // Verify minimal amount for line item (Stripe requirement > 0.50 currency units usually)
+      const deliveryAmountPaise = Math.round(deliveryFeeAmount * 100);
+      if (deliveryAmountPaise > 0) {
+        line_items.push({
+          price_data: {
+            currency: currency.toLowerCase(),
+            product_data: { name: "Delivery Fee" },
+            unit_amount: deliveryAmountPaise,
+          },
+          quantity: 1,
+        });
+      }
     }
 
     // Create Stripe checkout session
@@ -181,15 +204,9 @@ const placeOrderStripe = async (req, res) => {
         userId: userId.toString()
       },
       billing_address_collection: 'required',
+      // Explicitly set payment methods
+      automatic_payment_methods: { enabled: true }
     };
-
-    // Use automatic payment methods (recommended)
-    // If not using automatic, default to ['card']
-    try {
-      stripeConfig.automatic_payment_methods = { enabled: true };
-    } catch (e) {
-      stripeConfig.payment_method_types = ['card'];
-    }
 
     const session = await stripe.checkout.sessions.create(stripeConfig);
 
@@ -209,12 +226,15 @@ const placeOrderStripe = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in placeOrderStripe:", error);
-    console.error("Error details:", {
+    
+    // Attempt detailed error logging
+    const errorDetails = {
       type: error.type,
       message: error.message,
-      code: error.code,
-      statusCode: error.statusCode
-    });
+      param: error.param,
+      code: error.code
+    };
+    console.error("Stripe Error Details:", errorDetails);
     
     // Handle specific Stripe errors
     if (error.type === 'StripeCardError') {
@@ -227,15 +247,10 @@ const placeOrderStripe = async (req, res) => {
         success: false,
         message: "Invalid payment request: " + error.message
       });
-    } else if (error.type === 'StripeAPIError') {
-      return res.status(500).json({
-        success: false,
-        message: "Payment service error: " + error.message
-      });
     } else if (error.type === 'StripeAuthenticationError') {
       return res.status(500).json({
         success: false,
-        message: "Payment authentication error. Please check configuration."
+        message: "Payment authentication failed"
       });
     }
     
