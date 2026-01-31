@@ -14,11 +14,16 @@ import newsletterRouter from "./routes/newsletterRoute.js";
 import wishlistRouter from "./routes/wishlistRoute.js";
 import notificationRouter from "./routes/notificationRoute.js";
 
+import mongoSanitize from "express-mongo-sanitize";
+
 const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
+
+// Sanitize data to prevent NoSQL injection
+app.use(mongoSanitize());
 
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);

@@ -20,6 +20,12 @@ const createToken = (id, role = "user") => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    
+    // Sanitize input types to prevent NoSQL injection
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ success: false, message: "Invalid input format" });
+    }
+
     if (!email || !password) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
@@ -57,6 +63,11 @@ const loginUser = async (req, res) => {
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
+    // Sanitize input types to prevent NoSQL injection
+    if (typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ success: false, message: "Invalid input format" });
+    }
 
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, message: "Name, email, and password are required" });
@@ -108,6 +119,12 @@ const registerUser = async (req, res) => {
 const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Sanitize input types to prevent NoSQL injection
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ success: false, message: "Invalid input format" });
+    }
+
     if (!email || !password) {
       return res.status(400).json({ success: false, message: "Email and password are required" });
     }
@@ -579,6 +596,12 @@ const adminResetPassword = async (req, res) => {
 const adminCreateUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
+    // Sanitize input types to prevent NoSQL injection
+    if (typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ success: false, message: "Invalid input format" });
+    }
+
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, message: "Name, email and password are required" });
     }

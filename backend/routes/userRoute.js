@@ -19,11 +19,22 @@ import authUser from "../middleware/auth.js";
 import adminAuth from "../middleware/adminAuth.js";
 import upload from "../middleware/multer.js";
 
+import rateLimit from "express-rate-limit";
+
 const userRouter = express.Router();
 
-userRouter.post("/register", registerUser);
-userRouter.post("/login", loginUser);
-userRouter.post("/admin-login", adminLogin);
+// Rate limiter for login routes
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 login requests per windowMs
+  message: { success: false, message: "Too many login attempts, please try again after 15 minutes" },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+userRouter.post("/register", loginLimiter, registerUser);
+userRouter.post("/login", loginLimiter, loginUser);
+userRouter.post("/admin-login", loginLimiter, adminLogin);
 userRouter.get("/user", authUser, userDetails);
 userRouter.get("/profile", authUser, getUserProfile);
 userRouter.get("/all", adminAuth, getAllUsers);
@@ -56,8 +67,8 @@ const handleUpload = (req, res, next) => {
 
 userRouter.post("/update", authUser, handleUpload, updateProfile);
 userRouter.post("/admin-update", adminAuth, adminUpdateUser);
-userRouter.post("/admin-reset-password", adminAuth, adminResetPassword);
-userRouter.post("/admin-create", adminAuth, adminCreateUser);
+userRouter.post("/admin-reset-password", adminAuth, loginLimiter, adminResetPassword);
+userRouter.post("/admin-create", adminAuth, loginLimiter, adminCreateUser);
 userRouter.delete("/delete/:id", adminAuth, deleteUser);
 userRouter.post("/cancel-order", authUser, cancelOrder);
 
