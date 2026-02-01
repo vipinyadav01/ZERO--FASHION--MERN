@@ -127,7 +127,13 @@ const Order = () => {
             fullName.includes(searchQuery.toLowerCase()) ||
             order._id.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = !statusFilter || order.status === statusFilter;
-        return matchesSearch && matchesStatus;
+        
+        // Only show orders that have payment completed or are COD orders
+        const isPaymentCompleted = order.payment === true;
+        const isCOD = order.paymentMethod === "COD" || order.method === "cod";
+        const shouldShowOrder = isPaymentCompleted || isCOD;
+        
+        return matchesSearch && matchesStatus && shouldShowOrder;
     });
 
     const uniqueStatuses = ["Order Placed", "Packing", "Shipped", "Out for Delivery", "Delivered", "Cancelled"];

@@ -83,7 +83,7 @@ const Product = () => {
 
   if (loading || !productData) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen pt-20">
         <div className="relative w-16 h-16">
           <div className="absolute top-0 left-0 w-full h-full border-2 border-gray-200 rounded-full"></div>
           <div className="absolute top-0 left-0 w-full h-full border-t-2 border-black rounded-full animate-spin"></div>

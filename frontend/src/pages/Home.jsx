@@ -1,6 +1,7 @@
 import Hero from '../components/Hero'
 import LatestCollection from '../components/LatestCollection'
 import BestSeller from '../components/BestSeller'
+import TrendingProducts from '../components/TrendingProducts'
 import OurPolicy from '../components/OurPolicy'
 import NewsletterBox from '../components/NewsletterBox'
 import SEO, { SEOConfigs } from '../components/SEO'
@@ -18,6 +19,7 @@ const Home = () => {
           <div className="space-y-16 py-8">
             <LatestCollection />
             <BestSeller />
+            <TrendingProducts />
             <OurPolicy />
             <NewsletterBox />
           </div>

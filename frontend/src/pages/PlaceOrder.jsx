@@ -25,7 +25,7 @@ function PlaceOrder() {
   const [cartError, setCartError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load user data from localStorage
+  // Load user data from localStorage and previous addresses
   useEffect(() => {
     const userData = localStorage.getItem("userData");
     if (userData) {
@@ -42,7 +42,39 @@ function PlaceOrder() {
         console.error("Error parsing user data:", error);
       }
     }
-  }, []);
+
+    // Fetch user's previous orders to auto-fill address
+    const fetchPreviousAddress = async () => {
+      const authToken = token || localStorage.getItem('token');
+      if (!authToken || !backendUrl) return;
+
+      try {
+        const response = await axios.get(`${backendUrl}/api/order/userOrders`, {
+          headers: { Authorization: `Bearer ${authToken}` }
+        });
+
+        if (response.data.success && response.data.orders && response.data.orders.length > 0) {
+          // Get the most recent order's address
+          const lastOrder = response.data.orders[0];
+          if (lastOrder.address) {
+            setFormData((prevData) => ({
+              ...prevData,
+              street: lastOrder.address.street || prevData.street,
+              city: lastOrder.address.city || prevData.city,
+              state: lastOrder.address.state || prevData.state,
+              zipcode: lastOrder.address.zipcode || prevData.zipcode,
+              country: lastOrder.address.country || prevData.country,
+            }));
+          }
+        }
+      } catch (error) {
+        // Silently fail - not critical
+        console.error("Error fetching previous address:", error);
+      }
+    };
+
+    fetchPreviousAddress();
+  }, [token, backendUrl]);
 
   // Load Razorpay script
   useEffect(() => {
@@ -621,7 +653,10 @@ function PlaceOrder() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="street" className="text-xs text-gray-600">Street Address *</label>
+          <div className="flex items-center gap-2">
+            <label htmlFor="street" className="text-xs text-gray-600">Street Address *</label>
+            {formData.street && <span className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded font-medium">Auto-filled</span>}
+          </div>
           <input
             required
             onChange={onChangeHandler}

@@ -3,27 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Truck, RotateCcw, Shield, Zap } from "lucide-react";
 
-const LoadingSkeleton = () => (
-  <div className="animate-pulse space-y-6">
-    <div className="flex flex-col items-center space-y-3">
-      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-stone-200 to-stone-300"></div>
-      <div className="h-7 bg-gradient-to-r from-stone-200 to-stone-300 rounded-lg w-3/4"></div>
-      <div className="h-4 bg-stone-200 rounded w-1/2"></div>
-    </div>
-    <div className="space-y-4">
-      {[...Array(3)].map((_, i) => (
-        <div key={i} className="space-y-2">
-          <div className="h-4 bg-stone-200 rounded w-1/3"></div>
-          <div className="h-12 bg-gradient-to-r from-stone-100 to-stone-200 rounded-xl"></div>
-        </div>
-      ))}
-    </div>
-    <div className="h-12 bg-gradient-to-r from-stone-800 to-stone-900 rounded-xl mt-6"></div>
-    <div className="h-4 bg-stone-200 rounded w-1/2 mx-auto"></div>
-  </div>
-);
 const Login = () => {
   const [authMode, setAuthMode] = useState("login");
   const { token, setToken, setUser, backendUrl } = useContext(ShopContext);
@@ -189,199 +170,276 @@ const Login = () => {
 
   if (isPageLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 via-stone-100 to-amber-50 p-4">
-        <div className="w-full max-w-md p-8 bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-stone-200/50">
-          <LoadingSkeleton />
+      <div className="min-h-screen flex items-center justify-center bg-white p-4">
+        <div className="w-full max-w-md p-8 bg-gray-100 rounded-lg animate-pulse space-y-6">
+          <div className="h-12 bg-gray-300 rounded"></div>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-10 bg-gray-300 rounded"></div>
+            ))}
+          </div>
+          <div className="h-10 bg-gray-400 rounded"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 via-stone-100 to-amber-50 p-4 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-stone-200/30 to-amber-100/30 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-tr from-stone-300/20 to-stone-100/20 rounded-full blur-2xl"></div>
-        <div className="absolute top-1/3 right-1/4 w-20 h-20 bg-amber-100/20 rounded-full blur-xl"></div>
-      </div>
-      
-      <div className="w-full max-w-md relative z-10">
-        <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-stone-200/50 overflow-hidden transition-all duration-500 hover:shadow-3xl hover:scale-[1.02] group">
-          {/* Modern header with gradient */}
-          <div className="relative bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 p-8 text-center overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 transform translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000"></div>
-            <div className="relative z-10">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-amber-100 to-stone-200 rounded-2xl flex items-center justify-center shadow-lg">
-                <User className="w-8 h-8 text-stone-800" />
+    <div className="min-h-screen bg-white flex">
+      {/* Left Section - Benefits (Hidden on mobile) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-900 to-black flex-col justify-center items-start p-12 text-white relative overflow-hidden">
+        {/* Decorative shapes */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gray-800/20 rounded-full -mr-48 -mt-48"></div>
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-gray-950/30 rounded-full -ml-36 -mb-36"></div>
+        
+        <div className="relative z-10">
+          {/* Logo Section */}
+          <div className="mb-16">
+            <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-4 shadow-lg">
+              <span className="text-xl font-bold text-black font-asterion">Z</span>
+            </div>
+            <h2 className="text-4xl font-bold font-asterion">ZERO Fashion</h2>
+            <p className="text-gray-300 mt-2 text-lg">Your Style, Your Way</p>
+          </div>
+
+          {/* Benefits List */}
+          <div className="space-y-8 mb-16">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-white/10 backdrop-blur-md">
+                  <Truck className="h-6 w-6" />
+                </div>
               </div>
-              <h1 className="text-2xl font-bold text-white font-outfit">
-                {isLoginMode ? "Welcome Back" : "Join Us"}
-              </h1>
-              <p className="text-stone-300 mt-2 text-sm">
-                {isLoginMode 
-                  ? "Continue your fashion journey" 
-                  : "Begin your style adventure"}
-              </p>
+              <div>
+                <h3 className="text-lg font-semibold">Fast Shipping</h3>
+                <p className="text-gray-300 mt-1">Free delivery on orders above ₹499</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-white/10 backdrop-blur-md">
+                  <RotateCcw className="h-6 w-6" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Easy Returns</h3>
+                <p className="text-gray-300 mt-1">30-day return policy, hassle-free</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-white/10 backdrop-blur-md">
+                  <Shield className="h-6 w-6" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Secure Payment</h3>
+                <p className="text-gray-300 mt-1">SSL encrypted, 100% safe transactions</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-white/10 backdrop-blur-md">
+                  <Zap className="h-6 w-6" />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Exclusive Deals</h3>
+                <p className="text-gray-300 mt-1">Members get up to 50% off</p>
+              </div>
             </div>
           </div>
 
-          <div className="p-8 space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {!isLoginMode && (
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-stone-700 mb-2">
-                    Full Name
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-stone-600">
-                      <User className="h-5 w-5 text-stone-400" />
-                    </div>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className={`block w-full pl-12 pr-4 py-4 border-2 ${
-                        errors.name 
-                          ? "border-red-300 focus:ring-red-100 focus:border-red-400 bg-red-50/50" 
-                          : "border-stone-200 focus:ring-amber-50 focus:border-stone-400 bg-stone-50/50 focus:bg-white"
-                      } rounded-xl shadow-sm placeholder-stone-400 focus:outline-none transition-all duration-300 hover:border-stone-300 font-outfit`}
-                      placeholder="Enter your full name"
-                      autoComplete="name"
-                    />
-                    {errors.name && (
-                      <div className="mt-2 text-sm text-red-600 bg-red-50 px-3 py-1 rounded-lg">
-                        {errors.name}
-                      </div>
-                    )}
-                  </div>
+          {/* Social Proof */}
+          <div className="pt-8 border-t border-white/20">
+            <p className="text-sm text-gray-300 mb-4">Trusted by 1M+ customers</p>
+            <div className="flex space-x-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 border-2 border-white/50 flex items-center justify-center text-xs font-bold text-white">
+                  ★
                 </div>
-              )}
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-stone-700 mb-2">
-                  Email Address
+      {/* Right Section - Login Form */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-8 lg:px-12 py-12 bg-white">
+        <div className="max-w-md mx-auto w-full">
+          {/* Mobile Header Logo */}
+          <div className="lg:hidden mb-8 flex items-center space-x-2">
+            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+              <span className="text-lg font-bold text-white font-asterion">Z</span>
+            </div>
+            <span className="text-xl font-bold text-gray-900 font-asterion">ZERO</span>
+          </div>
+
+          {/* Form Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              {isLoginMode ? "Sign In" : "Create Account"}
+            </h1>
+            <p className="text-gray-600">
+              {isLoginMode 
+                ? "Welcome back! Sign in to continue shopping" 
+                : "Join millions of shoppers at ZERO Fashion"}
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {!isLoginMode && (
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Full Name
                 </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-stone-600">
-                    <Mail className="h-5 w-5 text-stone-400" />
-                  </div>
+                <div className="relative">
+                  <User className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
                   <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
+                    type="text"
+                    name="name"
+                    value={formData.name}
                     onChange={handleChange}
-                    className={`block w-full pl-12 pr-4 py-4 border-2 ${
-                      errors.email 
-                        ? "border-red-300 focus:ring-red-100 focus:border-red-400 bg-red-50/50" 
-                        : "border-stone-200 focus:ring-amber-50 focus:border-stone-400 bg-stone-50/50 focus:bg-white"
-                    } rounded-xl shadow-sm placeholder-stone-400 focus:outline-none transition-all duration-300 hover:border-stone-300 font-outfit`}
-                    placeholder="Enter your email"
-                    autoComplete="email"
+                    className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                      errors.name 
+                        ? "border-red-300 focus:ring-red-200 bg-red-50" 
+                        : "border-gray-300 focus:ring-gray-200 focus:border-gray-400"
+                    } placeholder-gray-400 font-outfit`}
+                    placeholder="John Doe"
+                    autoComplete="name"
                   />
-                  {errors.email && (
-                    <div className="mt-2 text-sm text-red-600 bg-red-50 px-3 py-1 rounded-lg">
-                      {errors.email}
-                    </div>
-                  )}
                 </div>
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                )}
               </div>
+            )}
 
-              <div className="space-y-2">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-semibold text-stone-700">
-                    Password
-                  </label>
-                  {isLoginMode && (
-                    <button
-                      type="button"
-                      className="text-sm font-medium text-stone-600 hover:text-stone-800 transition-colors duration-200"
-                    >
-                      Forgot password?
-                    </button>
-                  )}
-                </div>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-stone-600">
-                    <Lock className="h-5 w-5 text-stone-400" />
-                  </div>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className={`block w-full pl-12 pr-12 py-4 border-2 ${
-                      errors.password 
-                        ? "border-red-300 focus:ring-red-100 focus:border-red-400 bg-red-50/50" 
-                        : "border-stone-200 focus:ring-amber-50 focus:border-stone-400 bg-stone-50/50 focus:bg-white"
-                    } rounded-xl shadow-sm placeholder-stone-400 focus:outline-none transition-all duration-300 hover:border-stone-300 font-outfit`}
-                    placeholder="Enter your password"
-                    autoComplete={isLoginMode ? "current-password" : "new-password"}
-                  />
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                    errors.email 
+                      ? "border-red-300 focus:ring-red-200 bg-red-50" 
+                      : "border-gray-300 focus:ring-gray-200 focus:border-gray-400"
+                  } placeholder-gray-400 font-outfit`}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                />
+              </div>
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              )}
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-900">
+                  Password
+                </label>
+                {isLoginMode && (
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center transition-colors hover:text-stone-600"
+                    className="text-sm text-gray-700 hover:text-black font-medium transition"
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-stone-400" />
-                    ) : (
-                      <Eye className="h-5 w-5 text-stone-400" />
-                    )}
+                    Forgot?
                   </button>
-                  {errors.password && (
-                    <div className="mt-2 text-sm text-red-600 bg-red-50 px-3 py-1 rounded-lg">
-                      {errors.password}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center items-center py-4 px-6 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-stone-800 via-stone-900 to-stone-950 hover:from-stone-900 hover:via-stone-950 hover:to-black focus:outline-none focus:ring-4 focus:ring-stone-200 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed mt-8 group transform hover:scale-[1.02] active:scale-[0.98]"
-              >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Processing...</span>
-                  </div>
-                ) : (
-                  <>
-                    <span>{isLoginMode ? "Sign In" : "Create Account"}</span>
-                    <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                  </>
                 )}
-              </button>
-            </form>
-            
-            <div className="mt-8">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-stone-200"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-stone-500 font-medium">
-                    {isLoginMode ? "New to ZERO Fashion?" : "Already have an account?"}
-                  </span>
-                </div>
               </div>
+              <div className="relative">
+                <Lock className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full pl-11 pr-11 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                    errors.password 
+                      ? "border-red-300 focus:ring-red-200 bg-red-50" 
+                      : "border-gray-300 focus:ring-gray-200 focus:border-gray-400"
+                  } placeholder-gray-400 font-outfit`}
+                  placeholder="••••••••"
+                  autoComplete={isLoginMode ? "current-password" : "new-password"}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600 transition"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+              )}
+            </div>
 
-              <button
-                type="button"
-                onClick={toggleAuthMode}
-                className="w-full mt-6 flex justify-center items-center py-3 px-6 border-2 border-stone-200 rounded-xl shadow-sm text-sm font-semibold text-stone-700 bg-white hover:bg-stone-50 hover:border-stone-300 focus:outline-none focus:ring-4 focus:ring-stone-100 transition-all duration-300 group transform hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <span>{isLoginMode ? "Create new account" : "Sign in instead"}</span>
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 px-4 mt-8 bg-black text-white font-semibold rounded-lg hover:bg-gray-900 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-gray-300 flex items-center justify-center space-x-2"
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <span>{isLoginMode ? "Sign In" : "Create Account"}</span>
+                  <ArrowRight className="h-5 w-5" />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div className="relative mt-8 mb-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">
+                {isLoginMode ? "Don't have an account?" : "Already have an account?"}
+              </span>
             </div>
           </div>
+
+          {/* Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleAuthMode}
+            className="w-full py-3 px-4 border-2 border-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-gray-300"
+          >
+            {isLoginMode ? "Create new account" : "Sign in instead"}
+          </button>
+
+          {/* Footer Text */}
+          <p className="mt-8 text-center text-xs text-gray-500">
+            By continuing, you agree to our{" "}
+            <button className="text-gray-900 hover:underline font-medium">Terms of Service</button>
+            {" "}and{" "}
+            <button className="text-gray-900 hover:underline font-medium">Privacy Policy</button>
+          </p>
         </div>
       </div>
     </div>

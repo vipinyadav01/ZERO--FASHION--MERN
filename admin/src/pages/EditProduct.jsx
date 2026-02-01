@@ -9,6 +9,7 @@ import {
     ArrowLeft,
     Type,
     DollarSign,
+    Package,
     Check
 } from "lucide-react";
 
@@ -22,6 +23,7 @@ const EditProduct = ({ token }) => {
         description: "",
         price: 0,
         discountPercent: 0,
+        stock: 0,
         category: "",
         subCategory: "",
         sizes: [],
@@ -39,6 +41,7 @@ const EditProduct = ({ token }) => {
                     description: p.description || "",
                     price: p.price || 0,
                     discountPercent: p.discountPercent || 0,
+                    stock: p.stock || 0,
                     category: p.category || "",
                     subCategory: p.subCategory || "",
                     sizes: p.sizes || [],
@@ -112,7 +115,7 @@ const EditProduct = ({ token }) => {
                 <form onSubmit={handleSave} className="space-y-6">
                     <section className="bg-[#0f111a] border border-slate-800 rounded-xl p-8 shadow-xl space-y-8">
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="space-y-1.5">
                                 <label className="text-slate-400 text-xs font-medium uppercase tracking-wider pl-1">Product Name</label>
                                 <div className="relative group">
@@ -135,6 +138,19 @@ const EditProduct = ({ token }) => {
                                         value={form.price} 
                                         onChange={(e)=>handleChange('price', e.target.value)} 
                                         placeholder="0.00"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-slate-400 text-xs font-medium uppercase tracking-wider pl-1">Stock Units</label>
+                                <div className="relative group">
+                                    <Package className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
+                                    <input 
+                                        type="number"
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-slate-600"
+                                        value={form.stock} 
+                                        onChange={(e)=>handleChange('stock', parseInt(e.target.value) || 0)} 
+                                        placeholder="0"
                                     />
                                 </div>
                             </div>

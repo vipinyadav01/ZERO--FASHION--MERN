@@ -202,7 +202,7 @@ const Orders = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent py-6 sm:py-10 md:py-20 px-2 sm:px-4 md:px-8 max-w-full sm:max-w-3xl md:max-w-5xl lg:max-w-7xl mx-auto">
+    <div className="min-h-screen bg-transparent py-6 sm:py-10 md:py-20 pt-20 px-2 sm:px-4 md:px-8 max-w-full sm:max-w-3xl md:max-w-5xl lg:max-w-7xl mx-auto">
       {/* Error notification */}
       {error && (
         <div className={`fixed top-24 left-1/2 transform -translate-x-1/2 z-50 mb-4 p-4 border ${

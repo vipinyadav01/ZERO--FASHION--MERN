@@ -10,6 +10,7 @@ import {
   Package,
   User,
   UserCircle,
+  Bell,
 } from "lucide-react";
 import PropTypes from "prop-types";
 import { ShopContext } from "../context/ShopContext";
@@ -45,6 +46,13 @@ const MobileNavbar = ({ token, getCartCount, setShowSearch }) => {
       id: "wishlist"
     },
     {
+      icon: Bell,
+      label: "Notifications",
+      path: "/notifications",
+      authRequired: true,
+      id: "notifications"
+    },
+    {
       icon: Package,
       label: "Orders",
       path: "/order",
@@ -74,7 +82,9 @@ const MobileNavbar = ({ token, getCartCount, setShowSearch }) => {
             className="w-full h-full rounded-full object-cover ring-2 ring-gray-200"
             onError={(e) => {
               e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'block';
+              if (e.target.nextSibling) {
+                e.target.nextSibling.style.display = 'block';
+              }
             }}
           />
           <UserCircle 
@@ -89,52 +99,51 @@ const MobileNavbar = ({ token, getCartCount, setShowSearch }) => {
 
   return (
     <>
-      {/* Mobile Header with improved styling */}
-      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md z-50 border-b border-gray-200/80 shadow-sm">
-        <div className="h-14 sm:h-16 flex items-center justify-between px-4 sm:px-6 max-w-screen-xl mx-auto">
+      {/* Mobile Header - Flipkart Style */}
+      <header className="fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-100 shadow-sm">
+        <div className="h-14 sm:h-16 flex items-center justify-between gap-2 px-3 sm:px-4 max-w-screen-xl mx-auto">
+          {/* Logo */}
           <Link
             to="/"
-            className="flex items-center space-x-2 sm:space-x-3 group"
+            className="flex-shrink-0 group"
             aria-label="Zero Fashion Home"
           >
             <motion.div 
-              className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-gray-900 to-black rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-200"
+              className="w-7 h-7 sm:w-8 sm:h-8 bg-black rounded-lg flex items-center justify-center shadow-sm"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <img
                 src="/pwa-192x192.png"
-                alt="Zero Fashion"
-                className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+                alt="Zero"
+                className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
                 loading="eager"
                 onError={e => { e.target.onerror = null; e.target.src = "/apple-touch-icon.png"; }}
               />
             </motion.div>
-            <div className="flex flex-col">
-              <span className="text-base sm:text-3xl font-bold text-gray-900 tracking-tight leading-none font-asterion">
-                ZERO FASHION
-              </span>
-            </div>
           </Link>
 
-          <div className="flex items-center space-x-1 sm:space-x-2">
-            <motion.button
-              onClick={() => setShowSearch(true)}
-              className="p-2 sm:p-2.5 text-gray-600 hover:text-black hover:bg-gray-100/80 rounded-xl transition-all duration-200"
-              aria-label="Search products"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Search className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
-            </motion.button>
+          {/* Search Bar - Central Focus */}
+          <motion.button
+            onClick={() => setShowSearch(true)}
+            className="flex-1 flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 hover:bg-gray-150 rounded-lg transition-colors duration-200"
+            whileTap={{ scale: 0.98 }}
+            aria-label="Search products"
+          >
+            <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 flex-shrink-0" strokeWidth={2} />
+            <span className="text-xs sm:text-sm text-gray-500 truncate">Search for items...</span>
+          </motion.button>
 
+          {/* Right Action Icons */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Cart */}
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <Link
                 to="/cart"
-                className="relative p-2 sm:p-2.5 text-gray-600 hover:text-black hover:bg-gray-100/80 rounded-xl transition-all duration-200"
+                className="relative p-2 sm:p-2.5 text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200 overflow-visible"
                 aria-label={`Shopping cart with ${cartCount} items`}
               >
                 <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={1.5} />
@@ -142,7 +151,7 @@ const MobileNavbar = ({ token, getCartCount, setShowSearch }) => {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full text-xs min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-[20px] flex items-center justify-center font-semibold shadow-sm"
+                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-bold shadow-md"
                   >
                     {cartCount > 99 ? "99+" : cartCount}
                   </motion.span>
@@ -150,27 +159,25 @@ const MobileNavbar = ({ token, getCartCount, setShowSearch }) => {
               </Link>
             </motion.div>
 
+            {/* Profile */}
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <Link
                 to={isAuthenticated ? "/profile" : "/login"}
-                className="p-2 sm:p-2.5 text-gray-600 hover:text-black hover:bg-gray-100/80 rounded-xl transition-all duration-200"
+                className="p-2 sm:p-2.5 text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200"
                 aria-label={isAuthenticated ? "Your profile" : "Sign in"}
               >
                 <ProfileImage 
                   user={user} 
                   isAuthenticated={isAuthenticated} 
-                  className="w-8 h-8 sm:w-10 sm:h-10" 
                 />
               </Link>
             </motion.div>
           </div>
         </div>
       </header>
-
-      <div className="h-14 sm:h-16" />
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/80 z-50 pb-safe">
         <div className="flex justify-around items-center px-2 py-2 max-w-screen-xl mx-auto">
@@ -234,7 +241,7 @@ const MobileNavbar = ({ token, getCartCount, setShowSearch }) => {
         </div>
       </nav>
 
-      <div className="h-16 sm:h-20" />
+      <div className="h-14 sm:h-16" />
     </>
   );
 };

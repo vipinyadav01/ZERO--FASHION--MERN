@@ -10,26 +10,74 @@ import {
   UserCircle, 
   Package, 
   LogOut,
-  ChevronDown 
+  ChevronDown,
+  Bell
 } from "lucide-react";
 import PropTypes from "prop-types";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
+import NotificationDropdown from "./NotificationDropdown";
 
 const DesktopNavbar = ({ token, setShowSearch, getCartCount, isTablet = false }) => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
   
   const context = useContext(ShopContext);
   const {
     setToken = () => {},
     setUser = () => {},
     user = null,
-    currency = "₹",
-    getCartAmount = () => 0,
   } = context || {};
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Fetch real notifications from API
+  const fetchNotifications = useCallback(async () => {
+    if (!token) return;
+    
+    try {
+      setLoadingNotifications(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/notification/user?limit=5`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.notifications) {
+          const formattedNotifications = data.notifications.map((notif) => {
+            return {
+              id: notif._id,
+              type: notif.type,
+              title: notif.title,
+              message: notif.message,
+              timestamp: notif.createdAt,
+              isRead: notif.read,
+            };
+          });
+          setNotifications(formattedNotifications);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  }, [token]);
+
+  // Utility functions - Define early so they can be used in effects
+  const isAuthenticated = Boolean(token && user);
+  const isActive = (path) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
+  const cartCount = getCartCount ? getCartCount() : 0;
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   // Navigation items
   const navItems = [
@@ -72,24 +120,27 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount, isTablet = false })
   // Handle click outside to close dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.dropdown-container')) {
+      if (!event.target.closest('.dropdown-container') && !event.target.closest('.notification-container')) {
         setShowUserDropdown(false);
+        setShowNotificationDropdown(false);
       }
     };
 
-    if (showUserDropdown) {
+    if (showUserDropdown || showNotificationDropdown) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showUserDropdown]);
+  }, [showUserDropdown, showNotificationDropdown]);
+
+  // Fetch notifications when dropdown opens
+  useEffect(() => {
+    if (showNotificationDropdown && isAuthenticated) {
+      fetchNotifications();
+    }
+  }, [showNotificationDropdown, isAuthenticated, fetchNotifications]);
 
 
-
-  // Utility functions
-  const isAuthenticated = Boolean(token && user);
-  const isActive = (path) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
-  const cartCount = getCartCount ? getCartCount() : 0;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
@@ -157,6 +208,32 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount, isTablet = false })
             >
               <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
+
+            {/* Notifications Dropdown */}
+            {isAuthenticated && (
+              <div className="relative notification-container">
+                <button
+                  onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
+                  className="relative p-1.5 sm:p-2 text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200 hover:scale-110"
+                  aria-label="Notifications"
+                >
+                  <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white rounded-full text-xs w-4 h-4 flex items-center justify-center font-semibold animate-pulse">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Import NotificationDropdown Component */}
+                <NotificationDropdown
+                  notifications={notifications}
+                  loading={loadingNotifications}
+                  unreadCount={unreadCount}
+                  isOpen={showNotificationDropdown}
+                />
+              </div>
+            )}
 
             {/* Cart Button */}
             <Link
