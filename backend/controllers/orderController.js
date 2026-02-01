@@ -9,7 +9,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const currency = "inr";
+// Support multiple currencies based on configuration
+const currency = process.env.STRIPE_CURRENCY || "usd";
 const deliveryFee = 10;
 
 let stripe;
@@ -203,9 +204,8 @@ const placeOrderStripe = async (req, res) => {
         orderId: newOrder._id.toString(),
         userId: userId.toString()
       },
-      billing_address_collection: 'required',
-      // Explicitly set payment methods
-      automatic_payment_methods: { enabled: true }
+      payment_method_types: ['card'],
+      billing_address_collection: 'auto'
     };
 
     const session = await stripe.checkout.sessions.create(stripeConfig);
@@ -257,6 +257,32 @@ const placeOrderStripe = async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: "Payment initialization failed: " + error.message 
+    });
+  }
+};
+
+// Get payment configuration status
+const getPaymentConfig = async (req, res) => {
+  try {
+    const config = {
+      stripe: {
+        configured: !!stripe && !!process.env.STRIPE_SECRET_KEY,
+        currency: currency,
+      },
+      razorpay: {
+        configured: !!razorpayInstance && !!process.env.RAZORPAY_KEY_ID && !!process.env.RAZORPAY_KEY_SECRET,
+      },
+      cod: {
+        configured: true, // Always available
+      },
+    };
+
+    res.status(200).json({ success: true, config });
+  } catch (error) {
+    console.error("Error checking payment config:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to check payment configuration" 
     });
   }
 };
@@ -761,4 +787,5 @@ export {
   getRecentOrders,
   processStripeRefund,
   processRazorPayRefund,
+  getPaymentConfig,
 };

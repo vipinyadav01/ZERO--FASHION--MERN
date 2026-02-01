@@ -57,24 +57,42 @@ function PlaceOrder() {
       }
     };
   }, []);
-  const isStripeConfigured = true; 
-  const isRazorpayConfigured = import.meta.env.VITE_RAZORPAY_KEY_ID && 
-    import.meta.env.VITE_RAZORPAY_KEY_ID.trim() !== '';
+
+  // Payment gateway configuration state
+  const [isStripeConfigured, setIsStripeConfigured] = useState(false);
+  const [isRazorpayConfigured, setIsRazorpayConfigured] = useState(false);
+  const [paymentConfigLoading, setPaymentConfigLoading] = useState(true);
+
+  // Fetch payment configuration from backend
   useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log('Payment Gateway Configuration:', {
-        stripe: {
-          configured: isStripeConfigured,
-          note: 'Handled by backend with secret key'
-        },
-        razorpay: {
-          configured: isRazorpayConfigured,
-          key: import.meta.env.VITE_RAZORPAY_KEY_ID ? 'Present' : 'Missing'
+    const fetchPaymentConfig = async () => {
+      try {
+        const response = await axios.get(`${backendUrl}/api/order/payment-config`);
+        if (response.data.success) {
+          setIsStripeConfigured(response.data.config.stripe.configured);
+          setIsRazorpayConfigured(response.data.config.razorpay.configured);
+          
+          if (import.meta.env.DEV) {
+            console.log('Payment Gateway Configuration:', response.data.config);
+          }
         }
-      });
-    }
-  }, [isStripeConfigured, isRazorpayConfigured]);
+      } catch (error) {
+        console.error('Failed to fetch payment config:', error);
+        // Fallback to client-side check for Razorpay
+        setIsRazorpayConfigured(
+          import.meta.env.VITE_RAZORPAY_KEY_ID && 
+          import.meta.env.VITE_RAZORPAY_KEY_ID.trim() !== ''
+        );
+      } finally {
+        setPaymentConfigLoading(false);
+      }
+    };
+
+    fetchPaymentConfig();
+  }, [backendUrl]);
   useEffect(() => {
+    if (paymentConfigLoading) return; // Wait for config to load
+    
     if (!isStripeConfigured && !isRazorpayConfigured) {
       setMethod("cod");
     } else if (!isStripeConfigured && isRazorpayConfigured) {
@@ -82,7 +100,7 @@ function PlaceOrder() {
     } else if (isStripeConfigured && !isRazorpayConfigured) {
       setMethod("stripe");
     }
-  }, [isStripeConfigured, isRazorpayConfigured]);
+  }, [isStripeConfigured, isRazorpayConfigured, paymentConfigLoading]);
 
   // Validate cart items
   useEffect(() => {
