@@ -40,9 +40,16 @@ const userActionLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req, res) => {
-    // IMPORTANT: This uses the user ID from the decoded token (req.user)
-    // Fallback to IP if req.user is missing (e.g. if middleware failed)
-    return req.user && req.user._id ? req.user._id.toString() : req.ip;
+    // Use user ID from token if available, otherwise use IP
+    if (req.user && req.user._id) {
+      return req.user._id.toString();
+    }
+    // Return IP address - rate limiter will handle IPv6 properly
+    return req.ip;
+  },
+  skip: (req) => {
+    // Skip rate limiting if in development mode
+    return process.env.NODE_ENV === 'development';
   },
   handler: (req, res, next, options) => {
     // Log the event for monitoring

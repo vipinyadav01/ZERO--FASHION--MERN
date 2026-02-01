@@ -11,27 +11,33 @@ dotenv.config();
 
 // Support multiple currencies based on configuration
 const currency = process.env.STRIPE_CURRENCY || "usd";
+const razorpayCurrency = process.env.RAZORPAY_CURRENCY || "INR";
 const deliveryFee = 10;
 
 let stripe;
 try {
   if (process.env.STRIPE_SECRET_KEY) {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-    console.log("Stripe initialized successfully");
   } else {
-    console.log("Stripe not configured - missing STRIPE_SECRET_KEY");
+    console.error("⚠️ Stripe not configured - missing STRIPE_SECRET_KEY");
   }
 } catch (error) {
-  console.error("Failed to initialize Stripe:", error);
+  console.error("❌ Failed to initialize Stripe:", error);
 }
 
 // Initialize Razorpay with both key_id and key_secret
 let razorpayInstance;
-if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
-  razorpayInstance = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-  });
+try {
+  if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    razorpayInstance = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+  } else {
+    console.error("⚠️ Razorpay not configured - missing RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET");
+  }
+} catch (error) {
+  console.error("❌ Failed to initialize Razorpay:", error);
 }
 
 // Place order using Cash on Delivery Method
@@ -464,7 +470,7 @@ const placeOrderRazorPay = async (req, res) => {
 
     const options = {
       amount: Math.round(amount * 100), // Convert to paise and ensure integer
-      currency: currency.toUpperCase(),
+      currency: razorpayCurrency.toUpperCase(),
       receipt: newOrder._id.toString(),
     };
 
@@ -480,6 +486,12 @@ const placeOrderRazorPay = async (req, res) => {
     res.status(200).json({ success: true, order });
   } catch (error) {
     console.error("Error in placeOrderRazorPay:", error);
+    console.error("Razorpay Error Details:", {
+      description: error.error?.description,
+      code: error.error?.code,
+      field: error.error?.field,
+      statusCode: error.statusCode
+    });
     
     // Handle specific Razorpay errors
     if (error.error && error.error.description) {

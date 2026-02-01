@@ -46,9 +46,24 @@ function PlaceOrder() {
 
   // Load Razorpay script
   useEffect(() => {
+    // Check if script is already loaded
+    if (window.Razorpay) {
+      return;
+    }
+
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
+    
+    script.onload = () => {
+      console.log("✅ Razorpay SDK loaded successfully");
+    };
+    
+    script.onerror = () => {
+      console.error("❌ Failed to load Razorpay SDK");
+      toast.error("Payment gateway unavailable. Please try again later.");
+    };
+    
     document.body.appendChild(script);
 
     return () => {
@@ -447,15 +462,31 @@ function PlaceOrder() {
         }
 
         case "razorpay": {
-          const response = await axios.post(
-            `${backendUrl}/api/order/razorpay`,
-            orderData,
-            { headers: { Authorization: `Bearer ${authToken}` } }
-          );
-          if (response.data.success) {
-            initpay(response.data.order);
-          } else {
-            toast.error(response.data.message || "Failed to create payment order");
+          try {
+            toast.info("Initializing Razorpay payment...");
+            
+            const response = await axios.post(
+              `${backendUrl}/api/order/razorpay`,
+              orderData,
+              { headers: { Authorization: `Bearer ${authToken}` } }
+            );
+            
+            toast.dismiss();
+            
+            if (response.data.success) {
+              initpay(response.data.order);
+            } else {
+              toast.error(response.data.message || "Failed to create payment order");
+            }
+          } catch (error) {
+            toast.dismiss();
+            console.error("Razorpay payment error:", error);
+            console.error("Backend response:", error.response?.data);
+            
+            const errorMessage = error.response?.data?.message || 
+                                error.message || 
+                                "Failed to initialize Razorpay payment";
+            toast.error(errorMessage);
           }
           break;
         }
