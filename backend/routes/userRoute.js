@@ -30,6 +30,7 @@ const loginLimiter = rateLimit({
   message: { success: false, message: "Too many login attempts, please try again after 15 minutes" },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  validate: { xForwardedForHeader: false },
 });
 
 // Rate limiter for Authenticated Users (Tracks User ID from Token)
@@ -39,13 +40,9 @@ const userActionLimiter = rateLimit({
   message: { success: false, message: "Too many requests from this account, please try again after an hour" },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req, res) => {
-    // Use user ID from token if available, otherwise use IP
-    if (req.user && req.user._id) {
-      return req.user._id.toString();
-    }
-    // Return IP address - rate limiter will handle IPv6 properly
-    return req.ip;
+  keyGenerator: (req) => {
+    // Use user ID from token if available, otherwise fallback to standard IP behavior
+    return req.user?._id?.toString() || req.ip;
   },
   skip: (req) => {
     // Skip rate limiting if in development mode
@@ -56,7 +53,8 @@ const userActionLimiter = rateLimit({
     const userId = req.user && req.user._id ? req.user._id : "Unknown";
     console.warn(`Rate limit exceeded for User: ${userId} (IP: ${req.ip})`);
     res.status(options.statusCode).json(options.message);
-  }
+  },
+  validate: { keyGenerator: false, xForwardedForHeader: false }
 });
 
 userRouter.post("/register", loginLimiter, registerUser);

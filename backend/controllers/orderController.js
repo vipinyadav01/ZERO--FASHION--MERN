@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import dotenv from "dotenv";
+import { notifyAdmins } from "../utils/notificationHelper.js";
 
 
 dotenv.config();
@@ -59,6 +60,16 @@ const placeOrder = async (req, res) => {
 
     const newOrder = new OrderModel(orderData);
     await newOrder.save();
+
+    // Notify admins about new COD order
+    await notifyAdmins({
+      title: "New Order (COD)",
+      message: `A new order of ${amount} INR has been placed by ${req.user.name}.`,
+      type: "order",
+      priority: "high",
+      relatedData: { orderId: newOrder._id }
+    });
+
 
     // Update user's orders and clear cart
     await UserModel.findByIdAndUpdate(userId, {
@@ -359,6 +370,16 @@ const verifyStripe = async (req, res) => {
           order.stripePaymentIntentId = session.payment_intent.id;
           await order.save();
 
+          // Notify admins about successful Stripe payment
+          await notifyAdmins({
+            title: "New Order (Stripe)",
+            message: `Order #${order._id.toString().slice(-6)}: Payment of ${order.amount} confirmed via Stripe.`,
+            type: "order",
+            priority: "high",
+            relatedData: { orderId: order._id }
+          });
+
+
           // Clear user's cart
           await UserModel.findByIdAndUpdate(userId, { cartData: {} });
 
@@ -557,6 +578,16 @@ const verifyRazorPay = async (req, res) => {
       order.status = "Order Placed";
       order.razorpayPaymentId = razorpay_payment_id;
       await order.save();
+
+      // Notify admins about successful Razorpay payment
+      await notifyAdmins({
+        title: "New Order (Razorpay)",
+        message: `Order #${order._id.toString().slice(-6)}: Payment of ${order.amount} confirmed via Razorpay.`,
+        type: "order",
+        priority: "high",
+        relatedData: { orderId: order._id }
+      });
+
       
       // Clear user's cart
       await UserModel.findByIdAndUpdate(order.userId, { cartData: {} });

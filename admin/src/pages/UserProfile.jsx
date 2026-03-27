@@ -58,7 +58,8 @@ const UserProfile = ({ token }) => {
       if (!isMounted.current) return;
 
       if (response.data.success) {
-        const usersData = Array.isArray(response.data.users) ? response.data.users : response.data.users || [];
+        // Ensure users is always an array
+        const usersData = Array.isArray(response.data.users) ? response.data.users : [];
         setUsers(usersData);
         setTotal(response.data.total || usersData.length);
         setTotalPages(response.data.totalPages || 1);
@@ -67,8 +68,14 @@ const UserProfile = ({ token }) => {
       }
     } catch (err) {
       if (!isMounted.current) return;
-      setError(err.response?.data?.message || err.message);
-      if (err.response?.status === 401 || err.response?.status === 403) navigate("/login");
+      console.error("Fetch Users Error:", err);
+      const msg = err.response?.data?.message || err.message || "Connection error";
+      setError(msg);
+      
+      if (err.response?.status === 401 || err.response?.status === 403) {
+         sessionStorage.removeItem("token");
+         navigate("/login");
+      }
     } finally {
       if (isMounted.current) setLoading(false);
       isFetching.current = false;
@@ -76,9 +83,10 @@ const UserProfile = ({ token }) => {
   }, [token, page, limit, searchTerm, roleFilter, navigate]);
 
   useEffect(() => {
+    isMounted.current = true;
     if (token) fetchUsers();
     else { setError("Authentication required"); setLoading(false); }
-    return () => { isMounted.current = false; if (debounceTimeout.current) clearTimeout(debounceTimeout.current); };
+    return () => { isMounted.current = false; };
   }, [token, page, fetchUsers]);
 
   useEffect(() => {

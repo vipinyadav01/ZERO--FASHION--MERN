@@ -66,7 +66,6 @@ const Login = ({ setToken }) => {
 
             if (response?.data?.success) {
                 setTokenWithExpiry(response.data.token);
-                toast.success("Welcome back!");
                 navigate("/dashboard");
             } else {
                 throw new Error(response.data.message || "Invalid credentials");

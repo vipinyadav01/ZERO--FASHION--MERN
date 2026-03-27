@@ -9,7 +9,8 @@ const adminAuth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (decoded.role !== "admin" && !decoded.isAdmin) {
+    if (!decoded || !decoded.id) {
+       return res.status(401).json({ success: false, message: "Invalid or malformed token" });
     }
 
     const user = await UserModel.findById(decoded.id).select("_id role isAdmin");
@@ -22,6 +23,9 @@ const adminAuth = async (req, res, next) => {
     req.user = { id: user._id, _id: user._id, role: user.role || "admin" };
     next();
   } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ success: false, message: "Malformed token. Please login again." });
+    }
     console.error("Admin Auth Error:", error);
     res.status(401).json({ success: false, message: "Invalid or expired token" });
   }

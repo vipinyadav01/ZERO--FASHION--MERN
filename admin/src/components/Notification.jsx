@@ -44,7 +44,7 @@ const Notification = () => {
             const token = sessionStorage.getItem("token");
             if (!token) return;
 
-            // 1. Primary Sync: Fetch real system notifications
+            // Primary Sync: Fetch real system notifications
             let realNotifications = [];
             try {
                 const response = await axios.get(`${backendUrl}/api/notification/user`, {
@@ -60,66 +60,11 @@ const Notification = () => {
                 console.warn("Notification sync failed", authErr.message);
             }
 
-            // 2. Auxiliary Insights: Sync recent activity
-            const processedActivity = [];
-            try {
-                const [ordersRes, usersRes, stockRes] = await Promise.all([
-                    axios.get(`${backendUrl}/api/order/recent`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
-                    axios.get(`${backendUrl}/api/user/recent`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
-                    axios.get(`${backendUrl}/api/product/low-stock`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null)
-                ]);
-
-                if (ordersRes?.data?.success && ordersRes.data.orders) {
-                    ordersRes.data.orders.slice(0, 3).forEach(order => {
-                        processedActivity.push({
-                            id: `order-${order._id}`,
-                            title: 'New Order',
-                            message: `Order #${order._id.slice(-6)} received`,
-                            time: order.date,
-                            read: false,
-                            type: "order",
-                            isReal: false
-                        });
-                    });
-                }
-
-                if (usersRes?.data?.success && usersRes.data.users) {
-                    usersRes.data.users.slice(0, 2).forEach(user => {
-                        processedActivity.push({
-                            id: `user-${user._id}`,
-                            title: 'New User',
-                            message: `${user.name || user.email} joined`,
-                            time: user.createdAt,
-                            read: false,
-                            type: "user",
-                            isReal: false
-                        });
-                    });
-                }
-
-                if (stockRes?.data?.success && stockRes.data.products) {
-                    stockRes.data.products.slice(0, 2).forEach(p => {
-                        processedActivity.push({
-                            id: `stock-${p._id}`,
-                            title: 'Low Stock Alert',
-                            message: `${p.name}: ${p.stock || 0} units left`,
-                            time: new Date(),
-                            read: false,
-                            type: "stock",
-                            isReal: false
-                        });
-                    });
-                }
-            } catch (activityErr) {
-                console.warn("Activity sync failed", activityErr.message);
-            }
-
-            // Merge and prioritize
-            const unified = [...realNotifications, ...processedActivity];
-            unified.sort((a, b) => new Date(b.createdAt || b.time) - new Date(a.createdAt || a.time));
+            // Order by most recent
+            realNotifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             
-            setNotifications(unified);
-            setUnreadCount(unified.filter(n => !n.read).length);
+            setNotifications(realNotifications);
+            setUnreadCount(realNotifications.filter(n => !n.read).length);
 
         } catch (error) {
             console.error('Notification error', error);

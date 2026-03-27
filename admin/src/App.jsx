@@ -60,7 +60,12 @@ const App = () => {
   useEffect(() => {
     const storedToken = sessionStorage.getItem("token");
     
-    if (storedToken && !token) {
+    // Sanitize token: remove if it's "undefined" or "null" string
+    if (storedToken === "undefined" || storedToken === "null") {
+      sessionStorage.removeItem("token");
+      setToken("");
+      navigate("/login", { replace: true });
+    } else if (storedToken && !token) {
       setToken(storedToken);
     } else if (!storedToken && !token) {
       navigate("/login", { replace: true });

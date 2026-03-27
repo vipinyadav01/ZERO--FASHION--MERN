@@ -8,6 +8,7 @@ import { processStripeRefund, processRazorPayRefund } from "./orderController.js
 import { v2 as cloudinary } from "cloudinary";
 import { Readable } from "stream";
 import mongoSanitize from "express-mongo-sanitize";
+import { notifyAdmins } from "../utils/notificationHelper.js";
 
 // Helper to escape regex characters
 const escapeRegex = (string) => {
@@ -110,6 +111,16 @@ const registerUser = async (req, res) => {
     });
 
     const user = await newUser.save();
+
+    // Notify admins about new user registration
+    await notifyAdmins({
+      title: "New User Registered",
+      message: `${user.name} (${user.email}) has just joined ZeroFashion!`,
+      type: "user",
+      priority: "low",
+      relatedData: { userId: user._id }
+    });
+
     const token = createToken(user._id, user.role);
     res.status(201).json({
       success: true,
@@ -464,12 +475,10 @@ const getAllUsers = async (req, res) => {
     const searchArg = req.query.search;
     const search = (typeof searchArg === 'string' ? searchArg : "").trim();
     
-    const query = {};
+    const query = { isDeleted: { $ne: true } };
     if (search) {
-      // Sanitize and escape regex
       const cleanSearch = mongoSanitize.sanitize(search);
       const safeSearch = escapeRegex(cleanSearch);
-      
       query.$or = [
         { name: { $regex: safeSearch, $options: "i" } },
         { email: { $regex: safeSearch, $options: "i" } },

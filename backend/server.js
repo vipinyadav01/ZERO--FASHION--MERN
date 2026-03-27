@@ -1,4 +1,9 @@
 import express from "express";
+import dns from "dns";
+
+// Fix for MongoDB Atlas "querySrv ECONNREFUSED" error on some networks (e.g., in India)
+// This explicitly uses Google DNS for SRV resolution within the Node process.
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/mongodb.js";
@@ -34,6 +39,7 @@ const globalLimiter = rateLimit({
   message: { success: false, message: "Too many requests, please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
 });
 app.use("/api", globalLimiter); // Apply to all API routes
 
