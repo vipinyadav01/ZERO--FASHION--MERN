@@ -16,7 +16,6 @@ const Add = React.lazy(() => import("./pages/Add"));
 const List = React.lazy(() => import("./pages/List"));
 const Order = React.lazy(() => import("./pages/Order"));
 const EditProduct = React.lazy(() => import("./pages/EditProduct"));
-const OrderCharts = React.lazy(() => import("./pages/OrderCharts"));
 const UserProfile = React.lazy(() => import("./pages/UserProfile"));
 
 // Protected Route Component
