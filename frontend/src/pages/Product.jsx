@@ -95,7 +95,7 @@ const Product = () => {
   return (
     <>
       <SEO {...generateProductSEO(productData)} />
-      <div className="container mx-auto px-4 py-16 mt-8 sm:mt-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <Breadcrumb 
           customItems={generateProductBreadcrumbs(productData)} 
           className="mb-8"

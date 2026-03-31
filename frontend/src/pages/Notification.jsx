@@ -313,7 +313,7 @@ const Notifications = () => {
 
     if (!token) {
         return (
-            <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div className="text-center">
                     <h2 className="text-2xl font-semibold text-gray-900 mb-4">Please log in</h2>
                     <p className="text-gray-600 mb-4">You need to be logged in to view notifications</p>
@@ -326,11 +326,11 @@ const Notifications = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             {/* Header */}
-            <div className="bg-white shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 py-4">
-                    <div className="flex items-center justify-between">
+            <div className="bg-white shadow-sm mb-8">
+                <div className="py-4">
+                    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center space-x-4">
                             <Link to="/" className="text-gray-600 hover:text-indigo-600">
                                 <ChevronLeft size={24} />

@@ -174,8 +174,7 @@ const Wishlist = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-20 pb-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
                     <div className="flex items-center gap-4">
@@ -328,7 +327,6 @@ const Wishlist = () => {
                     </motion.div>
                 )}
             </div>
-        </div>
     );
 };
 

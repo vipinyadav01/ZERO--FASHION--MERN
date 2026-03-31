@@ -97,57 +97,54 @@ const EditProduct = ({ token }) => {
     }
 
     return (
-        <div className="min-h-screen p-6 lg:p-10 font-sans text-slate-100">
-            <div className="max-w-4xl mx-auto space-y-6">
+        <div className="min-h-screen p-6 lg:p-10 font-sans text-brand-text-primary bg-brand-bg">
+            <div className="max-w-4xl mx-auto space-y-10">
                 
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-end justify-between border-b border-brand-border pb-8">
                     <div>
-                        <h1 className="text-2xl font-bold text-white mb-1">Edit Product</h1>
-                         <p className="text-slate-400 text-sm">Update product details and inventory.</p>
+                        <h1 className="text-3xl font-black text-brand-text-primary mb-2 uppercase tracking-tight">Modify Archive</h1>
+                         <p className="text-brand-text-secondary text-[10px] font-black uppercase tracking-widest">Update existing product specifications</p>
                     </div>
-                    <button onClick={() => navigate(-1)} className="px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors text-sm font-medium flex items-center gap-2">
+                    <button onClick={() => navigate(-1)} className="px-6 py-3 bg-white border border-brand-border rounded-none text-brand-text-secondary hover:text-brand-text-primary hover:border-black transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-3">
                         <ArrowLeft className="w-4 h-4" />
-                        Back
+                        Return
                     </button>
                 </div>
 
-                <form onSubmit={handleSave} className="space-y-6">
-                    <section className="bg-[#0f111a] border border-slate-800 rounded-xl p-8 shadow-xl space-y-8">
+                <form onSubmit={handleSave} className="space-y-10">
+                    <section className="bg-white border border-brand-border rounded-none p-10 space-y-10">
                         
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="space-y-1.5">
-                                <label className="text-slate-400 text-xs font-medium uppercase tracking-wider pl-1">Product Name</label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest block">Product Designation</label>
                                 <div className="relative group">
-                                    <Type className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
                                     <input 
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-slate-600"
+                                        className="w-full bg-white border border-brand-border rounded-none px-5 py-4 text-brand-text-primary text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-brand-accent transition-colors placeholder:text-brand-text-secondary/30"
                                         value={form.name} 
                                         onChange={(e)=>handleChange('name', e.target.value)} 
-                                        placeholder="Enter product name"
+                                        placeholder="ENTER NAME..."
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-1.5">
-                                <label className="text-slate-400 text-xs font-medium uppercase tracking-wider pl-1">Price (INR)</label>
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest block">Unit Valuation (INR)</label>
                                 <div className="relative group">
-                                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
                                     <input 
                                         type="number"
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-slate-600"
+                                        className="w-full bg-white border border-brand-border rounded-none px-5 py-4 text-brand-text-primary text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-brand-accent transition-colors placeholder:text-brand-text-secondary/30"
                                         value={form.price} 
                                         onChange={(e)=>handleChange('price', e.target.value)} 
                                         placeholder="0.00"
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-1.5">
-                                <label className="text-slate-400 text-xs font-medium uppercase tracking-wider pl-1">Stock Units</label>
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest block">Archive Stock</label>
                                 <div className="relative group">
-                                    <Package className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
                                     <input 
                                         type="number"
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-slate-600"
+                                        className="w-full bg-white border border-brand-border rounded-none px-5 py-4 text-brand-text-primary text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-brand-accent transition-colors placeholder:text-brand-text-secondary/30"
                                         value={form.stock} 
                                         onChange={(e)=>handleChange('stock', parseInt(e.target.value) || 0)} 
                                         placeholder="0"
@@ -156,29 +153,29 @@ const EditProduct = ({ token }) => {
                             </div>
                         </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-slate-400 text-xs font-medium uppercase tracking-wider pl-1">Description</label>
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest block">Analysis Description</label>
                             <textarea 
-                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors placeholder-slate-600 min-h-[120px]"
+                                className="w-full bg-white border border-brand-border rounded-none px-5 py-4 text-brand-text-primary text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-brand-accent transition-colors placeholder:text-brand-text-secondary/30 min-h-[140px] leading-relaxed"
                                 rows="4" 
                                 value={form.description} 
                                 onChange={(e)=>handleChange('description', e.target.value)} 
-                                placeholder="Describe the product..."
+                                placeholder="DESCRIBE ARCHIVE ITEM..."
                             />
                         </div>
 
-                        <div className="space-y-3">
-                            <label className="text-slate-400 text-xs font-medium uppercase tracking-wider pl-1">Available Sizes</label>
-                            <div className="flex flex-wrap gap-2">
+                        <div className="space-y-5">
+                            <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest block">Available Metrics</label>
+                            <div className="flex flex-wrap gap-3">
                                 {["S", "M", "L", "XL", "XXL"].map(s => (
                                     <button 
                                         key={s}
                                         type="button"
                                         onClick={() => handleSizeToggle(s)}
-                                        className={`w-10 h-10 rounded-lg border text-sm font-semibold transition-all ${
+                                        className={`w-12 h-12 rounded-none border text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center ${
                                             form.sizes.includes(s) 
-                                            ? "bg-indigo-600 border-indigo-600 text-white" 
-                                            : "bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white"
+                                            ? "bg-brand-accent border-brand-accent text-white" 
+                                            : "bg-white border-brand-border text-brand-text-secondary hover:border-black hover:text-black"
                                         }`}
                                     >
                                         {s}
@@ -187,10 +184,10 @@ const EditProduct = ({ token }) => {
                             </div>
                         </div>
 
-                        <div className="pt-6 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
-                            <label className="flex items-center gap-3 cursor-pointer group">
-                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${form.bestseller ? "bg-indigo-600 border-indigo-600" : "bg-slate-900 border-slate-700 group-hover:border-slate-500"}`}>
-                                    {form.bestseller && <Check className="w-3.5 h-3.5 text-white" />}
+                        <div className="pt-8 border-t border-brand-border flex flex-wrap items-center justify-between gap-8">
+                            <label className="flex items-center gap-4 cursor-pointer group">
+                                <div className={`w-6 h-6 rounded-none border flex items-center justify-center transition-colors ${form.bestseller ? "bg-brand-accent border-brand-accent" : "bg-white border-brand-border group-hover:border-black"}`}>
+                                    {form.bestseller && <Check className="w-4 h-4 text-white" />}
                                 </div>
                                 <input 
                                     type="checkbox" 
@@ -198,24 +195,24 @@ const EditProduct = ({ token }) => {
                                     checked={form.bestseller} 
                                     onChange={() => handleChange('bestseller', !form.bestseller)}
                                 />
-                                <span className="text-sm text-slate-300 group-hover:text-white transition-colors">Mark as Bestseller</span>
+                                <span className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest group-hover:text-black transition-colors">Mark as Bestseller / Featured</span>
                             </label>
 
-                            <div className="flex gap-3">
+                            <div className="flex gap-4">
                                 <button 
                                     type="button"
                                     onClick={() => navigate(-1)}
-                                    className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                    className="px-8 py-3 bg-white border border-brand-border hover:border-black text-brand-text-secondary hover:text-brand-text-primary text-[10px] font-black uppercase tracking-widest rounded-none transition-all"
                                 >
-                                    Cancel
+                                    Abort
                                 </button>
                                 <button 
                                     type="submit" 
                                     disabled={saving}
-                                    className="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-indigo-600/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="px-10 py-3 bg-brand-accent hover:bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-none transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-3"
                                 >
                                     <Save className="w-4 h-4" />
-                                    {saving ? "Saving..." : "Save Changes"}
+                                    {saving ? "Synchronizing..." : "Commit Changes"}
                                 </button>
                             </div>
                         </div>

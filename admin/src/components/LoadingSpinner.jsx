@@ -1,21 +1,16 @@
 import React from "react";
 import logo from "../assets/logo.png";
 
-const LoadingSpinner = ({ title = "Loading", subtitle = "Please wait..." }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
-    <div className="text-center space-y-6">
-      <img
-        src={logo}
-        alt="App Logo"
-        className="mx-auto opacity-80 animate-spin"
-        style={{
-          height: "clamp(64px, 15vw, 120px)",
-          width: "clamp(64px, 15vw, 120px)",
-        }}
-      />
-      <div className="space-y-2">
-        <p className="text-white font-semibold text-lg">{title}</p>
-        <p className="text-slate-400 text-sm">{subtitle}</p>
+const LoadingSpinner = ({ title = "Synchronizing", subtitle = "Accessing secure databanks..." }) => (
+  <div className="min-h-screen bg-brand-bg flex items-center justify-center px-4 font-sans">
+    <div className="text-center space-y-10">
+      <div className="relative w-16 h-16 mx-auto">
+        <div className="absolute inset-0 border-2 border-brand-border rounded-none"></div>
+        <div className="absolute inset-0 border-2 border-black border-t-transparent rounded-none animate-spin"></div>
+      </div>
+      <div className="space-y-3">
+        <p className="text-brand-text-primary font-black text-xl uppercase tracking-tight italic">{title}</p>
+        <p className="text-brand-text-secondary text-[10px] font-black uppercase tracking-widest">{subtitle}</p>
       </div>
     </div>
   </div>

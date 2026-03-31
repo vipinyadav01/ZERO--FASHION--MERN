@@ -4,38 +4,33 @@
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-const StatCard = ({ title, value, change, icon: Icon, trend = 'up', color = 'indigo' }) => {
-  const colorMap = {
-    indigo: 'bg-indigo-50 text-indigo-600 border-indigo-200',
-    green: 'bg-green-50 text-green-600 border-green-200',
-    blue: 'bg-blue-50 text-blue-600 border-blue-200',
-    purple: 'bg-purple-50 text-purple-600 border-purple-200',
-  };
-
-  const trendColor = trend === 'up' ? 'text-green-600' : 'text-red-600';
+const StatCard = ({ title, value, change, icon: Icon, trend = 'up', color = 'brand' }) => {
+  const trendColor = trend === 'up' ? 'text-emerald-600' : 'text-red-600';
 
   return (
-    <div className={`${colorMap[color]} border rounded-lg p-6 transition-all hover:shadow-lg`}>
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <h3 className="text-2xl font-bold">{value}</h3>
+    <div className="bg-white border border-brand-border rounded-none p-8 transition-all hover:bg-brand-surface group">
+      <div className="flex justify-between items-start mb-6">
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-black text-brand-text-secondary mb-2 uppercase tracking-widest">{title}</p>
+          <h3 className="text-3xl font-black text-brand-text-primary tracking-tighter">{value}</h3>
         </div>
         {Icon && (
-          <div className={`p-3 rounded-lg ${colorMap[color]}`}>
+          <div className="p-4 bg-brand-surface text-brand-text-primary group-hover:bg-brand-accent group-hover:text-white transition-all">
             <Icon className="w-6 h-6" />
           </div>
         )}
       </div>
       {change !== undefined && (
-        <div className="flex items-center gap-1 text-sm">
-          {trend === 'up' ? (
-            <ArrowUpRight className="w-4 h-4 text-green-600" />
-          ) : (
-            <ArrowDownRight className="w-4 h-4 text-red-600" />
-          )}
-          <span className={trendColor}>{Math.abs(change)}%</span>
-          <span className="text-gray-500">from last month</span>
+        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+          <div className={`flex items-center p-1 border ${trend === 'up' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-red-50 border-red-100 text-red-600'}`}>
+            {trend === 'up' ? (
+              <ArrowUpRight className="w-3 h-3" />
+            ) : (
+              <ArrowDownRight className="w-3 h-3" />
+            )}
+            <span>{Math.abs(change).toFixed(1)}%</span>
+          </div>
+          <span className="text-brand-text-secondary opacity-60">vs last period</span>
         </div>
       )}
     </div>

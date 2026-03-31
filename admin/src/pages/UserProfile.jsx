@@ -151,24 +151,24 @@ const UserProfile = ({ token }) => {
   }
 
   return (
-    <div className="min-h-screen p-6 lg:p-10 font-sans text-slate-100">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen p-6 lg:p-10 font-sans text-brand-text-primary bg-brand-bg">
+      <div className="max-w-7xl mx-auto space-y-12">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-brand-border pb-10">
             <div>
-              <h1 className="text-2xl font-bold text-white mb-2">User Management</h1>
-              <p className="text-slate-400 text-sm">View and manage user accounts and permissions.</p>
+              <h1 className="text-3xl font-black text-brand-text-primary mb-2 uppercase tracking-tight">Identity Archive</h1>
+              <p className="text-brand-text-secondary text-[10px] font-black uppercase tracking-widest">Manage operator accounts and customer registrations</p>
             </div>
-            <div className="flex items-center gap-4">
-                <div className="bg-[#0f111a] border border-slate-800 rounded-lg px-4 py-2 flex items-center gap-2">
-                    <Users className="w-4 h-4 text-slate-400" />
-                    <span className="text-white font-medium">{total}</span>
-                    <span className="text-slate-500 text-xs text-uppercase">Total Users</span>
+            <div className="flex items-center gap-6">
+                <div className="bg-white border border-brand-border rounded-none px-6 py-3 flex items-center gap-4">
+                    <Users className="w-4 h-4 text-brand-text-secondary" />
+                    <span className="text-brand-text-primary font-black text-sm">{total}</span>
+                    <span className="text-brand-text-secondary text-[10px] uppercase font-black tracking-widest">Total Registrations</span>
                 </div>
                 <button 
                   onClick={() => fetchUsers(page)} 
-                  className="p-2.5 bg-[#0f111a] border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                  className="p-3 bg-white border border-brand-border text-brand-text-secondary hover:text-black hover:border-black rounded-none transition-all"
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
@@ -176,26 +176,26 @@ const UserProfile = ({ token }) => {
         </div>
 
         {/* Controls */}
-        <div className="bg-[#0f111a] border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="bg-white border border-brand-border rounded-none p-6 flex flex-col md:flex-row gap-6 items-center justify-between">
             <div className="w-full md:max-w-md">
                 <UsersSearch value={searchTerm} onChange={handleSearchChange} onClear={() => setSearchTerm("")} />
             </div>
-            <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+            <div className="flex gap-4 w-full md:w-auto overflow-x-auto pb-4 md:pb-0">
                {[
-                  { id: "all", label: "All Users", icon: Users },
-                  { id: "admin", label: "Admins", icon: ShieldCheck },
-                  { id: "user", label: "Customers", icon: User }
+                  { id: "all", label: "ALL IDENTITIES", icon: Users },
+                  { id: "admin", label: "OPERATORS", icon: ShieldCheck },
+                  { id: "user", label: "CLIENTS", icon: User }
                 ].map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setRoleFilter(tab.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                    className={`flex items-center gap-3 px-6 py-3 rounded-none text-[10px] font-black uppercase tracking-widest transition-all border ${
                       roleFilter === tab.id 
-                      ? "bg-indigo-600 text-white" 
-                      : "text-slate-400 hover:text-white hover:bg-slate-800"
+                      ? "bg-brand-accent text-white border-brand-accent" 
+                      : "bg-white text-brand-text-secondary border-brand-border hover:border-black hover:text-black"
                     }`}
                   >
-                    <tab.icon className="w-4 h-4" />
+                    <tab.icon className="w-3.5 h-3.5" />
                     <span>{tab.label}</span>
                   </button>
                 ))}
@@ -203,22 +203,22 @@ const UserProfile = ({ token }) => {
         </div>
 
         {error ? (
-          <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-8 text-center">
-             <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-4" />
-             <h2 className="text-lg font-bold text-white mb-1">Error Loading Users</h2>
-             <p className="text-slate-400 text-sm">{error}</p>
+          <div className="bg-red-50 border border-red-100 rounded-none p-12 text-center">
+             <AlertCircle className="w-10 h-10 text-red-600 mx-auto mb-4" />
+             <h2 className="text-lg font-black text-red-700 mb-2 uppercase tracking-tight">Access Interrupted</h2>
+             <p className="text-red-600 text-[10px] font-black uppercase tracking-widest">{error}</p>
           </div>
         ) : users.length === 0 ? (
-          <div className="bg-[#0f111a] border border-slate-800 rounded-xl p-12 text-center flex flex-col items-center">
-             <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mb-4 border border-slate-800">
-                <Users className="w-8 h-8 text-slate-600" />
+          <div className="bg-white border border-brand-border rounded-none p-20 text-center flex flex-col items-center">
+             <div className="w-20 h-20 bg-brand-surface rounded-none flex items-center justify-center mb-6 border border-brand-border">
+                <Users className="w-10 h-10 text-brand-text-secondary" />
              </div>
-             <h3 className="text-lg font-medium text-white mb-2">No users found</h3>
-             <p className="text-slate-500 text-sm">Adjust your search or filters to find what you&apos;re looking for.</p>
+             <h3 className="text-xl font-black text-brand-text-primary mb-2 uppercase tracking-tight">No Entities Found</h3>
+             <p className="text-brand-text-secondary text-[10px] font-black uppercase tracking-widest">Adjust filters to reveal archived identities.</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="bg-[#0f111a] border border-slate-800 rounded-xl overflow-hidden">
+          <div className="space-y-12">
+            <div className="bg-white border border-brand-border rounded-none overflow-hidden">
               <UsersTable
                 users={users}
                 formatDate={(d) => new Date(d).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -236,7 +236,7 @@ const UserProfile = ({ token }) => {
               />
             </div>
 
-            <div className="flex justify-center border-t border-slate-800/50 pt-6">
+            <div className="flex justify-center border-t border-brand-border pt-10 pb-10">
                <UsersPagination
                 page={page}
                 totalPages={totalPages}

@@ -103,9 +103,9 @@ const Hero = () => {
 
   return (
     <section 
-      className="relative w-full overflow-hidden bg-white mt-14 sm:mt-16"
+      className="relative w-full overflow-hidden bg-white"
       style={{ 
-        height: 'calc(100vh - 56px)',
+        height: 'calc(100vh - 64px)',
       }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -147,7 +147,7 @@ const Hero = () => {
       </div>
 
       {/* Main Content - Cleaner Layout */}
-      <div className="relative z-10 h-full flex flex-col justify-between px-4 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-10">
+      <div className="relative z-10 h-full flex flex-col justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4 lg:py-6">
         
         {/* Top Section - Empty spacer */}
         <div className="flex-shrink-0"></div>

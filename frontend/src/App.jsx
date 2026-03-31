@@ -40,9 +40,9 @@ const App = () => {
 
     useEffect(() => {
         handleResize();
-        
+
         window.addEventListener("resize", handleResize);
-        
+
         return () => window.removeEventListener("resize", handleResize);
     }, [handleResize]);
 
@@ -78,7 +78,7 @@ const App = () => {
                 <div className="flex-grow flex flex-col">
                     <Navbar />
 
-                    <main className="flex-grow px-4 sm:px-6 lg:px-8 pt-0 pb-0 sm:pt-2 sm:pb-4 lg:pt-3 lg:pb-6">
+                    <main className="flex-grow pt-14 sm:pt-16 pb-0">
                         <Routes>
                             <Route path="/" element={<Home />} />
                             <Route path="/collection" element={<Collection />} />
@@ -92,14 +92,14 @@ const App = () => {
                             <Route path="/support" element={<Support />} />
                             <Route path="/track-order" element={<TrackOrder />} />
                             <Route path="/TrackOrder" element={<TrackOrder />} /> {/* Legacy route */}
-                            
+
                             <Route path="/place-order" element={<PlaceOrder />} />
                             <Route path="/order" element={<Orders />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/edit-profile" element={<EditProfile />} />
                             <Route path="/wishlist" element={<Wishlist />} />
                             <Route path="/notifications" element={<Notification />} />
-                            
+
                             {/* Catch-all route for 404 */}
                             <Route path="*" element={
                                 <div className="flex items-center justify-center min-h-[60vh]">

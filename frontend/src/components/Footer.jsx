@@ -60,7 +60,7 @@ const SocialIcon = memo(({ href, icon: Icon, label }) => (
         rel="noopener noreferrer"
         whileHover={animations.socialHover}
         whileTap={animations.tap}
-        className="text-stone-600 hover:text-stone-900 transition-colors duration-300 p-3 bg-stone-100 rounded-xl border border-stone-200 hover:bg-stone-200 hover:shadow-md" // Softer background, more defined border
+        className="text-brand-text-secondary hover:text-brand-text-primary transition-colors duration-300 p-3 bg-brand-surface border border-brand-border hover:bg-white hover:shadow-sm" // Minimalist palette
         aria-label={label}
     >
         <Icon size={20} />
@@ -116,12 +116,12 @@ const Newsletter = memo(() => {
 
     return (
         <div className="mb-8 max-w-md">
-            <h3 className="text-lg font-semibold mb-4 text-stone-900 font-outfit">Subscribe to Our Newsletter</h3>
+            <h3 className="text-lg font-semibold mb-4 text-brand-text-primary">Subscribe to Our Newsletter</h3>
             <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
                 <input
                     type="email"
                     placeholder="Enter your email"
-                    className="px-4 py-3.5 rounded-xl border-2 border-stone-200 focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 flex-grow bg-stone-50 text-stone-800 placeholder-stone-500 font-outfit transition-all duration-300"
+                    className="px-4 py-3.5 rounded-none border border-brand-border focus:outline-none focus:ring-1 focus:ring-brand-accent flex-grow bg-white text-brand-text-primary placeholder-brand-text-secondary transition-all duration-300"
                     required
                     name="email"
                 />
@@ -129,7 +129,7 @@ const Newsletter = memo(() => {
                     type="submit"
                     whileHover={animations.hover}
                     whileTap={animations.tap}
-                    className="bg-gradient-to-r from-stone-800 via-stone-900 to-stone-950 text-white px-6 py-3.5 rounded-xl hover:from-stone-900 hover:to-black transition-all duration-300 font-semibold shadow-lg hover:shadow-xl" // Increased padding, more prominent hover shadow
+                    className="bg-brand-accent text-white px-8 py-3.5 rounded-none hover:bg-black transition-all duration-300 font-semibold shadow-none uppercase text-xs tracking-wider" // Bloom style buttons are often flat and sharp
                 >
                     Subscribe
                 </motion.button>
@@ -184,16 +184,16 @@ const Footer = () => {
                                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
                             />
                             <div className="flex flex-col">
-                                <span className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent font-asterion bg-gradient-to-r from-stone-700 to-stone-900 font-outfit"> {/* Darker gradient for text */}
-                                    ZERO FASHION
+                                <span className="text-lg sm:text-xl font-bold text-brand-text-primary tracking-tight">
+                                    ZERO
                                 </span>
-                                <span className="text-xs sm:text-sm text-stone-600 font-asterion font-medium tracking-wide">
-                                    Style Meets Sustainability
+                                <span className="text-[10px] sm:text-xs text-brand-text-secondary tracking-widest -mt-1 uppercase">
+                                    FASHION
                                 </span>
                             </div>
                         </div>
 
-                        <p className="text-stone-700 mb-8 sm:mb-10 max-w-md leading-relaxed font-outfit text-sm sm:text-base">
+                        <p className="text-brand-text-secondary mb-8 sm:mb-10 max-w-md leading-relaxed text-sm sm:text-base">
                             Welcome to Zero Fashion–where style meets sustainability. Discover
                             trendy, eco-friendly apparel designed to elevate your wardrobe
                             while caring for the planet. Join us in making fashion more
@@ -215,7 +215,7 @@ const Footer = () => {
                     </div>
 
                     <div className="order-2 sm:order-none">
-                        <h3 className="text-lg sm:text-xl font-semibold mb-5 sm:mb-7 text-stone-900 font-outfit">Company</h3> {/* Larger heading, adjusted margin */}
+                        <h3 className="text-lg sm:text-xl font-semibold mb-5 sm:mb-7 text-brand-text-primary">Company</h3>
                         <ul className="space-y-3 sm:space-y-4">
                             {companyLinks.map((link) => (
                                 <FooterLink
@@ -230,31 +230,31 @@ const Footer = () => {
                     </div>
 
                     <div className="order-3 sm:order-none">
-                        <h3 className="text-lg sm:text-xl font-semibold mb-5 sm:mb-7 text-stone-900 font-outfit">Get in Touch</h3> {/* Larger heading, adjusted margin */}
-                        <ul className="space-y-4 sm:space-y-5 text-stone-700"> 
+                        <h3 className="text-lg sm:text-xl font-semibold mb-5 sm:mb-7 text-brand-text-primary">Get in Touch</h3>
+                        <ul className="space-y-4 sm:space-y-5 text-brand-text-secondary"> 
                             <li className="flex items-center gap-4">
-                                <div className="p-2.5 bg-stone-100 rounded-full flex-shrink-0 border border-stone-200 shadow-sm"> {/* Circular, softer icon background */}
-                                    <Phone size={15} className="text-stone-700" /> {/* Icon color adjusted */}
+                                <div className="p-2.5 bg-brand-surface rounded-none flex-shrink-0 border border-brand-border">
+                                    <Phone size={15} className="text-brand-text-primary" />
                                 </div>
                                 <motion.span whileHover={{ x: 5 }} className="inline-block font-medium text-sm sm:text-base">
                                     +91-9918572513
                                 </motion.span>
                             </li>
-                            <li className="flex items-center gap-4"> {/* Adjusted gap */}
-                                <div className="p-2.5 bg-stone-100 rounded-full flex-shrink-0 border border-stone-200 shadow-sm"> {/* Circular, softer icon background */}
-                                    <Mail size={15} className="text-stone-700" /> {/* Icon color adjusted */}
+                            <li className="flex items-center gap-4">
+                                <div className="p-2.5 bg-brand-surface rounded-none flex-shrink-0 border border-brand-border">
+                                    <Mail size={15} className="text-brand-text-primary" />
                                 </div>
-                                <motion.a
+                                <a
                                     href="mailto:VipinYadav9m@gmail.com"
                                     whileHover={{ x: 5 }}
-                                    className="inline-block text-stone-700 hover:text-stone-900 transition-colors duration-300 font-medium text-sm sm:text-base break-all"
+                                    className="inline-block text-brand-text-secondary hover:text-brand-text-primary transition-colors duration-300 font-medium text-sm sm:text-base break-all"
                                 >
                                     VipinYadav9m@gmail.com
-                                </motion.a>
+                                </a>
                             </li>
-                            <li className="flex items-start gap-4"> {/* Adjusted gap */}
-                                <div className="p-2.5 bg-stone-100 rounded-full flex-shrink-0 border border-stone-200 shadow-sm"> {/* Circular, softer icon background */}
-                                    <MapPin size={15} className="text-stone-700 mt-0.5" /> {/* Icon color adjusted */}
+                            <li className="flex items-start gap-4">
+                                <div className="p-2.5 bg-brand-surface rounded-none flex-shrink-0 border border-brand-border">
+                                    <MapPin size={15} className="text-brand-text-primary mt-0.5" />
                                 </div>
                                 <motion.span whileHover={{ x: 5 }} className="inline-block font-medium text-sm sm:text-base">
                                     123 Fashion Street,
@@ -266,8 +266,8 @@ const Footer = () => {
                     </div>
                 </div>
 
-                <div className="border-t border-stone-200 pt-6 sm:pt-8 mt-8"> {/* Added top border and increased margin */}
-                    <div className="bg-stone-100 p-4 sm:p-5 rounded-xl shadow-inner border border-stone-200 flex flex-col sm:flex-row justify-between items-center gap-4"> {/* Distinct bottom section styling */}
+                <div className="border-t border-brand-border pt-6 sm:pt-8 mt-8">
+                    <div className="bg-brand-surface p-4 sm:p-5 rounded-none border border-brand-border flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="text-xs sm:text-sm text-stone-600 text-center sm:text-left">
                             <p className="font-medium mb-1">&copy; {currentYear} zerofashion.vercel.app - All Rights Reserved.</p>
                             <p className="flex items-center justify-center sm:justify-start gap-1">Designed with <Heart size={12} className="inline text-red-500" /> by {" "}

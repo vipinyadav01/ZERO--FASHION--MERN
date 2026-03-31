@@ -185,80 +185,80 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white flex">
+    <div className="min-h-screen bg-brand-bg flex">
       {/* Left Section - Benefits (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-900 to-black flex-col justify-center items-start p-12 text-white relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-brand-accent flex-col justify-center items-start p-12 text-white relative overflow-hidden">
         {/* Decorative shapes */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gray-800/20 rounded-full -mr-48 -mt-48"></div>
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-gray-950/30 rounded-full -ml-36 -mb-36"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -mr-48 -mt-48"></div>
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/5 rounded-full -ml-36 -mb-36"></div>
         
         <div className="relative z-10">
           {/* Logo Section */}
           <div className="mb-16">
-            <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-4 shadow-lg">
-              <span className="text-xl font-bold text-black font-asterion">Z</span>
+            <div className="w-12 h-12 bg-white flex items-center justify-center mb-4">
+              <span className="text-xl font-bold text-brand-accent">Z</span>
             </div>
-            <h2 className="text-4xl font-bold font-asterion">ZERO Fashion</h2>
-            <p className="text-gray-300 mt-2 text-lg">Your Style, Your Way</p>
+            <h2 className="text-4xl font-bold tracking-tight uppercase">ZERO Fashion</h2>
+            <p className="text-white/80 mt-2 text-lg">Your Style, Your Way</p>
           </div>
 
           {/* Benefits List */}
           <div className="space-y-8 mb-16">
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-white/10 backdrop-blur-md">
+                <div className="flex items-center justify-center h-12 w-12 border border-white/20 bg-white/5 backdrop-blur-md">
                   <Truck className="h-6 w-6" />
                 </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Fast Shipping</h3>
-                <p className="text-gray-300 mt-1">Free delivery on orders above ₹499</p>
+                <h3 className="text-lg font-semibold uppercase tracking-wide">Fast Shipping</h3>
+                <p className="text-white/70 mt-1">Free delivery on orders above ₹499</p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-white/10 backdrop-blur-md">
+                <div className="flex items-center justify-center h-12 w-12 border border-white/20 bg-white/5 backdrop-blur-md">
                   <RotateCcw className="h-6 w-6" />
                 </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Easy Returns</h3>
-                <p className="text-gray-300 mt-1">30-day return policy, hassle-free</p>
+                <h3 className="text-lg font-semibold uppercase tracking-wide">Easy Returns</h3>
+                <p className="text-white/70 mt-1">30-day return policy, hassle-free</p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-white/10 backdrop-blur-md">
+                <div className="flex items-center justify-center h-12 w-12 border border-white/20 bg-white/5 backdrop-blur-md">
                   <Shield className="h-6 w-6" />
                 </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Secure Payment</h3>
-                <p className="text-gray-300 mt-1">SSL encrypted, 100% safe transactions</p>
+                <h3 className="text-lg font-semibold uppercase tracking-wide">Secure Payment</h3>
+                <p className="text-white/70 mt-1">SSL encrypted, 100% safe transactions</p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-white/10 backdrop-blur-md">
+                <div className="flex items-center justify-center h-12 w-12 border border-white/20 bg-white/5 backdrop-blur-md">
                   <Zap className="h-6 w-6" />
                 </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Exclusive Deals</h3>
-                <p className="text-gray-300 mt-1">Members get up to 50% off</p>
+                <h3 className="text-lg font-semibold uppercase tracking-wide">Exclusive Deals</h3>
+                <p className="text-white/70 mt-1">Members get up to 50% off</p>
               </div>
             </div>
           </div>
 
           {/* Social Proof */}
-          <div className="pt-8 border-t border-white/20">
-            <p className="text-sm text-gray-300 mb-4">Trusted by 1M+ customers</p>
+          <div className="pt-8 border-t border-white/10">
+            <p className="text-sm text-white/60 mb-4 uppercase tracking-widest font-medium">Trusted by 1M+ customers</p>
             <div className="flex space-x-2">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 border-2 border-white/50 flex items-center justify-center text-xs font-bold text-white">
+                <div key={i} className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-xs font-bold text-white">
                   ★
                 </div>
               ))}
@@ -268,22 +268,22 @@ const Login = () => {
       </div>
 
       {/* Right Section - Login Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-8 lg:px-12 py-12 bg-white">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-8 lg:px-12 py-12 bg-brand-bg">
         <div className="max-w-md mx-auto w-full">
           {/* Mobile Header Logo */}
           <div className="lg:hidden mb-8 flex items-center space-x-2">
-            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-              <span className="text-lg font-bold text-white font-asterion">Z</span>
+            <div className="w-8 h-8 bg-brand-accent flex items-center justify-center">
+              <span className="text-lg font-bold text-white">Z</span>
             </div>
-            <span className="text-xl font-bold text-gray-900 font-asterion">ZERO</span>
+            <span className="text-xl font-bold text-brand-text-primary tracking-tight">ZERO</span>
           </div>
 
           {/* Form Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-brand-text-primary mb-2 uppercase tracking-tight">
               {isLoginMode ? "Sign In" : "Create Account"}
             </h1>
-            <p className="text-gray-600">
+            <p className="text-brand-text-secondary">
               {isLoginMode 
                 ? "Welcome back! Sign in to continue shopping" 
                 : "Join millions of shoppers at ZERO Fashion"}
@@ -294,89 +294,89 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             {!isLoginMode && (
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
+                <label className="block text-sm font-medium text-brand-text-primary mb-2 uppercase tracking-wide">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+                  <User className="absolute left-4 top-3.5 h-5 w-5 text-brand-text-secondary" />
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                    className={`w-full pl-11 pr-4 py-3 border rounded-none focus:outline-none focus:ring-1 transition-all ${
                       errors.name 
-                        ? "border-red-300 focus:ring-red-200 bg-red-50" 
-                        : "border-gray-300 focus:ring-gray-200 focus:border-gray-400"
-                    } placeholder-gray-400 font-outfit`}
+                        ? "border-red-500 focus:ring-red-100 bg-red-50" 
+                        : "border-brand-border focus:ring-brand-accent focus:border-brand-accent bg-white"
+                    } placeholder-brand-text-secondary`}
                     placeholder="John Doe"
                     autoComplete="name"
                   />
                 </div>
                 {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                  <p className="mt-1 text-sm text-red-600 font-medium">{errors.name}</p>
                 )}
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">
+              <label className="block text-sm font-medium text-brand-text-primary mb-2 uppercase tracking-wide">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-4 top-3.5 h-5 w-5 text-brand-text-secondary" />
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                  className={`w-full pl-11 pr-4 py-3 border rounded-none focus:outline-none focus:ring-1 transition-all ${
                     errors.email 
-                      ? "border-red-300 focus:ring-red-200 bg-red-50" 
-                      : "border-gray-300 focus:ring-gray-200 focus:border-gray-400"
-                  } placeholder-gray-400 font-outfit`}
+                      ? "border-red-500 focus:ring-red-100 bg-red-50" 
+                      : "border-brand-border focus:ring-brand-accent focus:border-brand-accent bg-white"
+                  } placeholder-brand-text-secondary`}
                   placeholder="you@example.com"
                   autoComplete="email"
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                <p className="mt-1 text-sm text-red-600 font-medium">{errors.email}</p>
               )}
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-900">
+                <label className="block text-sm font-medium text-brand-text-primary uppercase tracking-wide">
                   Password
                 </label>
                 {isLoginMode && (
                   <button
                     type="button"
-                    className="text-sm text-gray-700 hover:text-black font-medium transition"
+                    className="text-sm text-brand-text-secondary hover:text-brand-text-primary font-medium transition"
                   >
                     Forgot?
                   </button>
                 )}
               </div>
               <div className="relative">
-                <Lock className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-4 top-3.5 h-5 w-5 text-brand-text-secondary" />
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full pl-11 pr-11 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                  className={`w-full pl-11 pr-11 py-3 border rounded-none focus:outline-none focus:ring-1 transition-all ${
                     errors.password 
-                      ? "border-red-300 focus:ring-red-200 bg-red-50" 
-                      : "border-gray-300 focus:ring-gray-200 focus:border-gray-400"
-                  } placeholder-gray-400 font-outfit`}
+                      ? "border-red-500 focus:ring-red-100 bg-red-50" 
+                      : "border-brand-border focus:ring-brand-accent focus:border-brand-accent bg-white"
+                  } placeholder-brand-text-secondary`}
                   placeholder="••••••••"
                   autoComplete={isLoginMode ? "current-password" : "new-password"}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600 transition"
+                  className="absolute right-4 top-3.5 text-brand-text-secondary hover:text-brand-text-primary transition"
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -386,14 +386,14 @@ const Login = () => {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                <p className="mt-1 text-sm text-red-600 font-medium">{errors.password}</p>
               )}
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 mt-8 bg-black text-white font-semibold rounded-lg hover:bg-gray-900 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-gray-300 flex items-center justify-center space-x-2"
+              className="w-full py-4 px-4 mt-8 bg-brand-accent text-white font-semibold rounded-none hover:bg-black transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-brand-accent flex items-center justify-center space-x-2 uppercase tracking-widest text-sm"
             >
               {isLoading ? (
                 <>
@@ -415,11 +415,11 @@ const Login = () => {
           {/* Divider */}
           <div className="relative mt-8 mb-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t border-brand-border"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">
-                {isLoginMode ? "Don't have an account?" : "Already have an account?"}
+              <span className="px-4 bg-brand-bg text-brand-text-secondary uppercase tracking-widest text-[10px] font-bold">
+                {isLoginMode ? "New customer?" : "Have an account?"}
               </span>
             </div>
           </div>
@@ -428,17 +428,17 @@ const Login = () => {
           <button
             type="button"
             onClick={toggleAuthMode}
-            className="w-full py-3 px-4 border-2 border-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="w-full py-4 px-4 border border-brand-border text-brand-text-primary font-semibold rounded-none hover:bg-brand-surface transition-all focus:outline-none focus:ring-1 focus:ring-brand-accent uppercase tracking-widest text-sm"
           >
             {isLoginMode ? "Create new account" : "Sign in instead"}
           </button>
 
           {/* Footer Text */}
-          <p className="mt-8 text-center text-xs text-gray-500">
+          <p className="mt-8 text-center text-[10px] text-brand-text-secondary uppercase tracking-widest">
             By continuing, you agree to our{" "}
-            <button className="text-gray-900 hover:underline font-medium">Terms of Service</button>
+            <button className="text-brand-text-primary hover:underline font-bold">Terms of Service</button>
             {" "}and{" "}
-            <button className="text-gray-900 hover:underline font-medium">Privacy Policy</button>
+            <button className="text-brand-text-primary hover:underline font-bold">Privacy Policy</button>
           </p>
         </div>
       </div>

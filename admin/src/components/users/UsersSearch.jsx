@@ -3,22 +3,22 @@ import PropTypes from "prop-types";
 
 const UsersSearch = ({ value, onChange, onClear }) => {
   return (
-    <div className="flex flex-col sm:flex-row gap-3">
+    <div className="flex flex-col sm:flex-row gap-4">
       <div className="relative flex-1 group">
-        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-secondary group-focus-within:text-black transition-colors" />
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-slate-900 border border-slate-800 text-white rounded-[2rem] pl-14 pr-12 py-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all font-bold tracking-tight placeholder-slate-600"
-          placeholder="SEARCH IDENTITY BY NAME OR EMAIL NODE..."
+          className="w-full bg-white border border-brand-border text-brand-text-primary rounded-none pl-12 pr-12 py-4 focus:outline-none focus:border-brand-accent transition-all text-[10px] font-black uppercase tracking-widest placeholder:text-brand-text-secondary/30"
+          placeholder="SEARCH IDENTITY ARCHIVE..."
         />
         {value && (
           <button
             onClick={onClear}
-            className="absolute right-6 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-slate-800 text-slate-500 transition-all"
+            className="absolute right-5 top-1/2 -translate-y-1/2 p-2 rounded-none hover:bg-brand-surface text-brand-text-secondary transition-all"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         )}
       </div>

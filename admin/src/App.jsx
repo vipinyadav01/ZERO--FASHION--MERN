@@ -33,7 +33,7 @@ ProtectedRoute.propTypes = {
 const DashboardLayout = ({ children, onLogout }) => {
   const [sidebarWidth, setSidebarWidth] = useState(80);
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-brand-bg">
       <Sidebar onWidthChange={setSidebarWidth} onLogout={onLogout} />
       <Notification />
       <main
@@ -116,10 +116,10 @@ const App = () => {
         closeOnClick={true}
         pauseOnHover={true}
         draggable={false}
-        theme="dark"
+        theme="light"
         className="!top-20 !right-4 !left-4 sm:!left-auto sm:!right-4"
-        toastClassName="!bg-slate-800/95 !backdrop-blur-xl !border !border-slate-700/50 !text-white !rounded-xl !shadow-2xl"
-        progressClassName="!bg-gradient-to-r !from-indigo-500 !to-purple-500"
+        toastClassName="!bg-white !border !border-brand-border !text-brand-text-primary !rounded-none !shadow-xl"
+        progressClassName="!bg-brand-accent"
       />
       <Routes>
         {/* Public Routes */}
@@ -141,7 +141,6 @@ const App = () => {
           { path: "/add", Component: Add },
           { path: "/list", Component: List },
           { path: "/orders", Component: Order },
-          { path: "/order-charts", Component: OrderCharts },
           { path: "/users", Component: UserProfile },
           { path: "/edit/:id", Component: EditProduct },
           { path: "/admin-create", Component: CreateAdmin},

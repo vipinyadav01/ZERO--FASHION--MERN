@@ -7,25 +7,25 @@ const NotFound = () => {
   const isAuthenticated = !!sessionStorage.getItem("token");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-3 py-6">
+    <div className="min-h-screen bg-brand-bg flex items-center justify-center px-4 py-8 font-sans">
       <div className="max-w-md w-full">
-        <div className="relative overflow-hidden rounded-2xl bg-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-6 text-center">
-          <div className="space-y-4">
-            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-red-500/20 to-red-600/20 flex items-center justify-center">
-              <AlertCircle className="w-8 h-8 text-red-400" />
+        <div className="relative overflow-hidden rounded-none bg-white border border-brand-border shadow-none p-10 text-center">
+          <div className="space-y-8">
+            <div className="w-20 h-20 mx-auto rounded-none bg-brand-surface border border-brand-border flex items-center justify-center">
+              <AlertCircle className="w-10 h-10 text-brand-text-secondary" />
             </div>
-            <div className="space-y-2">
-              <h1 className="text-4xl font-bold text-white">404</h1>
-              <h2 className="text-lg font-semibold text-slate-300">Page Not Found</h2>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                The page you're looking for doesn't exist or has been moved.
+            <div className="space-y-4">
+              <h1 className="text-6xl font-black text-brand-text-primary tracking-tighter italic">404</h1>
+              <h2 className="text-sm font-black text-brand-text-secondary uppercase tracking-[0.2em]">Resource Depleted</h2>
+              <p className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest leading-relaxed">
+                The requested coordinate does not exist within the current archive parameters.
               </p>
             </div>
             <button
               onClick={() => navigate(isAuthenticated ? "/dashboard" : "/login")}
-              className="w-full mt-6 py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 active:scale-95"
+              className="w-full mt-8 py-4 px-6 bg-brand-accent text-white text-[10px] font-black uppercase tracking-widest rounded-none hover:bg-black transition-all active:scale-95"
             >
-              Go to {isAuthenticated ? "Dashboard" : "Login"}
+              Return to {isAuthenticated ? "Command Center" : "Access Portal"}
             </button>
           </div>
         </div>

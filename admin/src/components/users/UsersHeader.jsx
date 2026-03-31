@@ -3,34 +3,34 @@ import { Users, RefreshCw } from "lucide-react";
 const UsersHeader = ({ total, loading, onRefresh, onAddSample, isSubmitting }) => {
   const isProd = import.meta.env.PROD;
   return (
-    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-xl border border-slate-600/50 shadow-2xl p-4 sm:p-6">
-      <div className="space-y-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-500/20">
-              <Users className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-400" />
+    <div className="relative overflow-hidden rounded-none bg-white border border-brand-border p-6 sm:p-10">
+      <div className="space-y-6">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex items-center gap-6">
+            <div className="p-3 bg-brand-surface border border-brand-border">
+              <Users className="h-6 w-6 text-brand-text-primary" />
             </div>
             <div>
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">User Management</h1>
-              <p className="text-xs sm:text-sm text-slate-400">{total} users total</p>
+              <h1 className="text-2xl font-black text-brand-text-primary uppercase tracking-tight italic">Personnel Log</h1>
+              <p className="text-[10px] font-black text-brand-text-secondary uppercase tracking-[0.2em]">{total} Identities Indexed</p>
             </div>
           </div>
-          <div className="flex gap-2 flex-wrap justify-end">
+          <div className="flex gap-4 flex-wrap justify-end">
             {!isProd && (
               <button
                 onClick={onAddSample}
                 disabled={isSubmitting}
-                className="p-2 sm:p-3 rounded-xl bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600 disabled:opacity-50 transition-all text-xs sm:text-sm font-medium px-3 w-full sm:w-auto"
+                className="px-6 py-3 bg-white border border-brand-border text-brand-text-primary hover:bg-black hover:text-white disabled:opacity-30 transition-all text-[10px] font-black uppercase tracking-widest w-full sm:w-auto rounded-none"
               >
-                Add Sample Users
+                Inject Sample Data
               </button>
             )}
             <button
               onClick={onRefresh}
               disabled={loading}
-              className="p-2 sm:p-3 rounded-xl bg-slate-700/50 border border-slate-600/50 text-slate-300 hover:text-white hover:bg-slate-600/50 disabled:opacity-50 transition-all w-full sm:w-auto"
+              className="p-3.5 bg-white border border-brand-border text-brand-text-secondary hover:text-black hover:border-black disabled:opacity-30 transition-all w-full sm:w-auto rounded-none"
             >
-              <RefreshCw className={`h-4 w-4 sm:h-5 sm:w-5 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
         </div>

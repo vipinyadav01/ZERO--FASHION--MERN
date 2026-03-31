@@ -158,93 +158,93 @@ const Notification = () => {
 
     const getIcon = (type) => {
         switch (type) {
-            case 'order': return <ShoppingCart className="h-4 w-4 text-indigo-400" />;
-            case 'stock': return <Package className="h-4 w-4 text-amber-500" />;
-            case 'user': return <User className="h-4 w-4 text-emerald-400" />;
-            default: return <AlertCircle className="h-4 w-4 text-slate-400" />;
+            case 'order': return <ShoppingCart className="h-4 w-4 text-black" />;
+            case 'stock': return <Package className="h-4 w-4 text-black" />;
+            case 'user': return <User className="h-4 w-4 text-black" />;
+            default: return <AlertCircle className="h-4 w-4 text-brand-text-secondary" />;
         }
     };
 
     return (
-        <div className="fixed top-6 right-6 z-[100]" ref={notificationRef}>
+        <div className="fixed top-8 right-8 z-[100]" ref={notificationRef}>
             <div className="relative group">
                 <button
                     onClick={() => setShowNotifications(!showNotifications)}
-                    className={`relative p-3 rounded-xl bg-[#0f111a] border transition-all duration-200 shadow-lg hover:bg-slate-800 ${showNotifications ? "border-indigo-500 text-white" : "border-slate-800 text-slate-400"}`}
+                    className={`relative p-3.5 rounded-none bg-white border transition-all duration-300 shadow-none hover:border-black ${showNotifications ? "border-black text-black" : "border-brand-border text-brand-text-secondary"}`}
                     aria-label="Notifications"
                 >
                     <Bell className="h-5 w-5" />
                     {unreadCount > 0 && (
-                        <div className="absolute -top-1 -right-1 h-5 w-5 bg-indigo-600 rounded-full border-2 border-[#0f111a] flex items-center justify-center">
-                            <span className="text-[10px] font-bold text-white">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                        <div className="absolute -top-2 -right-2 h-6 w-6 bg-black rounded-none border-2 border-white flex items-center justify-center">
+                            <span className="text-[10px] font-black text-white">{unreadCount > 9 ? '9+' : unreadCount}</span>
                         </div>
                     )}
                 </button>
 
                 {/* Dropdown */}
                 {showNotifications && (
-                    <div className="absolute top-full right-0 mt-4 w-80 sm:w-96 bg-[#0f111a] border border-slate-800 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute top-full right-0 mt-6 w-80 sm:w-96 bg-white border border-brand-border rounded-none shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
                         
                         {/* Header */}
-                        <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
-                            <h3 className="text-white font-semibold text-sm">Notifications</h3>
-                            <div className="flex items-center gap-2">
-                                <button onClick={fetchNotifications} disabled={isLoading} className="p-1.5 text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800">
-                                    <RefreshCcw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+                        <div className="p-5 border-b border-brand-border flex items-center justify-between bg-brand-surface">
+                            <h3 className="text-brand-text-primary font-black text-[10px] uppercase tracking-widest">Protocol Alerts</h3>
+                            <div className="flex items-center gap-4">
+                                <button onClick={fetchNotifications} disabled={isLoading} className="p-2 text-brand-text-secondary hover:text-black transition-colors rounded-none hover:bg-white border hover:border-brand-border">
+                                    <RefreshCcw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
                                 </button>
                                 {unreadCount > 0 && (
-                                    <button onClick={markAllAsRead} className="px-2 py-1 text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
-                                        Mark all read
+                                    <button onClick={markAllAsRead} className="text-[9px] font-black uppercase tracking-widest text-brand-text-secondary hover:text-black transition-colors underline underline-offset-4">
+                                        Clear Archive
                                     </button>
                                 )}
                             </div>
                         </div>
 
                         {/* List Section */}
-                        <div className="max-h-[24rem] overflow-y-auto custom-scrollbar">
+                        <div className="max-h-[28rem] overflow-y-auto custom-scrollbar">
                             {notifications.length === 0 ? (
-                                <div className="py-12 text-center">
-                                    <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-3">
-                                        <Bell className="h-6 w-6 text-slate-600" />
+                                <div className="py-16 text-center">
+                                    <div className="w-16 h-16 bg-brand-surface border border-brand-border rounded-none flex items-center justify-center mx-auto mb-6">
+                                        <Bell className="h-8 w-8 text-brand-text-secondary/30" />
                                     </div>
-                                    <p className="text-slate-500 text-sm">No new notifications</p>
+                                    <p className="text-brand-text-secondary text-[10px] font-black uppercase tracking-widest">No Active Transmissions</p>
                                 </div>
                             ) : (
-                                <div className="divide-y divide-slate-800">
+                                <div className="divide-y divide-brand-border">
                                     {notifications.map((n) => (
                                         <div
                                             key={n._id || n.id}
                                             onClick={() => markAsRead(n)}
-                                            className={`group relative p-4 transition-colors cursor-pointer hover:bg-slate-900/50 ${
-                                                n.read ? 'opacity-70' : 'bg-indigo-900/10'
+                                            className={`group relative p-5 transition-all cursor-pointer hover:bg-brand-surface ${
+                                                n.read ? 'opacity-40' : 'bg-white'
                                             }`}
                                         >
-                                            <div className="flex items-start gap-3">
-                                                <div className={`mt-0.5 p-2 rounded-lg ${n.read ? "bg-slate-800" : "bg-slate-800/80"} shrink-0`}>
+                                            <div className="flex items-start gap-5">
+                                                <div className={`mt-0.5 p-2.5 rounded-none border ${n.read ? "bg-brand-surface border-brand-border" : "bg-white border-black"} shrink-0 transition-colors`}>
                                                     {getIcon(n.type)}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center justify-between gap-2 mb-0.5">
-                                                        <p className={`text-sm font-medium truncate ${n.read ? 'text-slate-400' : 'text-slate-200'}`}>
+                                                    <div className="flex items-center justify-between gap-3 mb-1.5">
+                                                        <p className={`text-[10px] font-black uppercase tracking-tight truncate ${n.read ? 'text-brand-text-secondary' : 'text-brand-text-primary'}`}>
                                                             {n.title}
                                                         </p>
-                                                        <span className="text-[10px] text-slate-500 whitespace-nowrap">
+                                                        <span className="text-[8px] font-black uppercase tracking-widest text-brand-text-secondary whitespace-nowrap">
                                                             {formatTime(n.createdAt || n.time)}
                                                         </span>
                                                     </div>
-                                                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-brand-text-secondary/70 line-clamp-2 leading-relaxed">
                                                         {n.message}
                                                     </p>
                                                 </div>
                                                 <button 
                                                     onClick={(e) => deleteItem(n, e)}
-                                                    className="p-1.5 text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 rounded opacity-0 group-hover:opacity-100 transition-all self-center"
+                                                    className="p-2 text-brand-text-secondary hover:text-red-600 border border-transparent hover:border-red-100 rounded-none opacity-0 group-hover:opacity-100 transition-all self-center"
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 className="h-3.5 w-3.5" />
                                                 </button>
                                             </div>
                                             {!n.read && (
-                                                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-500"></div>
+                                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-black"></div>
                                             )}
                                         </div>
                                     ))}

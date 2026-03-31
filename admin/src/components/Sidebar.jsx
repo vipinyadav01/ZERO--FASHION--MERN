@@ -75,13 +75,12 @@ const Sidebar = ({ onWidthChange, onLogout }) => {
         { path: "/add", icon: PlusCircle, label: "Add Product" },
         { path: "/list", icon: ListTodo, label: "Products" },
         { path: "/orders", icon: ShoppingCart, label: "Orders" },
-        { path: "/order-charts", icon: BarChart3, label: "Analytics" },
         { path: "/admin-create", icon: ShieldCheck, label: "Create Admin" },
     ];
 
     return (
         <aside
-            className={`fixed left-0 top-0 h-full bg-[#0f111a] border-r border-slate-800 shadow-xl transition-all duration-300 z-50 ${
+            className={`fixed left-0 top-0 h-full bg-white border-r border-brand-border shadow-none transition-all duration-300 z-50 ${
                 isEffectivelyExpanded ? "w-[260px]" : "w-[80px]"
             }`}
             onMouseEnter={() => window.innerWidth >= 1024 && setIsHovering(true)}
@@ -91,11 +90,13 @@ const Sidebar = ({ onWidthChange, onLogout }) => {
                 
                 {/* Brand Logo */}
                 <div className={`flex items-center gap-3 mb-10 px-2 transition-all duration-300 ${!isEffectivelyExpanded ? "justify-center" : ""}`}>
-                    <img src={logo} alt="Zero Fashion" className="h-9 w-9 rounded-lg object-contain bg-white p-1" />
+                    <div className="h-12 w-12 flex items-center justify-center">
+                        <img src={logo} alt="Zero Fashion" className="h-full w-full object-contain" />
+                    </div>
                     {isEffectivelyExpanded && (
                         <div className="flex flex-col">
-                            <span className="text-white font-bold text-lg leading-none">Zero</span>
-                            <span className="text-indigo-500 font-semibold text-xs tracking-wide">Fashion Admin</span>
+                            <span className="text-brand-text-primary font-bold text-lg leading-none tracking-tight">Zero</span>
+                            <span className="text-brand-text-secondary font-semibold text-[10px] tracking-widest uppercase -mt-0.5">Admin</span>
                         </div>
                     )}
                 </div>
@@ -107,32 +108,46 @@ const Sidebar = ({ onWidthChange, onLogout }) => {
                             key={item.path}
                             to={item.path}
                             className={({ isActive }) =>
-                                `flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group whitespace-nowrap ${
+                                `flex items-center gap-3 px-3 py-3 rounded-none transition-all duration-200 group whitespace-nowrap border-l-2 ${
                                     isActive
-                                        ? "bg-indigo-600 text-white shadow-md font-medium"
-                                        : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                                        ? "bg-brand-surface text-brand-text-primary border-brand-accent font-semibold"
+                                        : "text-brand-text-secondary hover:bg-brand-surface hover:text-brand-text-primary border-transparent"
                                 }`
                             }
                         >
                             <item.icon className={`h-5 w-5 shrink-0 ${!isEffectivelyExpanded ? "mx-auto" : ""}`} />
                             {isEffectivelyExpanded && (
-                                <span className="text-sm">{item.label}</span>
+                                <span className="text-sm uppercase tracking-wide">{item.label}</span>
                             )}
                         </NavLink>
                     ))}
                 </nav>
 
                 {/* Footer Section */}
-                <div className="mt-auto pt-6 border-t border-slate-800 space-y-3">
+                <div className="mt-auto pt-6 border-t border-brand-border space-y-3">
                     {user && (
-                        <div className={`flex items-center gap-3 p-2 rounded-xl transition-all duration-300 ${!isEffectivelyExpanded ? "justify-center" : "bg-slate-800/50"}`}>
-                            <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shrink-0">
-                                {user.name?.charAt(0).toUpperCase() || "A"}
+                        <div className={`flex items-center gap-3 p-2 rounded-none transition-all duration-300 ${!isEffectivelyExpanded ? "justify-center" : "bg-brand-surface"}`}>
+                            <div className="w-9 h-9 shrink-0 flex items-center justify-center overflow-hidden border border-brand-border">
+                                {user.profileImage ? (
+                                    <img 
+                                        src={user.profileImage} 
+                                        alt={user.name} 
+                                        className="h-full w-full object-cover" 
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.style.display = 'none';
+                                            if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                                        }}
+                                    />
+                                ) : null}
+                                <div className={`${user.profileImage ? 'hidden' : 'flex'} w-full h-full bg-brand-accent items-center justify-center text-white font-bold text-xs uppercase`}>
+                                    {user.name?.charAt(0).toUpperCase() || "A"}
+                                </div>
                             </div>
                             {isEffectivelyExpanded && (
                                 <div className="min-w-0 flex-1 overflow-hidden">
-                                    <p className="text-white font-medium text-sm truncate">{user.name}</p>
-                                    <p className="text-slate-400 text-xs truncate">{user.email}</p>
+                                    <p className="text-brand-text-primary font-medium text-sm truncate">{user.name}</p>
+                                    <p className="text-brand-text-secondary text-xs truncate">{user.email}</p>
                                 </div>
                             )}
                         </div>
@@ -140,16 +155,16 @@ const Sidebar = ({ onWidthChange, onLogout }) => {
 
                     <button
                         onClick={handleLogout}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors ${!isEffectivelyExpanded ? "justify-center" : ""}`}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-none text-red-600 hover:bg-brand-surface transition-colors ${!isEffectivelyExpanded ? "justify-center" : ""}`}
                     >
                         <LogOut className="h-5 w-5 shrink-0" />
-                        {isEffectivelyExpanded && <span className="text-sm font-medium">Logout</span>}
+                        {isEffectivelyExpanded && <span className="text-sm font-semibold uppercase tracking-wider">Logout</span>}
                     </button>
 
                     {/* Collapse Toggle */}
                     <button
                         onClick={() => setIsCollapsed(!isCollapsed)}
-                        className="hidden lg:flex w-full items-center justify-center py-2 text-slate-500 hover:text-white transition-colors"
+                        className="hidden lg:flex w-full items-center justify-center py-2 text-brand-text-secondary hover:text-brand-text-primary transition-colors"
                     >
                         <ChevronLeft className={`h-5 w-5 transition-transform duration-300 ${!isEffectivelyExpanded ? "rotate-180" : ""}`} />
                     </button>

@@ -144,7 +144,7 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount, isTablet = false })
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
           
           {/* Logo */}
@@ -152,18 +152,18 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount, isTablet = false })
             to="/" 
             className="flex items-center space-x-2 sm:space-x-3 group hover:opacity-80 transition-opacity"
           >
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-black rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center p-1">
               <img
                 src={assets.logo || "/apple-touch-icon.png"}
                 alt="Zero Fashion"
-                className="w-5 h-5 sm:w-7 sm:h-7 object-contain"
+                className="w-full h-full object-contain"
               />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight font-asterion">
+              <span className="text-lg sm:text-xl font-bold text-brand-text-primary tracking-tight">
                 ZERO
               </span>
-              <span className="text-[10px] sm:text-xs text-gray-500 tracking-widest -mt-1 font-asterion">
+              <span className="text-[10px] sm:text-xs text-brand-text-secondary tracking-widest -mt-1 uppercase">
                 FASHION
               </span>
             </div>
@@ -184,10 +184,10 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount, isTablet = false })
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                  className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-200 border-b-2 ${
                     active
-                      ? "bg-black text-white shadow-md"
-                      : "text-gray-700 hover:text-black hover:bg-gray-50"
+                      ? "border-brand-accent text-brand-text-primary"
+                      : "border-transparent text-brand-text-secondary hover:text-brand-text-primary hover:border-brand-border"
                   }`}
                 >
                   <ItemIcon className="w-4 h-4" />
@@ -203,7 +203,7 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount, isTablet = false })
             {/* Search Button */}
             <button
               onClick={() => setShowSearch(true)}
-              className="p-1.5 sm:p-2 text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200 hover:scale-110"
+              className="p-1.5 sm:p-2 text-brand-text-secondary hover:text-brand-text-primary hover:bg-brand-surface rounded-none transition-all duration-200"
               aria-label="Search"
             >
               <Search className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -214,12 +214,12 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount, isTablet = false })
               <div className="relative notification-container">
                 <button
                   onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
-                  className="relative p-1.5 sm:p-2 text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200 hover:scale-110"
+                  className="relative p-1.5 sm:p-2 text-brand-text-secondary hover:text-brand-text-primary hover:bg-brand-surface rounded-none transition-all duration-200"
                   aria-label="Notifications"
                 >
                   <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white rounded-full text-xs w-4 h-4 flex items-center justify-center font-semibold animate-pulse">
+                    <span className="absolute -top-0.5 -right-0.5 bg-brand-accent text-white rounded-full text-[10px] w-3.5 h-3.5 flex items-center justify-center font-semibold">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
@@ -238,12 +238,12 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount, isTablet = false })
             {/* Cart Button */}
             <Link
               to="/cart"
-              className="relative p-1.5 sm:p-2 text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200 hover:scale-110"
+              className="relative p-1.5 sm:p-2 text-brand-text-secondary hover:text-brand-text-primary hover:bg-brand-surface rounded-none transition-all duration-200"
               aria-label="Shopping Cart"
             >
               <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-red-500 text-white rounded-full text-xs w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-semibold animate-pulse">
+                <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-brand-accent text-white rounded-full text-[10px] w-4 h-4 sm:w-4 sm:h-4 flex items-center justify-center font-semibold">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
@@ -254,30 +254,40 @@ const DesktopNavbar = ({ token, setShowSearch, getCartCount, isTablet = false })
               {isAuthenticated ? (
                 <button
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  className="flex items-center space-x-2 p-2 text-gray-600 hover:text-black hover:bg-gray-50 rounded-lg transition-all duration-200"
+                  className="flex items-center space-x-2 p-2 text-brand-text-secondary hover:text-brand-text-primary hover:bg-brand-surface rounded-none transition-all duration-200"
                 >
                   {user?.profileImage ? (
                     <img
                       src={user.profileImage}
                       alt={user.name || "Profile"}
-                      className="w-8 h-8 rounded-full object-cover ring-2 ring-gray-200"
+                      className="w-8 h-8 rounded-full object-cover ring-1 ring-brand-border"
                       onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = ""; // Clear src to trigger fallback
                         e.target.style.display = 'none';
+                        if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
                       }}
                     />
-                  ) : (
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-semibold text-gray-600">
+                  ) : null}
+                  {(!user?.profileImage) && (
+                    <div className="w-8 h-8 bg-brand-surface rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-brand-text-primary">
                         {user?.name?.charAt(0)?.toUpperCase() || "U"}
                       </span>
                     </div>
                   )}
+                  {/* Hidden fallback for onError */}
+                  <div className="w-8 h-8 bg-brand-surface rounded-full hidden items-center justify-center">
+                     <span className="text-sm font-semibold text-brand-text-primary">
+                        {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                      </span>
+                  </div>
                   <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showUserDropdown ? 'rotate-180' : ''}`} />
                 </button>
               ) : (
                 <Link
                   to="/login"
-                  className="flex items-center space-x-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-200 font-medium font-asterion"
+                  className="flex items-center space-x-2 px-6 py-2 bg-brand-accent text-white rounded-none hover:bg-black transition-all duration-200 font-medium uppercase text-xs tracking-wider"
                 >
                   <User className="w-4 h-4" />
                   <span>Login</span>

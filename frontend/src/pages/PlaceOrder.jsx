@@ -605,10 +605,11 @@ function PlaceOrder() {
   );
 
   return (
-    <form
-      onSubmit={onSubmitHandler}
-      className="flex flex-col sm:flex-row justify-between gap-8 pt-28 sm:pt-24 min-h-[80vh] border-t pb-12"
-    >
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <form
+        onSubmit={onSubmitHandler}
+        className="flex flex-col sm:flex-row justify-between gap-8 min-h-[80vh] border-t pt-10 pb-12"
+      >
       <div className="flex flex-col gap-6 w-full sm:max-w-lg">
         <Title text1="DELIVERY" text2="INFORMATION" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -870,7 +871,8 @@ function PlaceOrder() {
           </div>
         </div>
       </div>
-    </form>
+      </form>
+    </div>
   );
 }
 

@@ -15,13 +15,13 @@ function Title({ text1, text2, className = "", size = "default" }) {
   };
   return (
     <div className={`inline-flex flex-wrap gap-2 sm:gap-3 items-center mb-3 sm:mb-4 ${getSizeClasses()} ${className}`}>
-      <span className="text-gray-500 font-asterion whitespace-nowrap">
+      <span className="text-brand-text-secondary whitespace-nowrap">
         {text1}
       </span>
-      <span className="text-gray-700 font-medium font-asterion whitespace-nowrap">
+      <span className="text-brand-text-primary font-medium whitespace-nowrap">
         {text2}
       </span>
-      <span className="w-8 sm:w-12 md:w-16 lg:w-20 h-0.5 sm:h-1 bg-gray-700 block flex-shrink-0"></span>
+      <span className="w-8 sm:w-12 md:w-16 lg:w-20 h-0.5 sm:h-1 bg-brand-accent block flex-shrink-0"></span>
     </div>
   )
 }

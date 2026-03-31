@@ -15,9 +15,21 @@ export default {
     },
     extend: {
       fontFamily: {
-        asterion: ['Asterion', 'sans-serif'],
-        'rebels-fett': ['Rebels Fett', 'sans-serif'],
-        sans: ['Rebels Fett', 'Outfit', 'sans-serif'],
+        inter: ['Inter', 'sans-serif'],
+        cormorant: ['"Cormorant Garamond"', 'serif'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
+      colors: {
+        brand: {
+          bg: '#FFFFFF',
+          surface: '#F5F5F0',
+          text: {
+            primary: '#1A1A1A',
+            secondary: '#6B6B6B',
+          },
+          border: '#E5E5E0',
+          accent: '#1A1A1A',
+        },
       },
       spacing: {
         '18': '4.5rem',
