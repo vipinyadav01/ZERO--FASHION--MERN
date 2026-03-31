@@ -54,7 +54,7 @@ const userActionLimiter = rateLimit({
     console.warn(`Rate limit exceeded for User: ${userId} (IP: ${req.ip})`);
     res.status(options.statusCode).json(options.message);
   },
-  validate: { keyGenerator: false, xForwardedForHeader: false }
+  validate: { xForwardedForHeader: false, keyGeneratorIpFallback: false }
 });
 
 userRouter.post("/register", loginLimiter, registerUser);
