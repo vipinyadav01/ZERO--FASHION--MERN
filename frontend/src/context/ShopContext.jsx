@@ -519,18 +519,15 @@ const ShopContextProvider = ({ children }) => {
   const login = useCallback(async (credentials) => {
     try {
       setIsLoading(true);
-      const response = await axios.post(`${backendUrl}/api/auth/login`, credentials);
+      const response = await axios.post(`${backendUrl}/api/user/login`, credentials);
       const { token: authToken, user: userData } = response.data;
-      
-      // Store the raw token without "Bearer " prefix
-      localStorage.setItem("token", authToken);
-      localStorage.setItem("userData", JSON.stringify(userData));
-      
-      setToken(authToken);
-      setUser(userData);
-      
 
-      
+      localStorage.setItem("token", authToken);
+      if (userData) localStorage.setItem("userData", JSON.stringify(userData));
+
+      setToken(authToken);
+      if (userData) setUser(userData);
+
       toast.success("Login successful");
       navigate("/");
     } catch (error) {
@@ -575,42 +572,59 @@ const ShopContextProvider = ({ children }) => {
     getProductsData();
   }, [getProductsData]);
 
-  // Initialize state from localStorage on mount
+  // Initialize state from localStorage on mount, then verify token with backend
   useEffect(() => {
-    const initializeState = () => {
+    const initializeState = async () => {
       try {
         setIsLoading(true);
-        const storedToken = localStorage.getItem("token");
-        const cleanedToken = cleanToken(storedToken);
-        
-        if (cleanedToken) {
-          setToken(cleanedToken);
-          const userData = localStorage.getItem("userData");
-          if (userData) {
-            setUser(JSON.parse(userData));
-          }
-        }
 
         const storedCart = localStorage.getItem("cartItems");
-        if (storedCart) {
-          setCartItems(JSON.parse(storedCart));
-        }
+        if (storedCart) setCartItems(JSON.parse(storedCart));
 
         const storedWishlist = localStorage.getItem("wishlistItems");
-        if (storedWishlist) {
-          setWishlistItems(JSON.parse(storedWishlist));
+        if (storedWishlist) setWishlistItems(JSON.parse(storedWishlist));
+
+        const storedToken = localStorage.getItem("token");
+        const cleanedToken = cleanToken(storedToken);
+
+        if (!cleanedToken) return;
+
+        // Verify token is still valid with backend
+        try {
+          const res = await axios.get(`${backendUrl}/api/user/verify`, {
+            headers: { Authorization: `Bearer ${cleanedToken}` },
+          });
+          if (res.data?.success) {
+            setToken(cleanedToken);
+            // Use fresh user data from server if available, else fall back to stored
+            const freshUser = res.data.user;
+            if (freshUser) {
+              setUser(freshUser);
+              localStorage.setItem("userData", JSON.stringify(freshUser));
+            } else {
+              const userData = localStorage.getItem("userData");
+              if (userData) setUser(JSON.parse(userData));
+            }
+          } else {
+            // Token invalid — clear auth state
+            localStorage.removeItem("token");
+            localStorage.removeItem("userData");
+          }
+        } catch {
+          // Network error: still restore session so user isn't logged out on bad connection
+          setToken(cleanedToken);
+          const userData = localStorage.getItem("userData");
+          if (userData) setUser(JSON.parse(userData));
         }
       } catch (error) {
-        console.error("Error initializing state from localStorage:", error);
-        setError("Failed to initialize state");
-        toast.error("Failed to initialize state");
+        console.error("Error initializing state:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
     initializeState();
-  }, []);
+  }, [backendUrl]);
 
   useEffect(() => {
     if (token) {

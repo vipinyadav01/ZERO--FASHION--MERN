@@ -1,297 +1,249 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ArrowRight, ArrowLeft, ShoppingBag, Sparkles, Package } from "lucide-react";
+import { ArrowRight, ArrowLeft, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 
+const slides = [
+  {
+    id: 1,
+    image: "https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1200&dpr=2",
+    mobileImage: "https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=800&h=1200&dpr=2",
+    badge: "New Collection",
+    title: "Winter",
+    titleAccent: "Fashion 2025",
+    subtitle: "Exclusive styles crafted for those who lead, not follow.",
+    cta: "Shop Now",
+    ctaLink: "/collection",
+    tag: "Up to 50% Off",
+  },
+  {
+    id: 2,
+    image: "https://images.pexels.com/photos/1021693/pexels-photo-1021693.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1200&dpr=2",
+    mobileImage: "https://images.pexels.com/photos/1021693/pexels-photo-1021693.jpeg?auto=compress&cs=tinysrgb&w=800&h=1200&dpr=2",
+    badge: "Trending Now",
+    title: "Premium",
+    titleAccent: "Essentials",
+    subtitle: "Timeless pieces curated for every occasion and every mood.",
+    cta: "Explore",
+    ctaLink: "/collection",
+    tag: "Free Shipping ₹499+",
+  },
+  {
+    id: 3,
+    image: "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1200&dpr=2",
+    mobileImage: "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=800&h=1200&dpr=2",
+    badge: "Limited Edition",
+    title: "Exclusive",
+    titleAccent: "Designs",
+    subtitle: "A signature collection for those who wear their identity.",
+    cta: "View All",
+    ctaLink: "/collection",
+    tag: "Members Save 20%",
+  },
+];
+
+const INTERVAL = 6000;
+
 const Hero = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const [current, setCurrent] = useState(0);
+  const [transitioning, setTransitioning] = useState(false);
+  const [paused, setPaused] = useState(false);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  const slides = [
-    {
-      id: 1,
-      image: "https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1200&dpr=2",
-      mobileImage: "https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=800&h=1200&dpr=2",
-      badge: "NEW COLLECTION",
-      title: "Winter Fashion 2025",
-      subtitle: "Exclusive styles just for you",
-      cta: "Shop Now",
-      ctaLink: "/collection",
-      highlight: "Up to 50% Off"
-    },
-    {
-      id: 2,
-      image: "https://images.pexels.com/photos/1021693/pexels-photo-1021693.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1200&dpr=2",
-      mobileImage: "https://images.pexels.com/photos/1021693/pexels-photo-1021693.jpeg?auto=compress&cs=tinysrgb&w=800&h=1200&dpr=2",
-      badge: "TRENDING NOW",
-      title: "Premium Essentials",
-      subtitle: "Curated for every occasion",
-      cta: "Explore",
-      ctaLink: "/collection",
-      highlight: "Free Shipping Above ₹499"
-    },
-    {
-      id: 3,
-      image: "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1200&dpr=2",
-      mobileImage: "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=800&h=1200&dpr=2",
-      badge: "LIMITED EDITION",
-      title: "Exclusive Designs",
-      subtitle: "Signature collection",
-      cta: "View All",
-      ctaLink: "/collection",
-      highlight: "Members Save 20%"
-    }
-  ];
+  const go = useCallback((index) => {
+    if (transitioning) return;
+    setTransitioning(true);
+    setCurrent(index);
+    setTimeout(() => setTransitioning(false), 600);
+  }, [transitioning]);
 
-  const navigateSlide = useCallback((direction) => {
-    if (isTransitioning) return;
-    
-    setIsTransitioning(true);
-    setCurrentSlide(prev => {
-      if (direction === 'next') {
-        return prev === slides.length - 1 ? 0 : prev + 1;
-      }
-      return prev === 0 ? slides.length - 1 : prev - 1;
-    });
-    
-    setTimeout(() => setIsTransitioning(false), 700);
-  }, [isTransitioning, slides.length]);
+  const next = useCallback(() => {
+    go(current === slides.length - 1 ? 0 : current + 1);
+  }, [current, go]);
 
-  const goToSlide = useCallback((index) => {
-    if (isTransitioning || index === currentSlide) return;
-    setIsTransitioning(true);
-    setCurrentSlide(index);
-    setTimeout(() => setIsTransitioning(false), 700);
-  }, [isTransitioning, currentSlide]);
+  const prev = useCallback(() => {
+    go(current === 0 ? slides.length - 1 : current - 1);
+  }, [current, go]);
 
-  // Touch/Swipe handlers for mobile
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 50;
-    
-    if (Math.abs(diff) > minSwipeDistance) {
-      if (diff > 0) {
-        navigateSlide('next');
-      } else {
-        navigateSlide('prev');
-      }
-    }
-  };
-
-  // Auto-advance slides
   useEffect(() => {
-    if (isPaused) return;
-    
-    const timer = setInterval(() => {
-      navigateSlide('next');
-    }, 6000);
-    
-    return () => clearInterval(timer);
-  }, [isPaused, navigateSlide]);
+    if (paused) return;
+    const t = setInterval(next, INTERVAL);
+    return () => clearInterval(t);
+  }, [paused, next]);
 
-  const currentContent = slides[currentSlide];
+  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const handleTouchMove  = (e) => { touchEndX.current  = e.touches[0].clientX; };
+  const handleTouchEnd   = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 50) diff > 0 ? next() : prev();
+  };
+
+  const slide = slides[current];
 
   return (
-    <section 
-      className="relative w-full overflow-hidden bg-white"
-      style={{ 
-        height: 'calc(100vh - 64px)',
-      }}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+    <section
+      className="relative w-full overflow-hidden bg-black"
+      style={{ height: "calc(100vh - 64px)" }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Background Images */}
-      <div className="absolute inset-0">
-        {slides.map((slide, index) => (
-          <div
-            key={slide.id}
-            className={`absolute inset-0 transition-all duration-700 ease-out ${
-              index === currentSlide 
-                ? 'opacity-100 scale-100' 
-                : 'opacity-0 scale-105'
+      {/* Background slides */}
+      {slides.map((s, i) => (
+        <div
+          key={s.id}
+          className={`absolute inset-0 transition-opacity duration-700 ${
+            i === current ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <img
+            src={s.image}
+            alt={s.title}
+            className="hidden sm:block w-full h-full object-cover object-center"
+            loading={i === 0 ? "eager" : "lazy"}
+          />
+          <img
+            src={s.mobileImage}
+            alt={s.title}
+            className="sm:hidden w-full h-full object-cover object-top"
+            loading={i === 0 ? "eager" : "lazy"}
+          />
+        </div>
+      ))}
+
+      {/* Overlays */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+      {/* Content */}
+      <div className="relative z-10 h-full flex flex-col max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-8 sm:py-10">
+
+        {/* Top: badge */}
+        <div className="flex-shrink-0 pt-2">
+          <span
+            className={`inline-block border border-white/30 px-4 py-1.5 text-[9px] font-black text-white uppercase tracking-[0.25em] transition-all duration-500 ${
+              transitioning ? "opacity-0 -translate-x-4" : "opacity-100 translate-x-0"
             }`}
           >
-            {/* Desktop Image */}
-            <img
-              src={slide.image}
-              alt={slide.title}
-              className="hidden sm:block w-full h-full object-cover object-center"
-              loading={index === 0 ? "eager" : "lazy"}
-            />
-            {/* Mobile Image - optimized for portrait */}
-            <img
-              src={slide.mobileImage}
-              alt={slide.title}
-              className="sm:hidden w-full h-full object-cover object-top"
-              loading={index === 0 ? "eager" : "lazy"}
-            />
-          </div>
-        ))}
-        
-        {/* Gradient Overlays - refined for cleaner look */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-transparent sm:from-black/75 sm:via-black/45 sm:to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-      </div>
+            {slide.badge}
+          </span>
+        </div>
 
-      {/* Main Content - Cleaner Layout */}
-      <div className="relative z-10 h-full flex flex-col justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-4 lg:py-6">
-        
-        {/* Top Section - Empty spacer */}
-        <div className="flex-shrink-0"></div>
-
-        {/* Center Content */}
+        {/* Center: headline + CTA */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl">
-          
-          {/* Badge */}
-          <div 
-            className={`inline-flex mb-4 sm:mb-6 transition-all duration-500 ${
-              isTransitioning ? 'opacity-0 -translate-x-6' : 'opacity-100 translate-x-0'
+
+          {/* Offer tag */}
+          <div
+            className={`mb-4 transition-all duration-500 delay-50 ${
+              transitioning ? "opacity-0 -translate-y-2" : "opacity-100 translate-y-0"
             }`}
           >
-            <span className="px-4 py-2 bg-white text-black text-xs sm:text-sm font-bold rounded-full">
-              {currentContent.badge}
+            <span className="bg-white text-black text-[9px] font-black uppercase tracking-widest px-3 py-1.5">
+              {slide.tag}
             </span>
           </div>
 
-          {/* Main Title - Clean and Simple */}
-          <h1 
-            className={`transition-all duration-500 delay-75 ${
-              isTransitioning ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0'
+          {/* Title */}
+          <h1
+            className={`transition-all duration-500 delay-100 ${
+              transitioning ? "opacity-0 -translate-y-4" : "opacity-100 translate-y-0"
             }`}
           >
-            <span className="block text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-tight">
-              {currentContent.title}
+            <span className="block text-5xl sm:text-6xl lg:text-7xl font-black text-white uppercase leading-none tracking-tight">
+              {slide.title}
+            </span>
+            <span className="block text-5xl sm:text-6xl lg:text-7xl font-black text-white/50 uppercase leading-none tracking-tight">
+              {slide.titleAccent}
             </span>
           </h1>
 
           {/* Subtitle */}
-          <p 
-            className={`text-lg sm:text-xl text-gray-200 mt-3 sm:mt-4 font-light transition-all duration-500 delay-100 ${
-              isTransitioning ? 'opacity-0 -translate-y-3' : 'opacity-100 translate-y-0'
+          <p
+            className={`mt-5 text-sm sm:text-base text-white/70 max-w-sm leading-relaxed transition-all duration-500 delay-150 ${
+              transitioning ? "opacity-0 -translate-y-3" : "opacity-100 translate-y-0"
             }`}
           >
-            {currentContent.subtitle}
+            {slide.subtitle}
           </p>
 
-          {/* Highlight Badge */}
-          <div 
-            className={`mt-4 sm:mt-6 inline-flex transition-all duration-500 delay-150 ${
-              isTransitioning ? 'opacity-0 -translate-y-3' : 'opacity-100 translate-y-0'
-            }`}
-          >
-            <span className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg">
-              {currentContent.highlight}
-            </span>
-          </div>
-
-          {/* CTA Button */}
-          <div 
+          {/* CTA */}
+          <div
             className={`mt-8 sm:mt-10 transition-all duration-500 delay-200 ${
-              isTransitioning ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0'
+              transitioning ? "opacity-0 -translate-y-4" : "opacity-100 translate-y-0"
             }`}
           >
             <Link
-              to={currentContent.ctaLink}
-              className="inline-flex items-center gap-2 bg-white text-black px-8 py-4 sm:py-5 text-base sm:text-lg font-bold rounded-lg hover:bg-gray-100 transition-all active:scale-95 shadow-lg hover:shadow-xl"
+              to={slide.ctaLink}
+              className="inline-flex items-center gap-3 bg-white text-black px-8 py-4 text-[11px] font-black uppercase tracking-widest hover:bg-brand-surface transition-colors active:scale-95"
             >
-              <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
-              {currentContent.cta}
-              <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />
+              <ShoppingBag className="w-4 h-4" />
+              {slide.cta}
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
 
-        {/* Bottom Navigation Section */}
-        <div className="flex-shrink-0">
+        {/* Bottom: nav controls */}
+        <div className="flex-shrink-0 pb-2">
           <div className="flex items-center justify-between">
-            
-            {/* Left: Navigation Controls */}
-            <div className="flex items-center gap-3 sm:gap-4">
-              {/* Nav Buttons */}
+
+            {/* Prev/Next + indicators */}
+            <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => navigateSlide('prev')}
-                  disabled={isTransitioning}
-                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white/40 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all active:scale-95 disabled:opacity-50"
-                  aria-label="Previous slide"
+                  onClick={prev}
+                  disabled={transitioning}
+                  aria-label="Previous"
+                  className="w-10 h-10 border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-black transition-colors disabled:opacity-40"
                 >
-                  <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <ArrowLeft className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => navigateSlide('next')}
-                  disabled={isTransitioning}
-                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white/40 flex items-center justify-center text-white hover:bg-white hover:text-black transition-all active:scale-95 disabled:opacity-50"
-                  aria-label="Next slide"
+                  onClick={next}
+                  disabled={transitioning}
+                  aria-label="Next"
+                  className="w-10 h-10 border border-white/30 flex items-center justify-center text-white hover:bg-white hover:text-black transition-colors disabled:opacity-40"
                 >
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
 
-              {/* Slide Indicators - Simplified */}
+              {/* Dot indicators */}
               <div className="flex items-center gap-2">
-                {slides.map((_, index) => (
+                {slides.map((_, i) => (
                   <button
-                    key={index}
-                    onClick={() => goToSlide(index)}
-                    className={`h-1 rounded-full transition-all duration-500 ${
-                      index === currentSlide ? 'w-8 bg-white' : 'w-3 bg-white/30 hover:bg-white/50'
+                    key={i}
+                    onClick={() => go(i)}
+                    aria-label={`Slide ${i + 1}`}
+                    className={`h-[2px] transition-all duration-500 ${
+                      i === current ? "w-8 bg-white" : "w-3 bg-white/30 hover:bg-white/60"
                     }`}
-                    aria-label={`Go to slide ${index + 1}`}
-                  >
-                    {index === currentSlide && !isPaused && (
-                      <span 
-                        className="w-full h-full bg-white/50 rounded-full origin-left"
-                        style={{ 
-                          animation: 'progress 6s linear forwards',
-                        }}
-                      />
-                    )}
-                  </button>
+                  />
                 ))}
               </div>
 
-              {/* Slide Counter */}
-              <span className="hidden sm:block text-white/70 text-xs font-medium ml-2">
-                <span className="text-white font-bold">{String(currentSlide + 1).padStart(2, '0')}</span>
-                <span> / {slides.length}</span>
+              {/* Counter */}
+              <span className="hidden sm:block text-[10px] font-black text-white/50 tracking-widest">
+                <span className="text-white">{String(current + 1).padStart(2, "0")}</span>
+                {" / "}
+                {slides.length}
               </span>
             </div>
 
-            {/* Right: Info (desktop only) */}
-            <div className="hidden lg:flex items-center gap-6 text-white text-sm">
-              <div className="flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                <span>2000+ Products</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5" />
-                <span>Premium Quality</span>
-              </div>
+            {/* Right: quick stats desktop */}
+            <div className="hidden lg:flex items-center gap-6">
+              {[["2000+", "Products"], ["50+", "Brands"], ["1M+", "Customers"]].map(([num, label]) => (
+                <div key={label} className="text-right">
+                  <p className="text-sm font-black text-white leading-none">{num}</p>
+                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-0.5">{label}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Progress Animation Styles */}
-      <style>{`
-        @keyframes progress {
-          from { transform: scaleX(0); }
-          to { transform: scaleX(1); }
-        }
-      `}</style>
     </section>
   );
 };

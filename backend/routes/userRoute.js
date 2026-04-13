@@ -14,6 +14,7 @@ import {
   adminResetPassword,
   adminCreateUser,
   getRecentUsers,
+  verifyToken,
 } from "../controllers/userController.js";
 import authUser from "../middleware/auth.js";
 import adminAuth from "../middleware/adminAuth.js";
@@ -95,5 +96,6 @@ userRouter.post("/admin-reset-password", adminAuth, loginLimiter, adminResetPass
 userRouter.post("/admin-create", adminAuth, loginLimiter, adminCreateUser);
 userRouter.delete("/delete/:id", adminAuth, deleteUser);
 userRouter.post("/cancel-order", authUser, userActionLimiter, cancelOrder);
+userRouter.get("/verify", authUser, verifyToken);
 
 export default userRouter;

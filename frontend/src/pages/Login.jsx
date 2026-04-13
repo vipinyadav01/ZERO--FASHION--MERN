@@ -11,7 +11,6 @@ const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isPageLoading, setIsPageLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -27,24 +26,10 @@ const Login = () => {
 
   const isLoginMode = authMode === "login";
 
+  // Redirect if already authenticated
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("userData");
-
-    if (storedToken && !token) {
-      setToken(storedToken);
-    }
-
-    if (storedUser && !token) {
-      setUser(JSON.parse(storedUser));
-    }
-
-    if (token) {
-      navigate("/");
-    }
-
-    setTimeout(() => setIsPageLoading(false), 600);
-  }, [token, setToken, setUser, navigate]);
+    if (token) navigate("/", { replace: true });
+  }, [token, navigate]);
 
   const validateForm = () => {
     let isValid = true;
@@ -167,22 +152,6 @@ const Login = () => {
     setFormData({ name: "", email: "", password: "" });
     setErrors({ name: "", email: "", password: "" });
   };
-
-  if (isPageLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white p-4">
-        <div className="w-full max-w-md p-8 bg-gray-100 rounded-lg animate-pulse space-y-6">
-          <div className="h-12 bg-gray-300 rounded"></div>
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-10 bg-gray-300 rounded"></div>
-            ))}
-          </div>
-          <div className="h-10 bg-gray-400 rounded"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-brand-bg flex">

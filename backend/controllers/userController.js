@@ -703,6 +703,34 @@ const getRecentUsers = async (req, res) => {
   }
 };
 
+// Verify token validity and return fresh user data
+const verifyToken = async (req, res) => {
+  try {
+    // req.user is already set by authUser middleware
+    const user = await UserModel.findById(req.user.id).select(
+      "_id name email role isAdmin profileImage"
+    );
+    if (!user) {
+      return res.status(401).json({ success: false, message: "User not found", code: "USER_NOT_FOUND" });
+    }
+    return res.status(200).json({
+      success: true,
+      valid: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isAdmin: user.isAdmin,
+        profileImage: user.profileImage,
+      },
+    });
+  } catch (error) {
+    console.error("verifyToken error:", error);
+    res.status(500).json({ success: false, message: "Server error", code: "SERVER_ERROR" });
+  }
+};
+
 export {
   loginUser,
   registerUser,
@@ -717,4 +745,5 @@ export {
   adminResetPassword,
   adminCreateUser,
   getRecentUsers,
+  verifyToken,
 };

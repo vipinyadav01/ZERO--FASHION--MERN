@@ -1,80 +1,83 @@
 import { useContext, useEffect, useState } from "react";
-import { ShopContext } from "../context/ShopContext";
-import Title from "./Title";
-import ProductItem from "./ProductItem.jsx";
 import { motion } from "framer-motion";
-import { TrendingUp } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ShopContext } from "../context/ShopContext";
+import ProductItem from "./ProductItem";
+import { ArrowRight, TrendingUp } from "lucide-react";
 
 const TrendingProducts = () => {
   const { products } = useContext(ShopContext);
-  const [trendingProducts, setTrendingProducts] = useState([]);
+  const [trending, setTrending] = useState([]);
 
   useEffect(() => {
-    // Get products and sort by a trending metric (can be by date, popularity, etc.)
-    // For now, we'll just get the latest products or filter by a trending flag
-    const trending = products.filter((item) => item.trending || item.isNew).slice(0, 5);
-    setTrendingProducts(trending.length > 0 ? trending : products.slice(0, 5));
+    const t = products.filter((p) => p.trending || p.isNew);
+    setTrending(t.length > 0 ? t.slice(0, 5) : products.slice(0, 5));
   }, [products]);
 
   return (
-    <section className="my-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <motion.div 
-        className="text-center py-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-red-600" />
-          <span className="text-xs sm:text-sm font-semibold text-red-600 uppercase tracking-wider">
-            Trending Now
-          </span>
-        </div>
-        <Title text1={"TRENDING"} text2={"COLLECTION"} />
-        <p className="w-full md:w-3/4 lg:w-2/3 m-auto text-xs sm:text-sm md:text-base text-gray-600 mt-3">
-          Discover what&apos;s hot right now – the latest styles everyone is talking about.
-        </p>
-      </motion.div>
+    <section className="bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
 
-      <motion.div 
-        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 gap-y-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.2, staggerChildren: 0.1 }}
-      >
-        {trendingProducts.map((item, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
-            whileHover={{ y: -8 }}
-            className="transform transition-all duration-300"
-          >
-            <ProductItem
-              id={item._id}
-              name={item.name}
-              image={item.image}
-              price={item.price}
-            />
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* View All Button */}
-      <motion.div 
-        className="flex justify-center mt-10"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-      >
-        <a
-          href="/collection"
-          className="px-6 py-3 border-2 border-black text-black font-semibold rounded-lg hover:bg-black hover:text-white transition-all duration-300 transform hover:scale-105 active:scale-95"
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10 sm:mb-12 pb-6 border-b border-brand-border"
         >
-          View All Trending
-        </a>
-      </motion.div>
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-3.5 h-3.5 text-brand-text-secondary" />
+              <p className="text-[9px] font-black text-brand-text-secondary uppercase tracking-[0.3em]">
+                Trending Now
+              </p>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-brand-text-primary uppercase tracking-tight leading-none">
+              Trending <span className="text-brand-text-secondary">Collection</span>
+            </h2>
+          </div>
+          <Link
+            to="/collection"
+            className="flex items-center gap-2 text-[10px] font-black text-brand-text-secondary uppercase tracking-widest hover:text-brand-text-primary transition-colors group"
+          >
+            View All
+            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </motion.div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+          {trending.map((item, i) => (
+            <motion.div
+              key={item._id || i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: Math.min(i * 0.08, 0.4) }}
+            >
+              <ProductItem
+                id={item._id}
+                name={item.name}
+                image={item.image}
+                price={item.price}
+                discountPercent={item.discountPercent}
+                category={item.category}
+                isNew={item.isNew || false}
+                rating={item.rating || 0}
+              />
+            </motion.div>
+          ))}
+        </div>
+
+        {trending.length === 0 && (
+          <div className="py-20 text-center border border-dashed border-brand-border">
+            <p className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest">
+              No trending products yet.
+            </p>
+          </div>
+        )}
+      </div>
     </section>
   );
 };

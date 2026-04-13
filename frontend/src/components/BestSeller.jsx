@@ -1,61 +1,83 @@
-import React, { useContext, useEffect, useState } from "react";
-import { ShopContext } from "../context/ShopContext";
-import Title from "./Title";
-import ProductItem from "./ProductItem.jsx";
+import { useContext, useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ShopContext } from "../context/ShopContext";
+import ProductItem from "./ProductItem";
+import { ArrowRight, Award } from "lucide-react";
 
 const BestSeller = () => {
   const { products } = useContext(ShopContext);
-  const [bestSeller, setBestSeller] = useState([]);
+  const [bestSellers, setBestSellers] = useState([]);
 
   useEffect(() => {
-    const bestProduct = products.filter((item) => item.bestseller); 
-    setBestSeller(bestProduct.slice(0, 5));
+    const best = products.filter((p) => p.bestseller);
+    setBestSellers(best.length > 0 ? best.slice(0, 5) : products.slice(0, 5));
   }, [products]);
 
-
   return (
-    <section className="my-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <motion.div 
-        className="text-center py-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Title text1={"BEST"} text2={"SELLERS"} />
-        <p className="w-full md:w-3/4 lg:w-2/3 m-auto text-xs sm:text-sm md:text-base text-gray-600 mt-3">
-          Shop the favorites everyone loves – timeless styles that never go out of trend.
-        </p>
-      </motion.div>
+    <section className="bg-[#F8F8F6] border-y border-brand-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
 
-      <motion.div 
-        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 gap-y-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.2, staggerChildren: 0.1 }}
-      >
-        {bestSeller.map((item, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
-            whileHover={{ y: -8 }}
-            className="transform transition-all duration-300"
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10 sm:mb-12 pb-6 border-b border-brand-border"
+        >
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Award className="w-3.5 h-3.5 text-brand-text-secondary" />
+              <p className="text-[9px] font-black text-brand-text-secondary uppercase tracking-[0.3em]">
+                Customer Favourites
+              </p>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-brand-text-primary uppercase tracking-tight leading-none">
+              Best <span className="text-brand-text-secondary">Sellers</span>
+            </h2>
+          </div>
+          <Link
+            to="/collection"
+            className="flex items-center gap-2 text-[10px] font-black text-brand-text-secondary uppercase tracking-widest hover:text-brand-text-primary transition-colors group"
           >
-            <ProductItem
-              id={item._id}
-              name={item.name}
-              image={item.image}
-              price={item.price}
-              discountPercent={item.discountPercent}
-              category={item.category}
-              isNew={item.isNew || false}
-              rating={item.rating || 0}
-            />
-          </motion.div>
-        ))}
-      </motion.div>
+            Shop All
+            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </motion.div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+          {bestSellers.map((item, i) => (
+            <motion.div
+              key={item._id || i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: Math.min(i * 0.08, 0.4) }}
+            >
+              <ProductItem
+                id={item._id}
+                name={item.name}
+                image={item.image}
+                price={item.price}
+                discountPercent={item.discountPercent}
+                category={item.category}
+                isNew={item.isNew || false}
+                rating={item.rating || 0}
+              />
+            </motion.div>
+          ))}
+        </div>
+
+        {bestSellers.length === 0 && (
+          <div className="py-20 text-center border border-dashed border-brand-border">
+            <p className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest">
+              No bestsellers yet — products will appear here as they gain popularity.
+            </p>
+          </div>
+        )}
+      </div>
     </section>
   );
 };

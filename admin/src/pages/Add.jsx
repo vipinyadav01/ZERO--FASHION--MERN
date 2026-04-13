@@ -1,307 +1,280 @@
-import { useState, useEffect, useCallback } from "react";
-import axios from "axios";
-import { backendUrl } from "../constants";
-import { toast } from "react-toastify";
-import PropTypes from "prop-types";
-import {
-    UploadCloud,
-    X,
-    Check
-} from "lucide-react";
+import { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import { backendUrl } from '../constants';
+import { toast } from 'react-toastify';
+import PropTypes from 'prop-types';
+import { UploadCloud, X, Check, Star, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import PageShell from '../components/PageShell';
 
-const AddProduct = ({ token }) => {
-    const [image1, setImage1] = useState(null);
-    const [image2, setImage2] = useState(null);
-    const [image3, setImage3] = useState(null);
-    const [image4, setImage4] = useState(null);
-    const [name, setName] = useState("");
-    const [price, setPrice] = useState("");
-    const [stock, setStock] = useState("");
-    const [description, setDescription] = useState("");
-    const [category, setCategory] = useState("Men");
-    const [subCategory, setSubCategory] = useState("Topwear");
-    const [bestseller, setBestseller] = useState(false);
-    const [sizes, setSizes] = useState([]);
-    const [loading, setLoading] = useState(false);
+const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const CATEGORIES = ['Men', 'Women', 'Kids'];
+const SUBCATEGORIES = ['Topwear', 'Bottomwear', 'Winterwear', 'Footwear', 'Accessories'];
+
+const FieldLabel = ({ children }) => (
+    <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest">{children}</label>
+);
+
+const inputCls = 'w-full px-4 py-3 border border-brand-border bg-[#F8F8F6] text-sm font-medium text-brand-text-primary placeholder:text-brand-text-secondary/40 focus:outline-none focus:border-black transition-colors';
+const ErrorMsg = ({ msg }) => msg ? <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mt-1">{msg}</p> : null;
+
+const Add = ({ token }) => {
+    const navigate = useNavigate();
+    const [images, setImages] = useState([null, null, null, null]);
+    const [form, setForm] = useState({
+        name: '', description: '', price: '', stock: '',
+        category: 'Men', subCategory: 'Topwear',
+        bestseller: false, sizes: [],
+    });
     const [errors, setErrors] = useState({});
-
-    // Default subcategories based on category could be handled here if needed
-    // For now keeping it simple as per original, but user can edit subCategory if needed? 
-    // Original code had fixed subCategory state but no input to change it? 
-    // Wait, original code had `const [subCategory] = useState("Topwear");` so it was fixed!
-    // I should probably allow it to be changed or atleast keep it consistent.
-    // Let's add a select for subCategory or standard input.
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        const images = [image1, image2, image3, image4];
-        return () => {
-            images.forEach((img) => {
-                if (img?.preview) URL.revokeObjectURL(img.preview);
-            });
-        };
-    }, [image1, image2, image3, image4]);
+        return () => images.forEach(img => img?.preview && URL.revokeObjectURL(img.preview));
+    }, [images]);
 
-    const handleImageChange = (e, setImage) => {
-        const file = e.target.files[0];
-        if (file) {
-            setImage({ file, preview: URL.createObjectURL(file) });
-        }
+    const setImage = (idx, file) => {
+        if (!file) { setImages(prev => prev.map((v, i) => i === idx ? null : v)); return; }
+        setImages(prev => {
+            const next = [...prev];
+            if (next[idx]?.preview) URL.revokeObjectURL(next[idx].preview);
+            next[idx] = { file, preview: URL.createObjectURL(file) };
+            return next;
+        });
     };
 
-    const validateForm = useCallback(() => {
-        const newErrors = {};
-        if (!name.trim()) newErrors.name = "Product name is required";
-        if (!description.trim()) newErrors.description = "Description is required";
-        if (!price || price <= 0) newErrors.price = "Valid price is required";
-        if (!stock || stock < 0) newErrors.stock = "Valid stock quantity is required";
-        if (sizes.length === 0) newErrors.sizes = "At least one size must be selected";
-        if (!image1) newErrors.images = "Primary image is required";
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    }, [name, description, price, stock, sizes, image1]);
+    const validate = useCallback(() => {
+        const e = {};
+        if (!form.name.trim())        e.name = 'Product name is required';
+        if (!form.description.trim()) e.description = 'Description is required';
+        if (!form.price || Number(form.price) <= 0) e.price = 'Valid price required';
+        if (form.stock === '' || Number(form.stock) < 0) e.stock = 'Valid stock required';
+        if (form.sizes.length === 0)  e.sizes = 'Select at least one size';
+        if (!images[0])               e.images = 'Main image is required';
+        setErrors(e);
+        return Object.keys(e).length === 0;
+    }, [form, images]);
 
-    const resetForm = useCallback(() => {
-        setName(""); setDescription(""); setPrice(""); setStock(""); setSizes([]); 
-        setBestseller(false); 
-        setImage1(null); setImage2(null); setImage3(null); setImage4(null);
+    const reset = () => {
+        setForm({ name: '', description: '', price: '', stock: '', category: 'Men', subCategory: 'Topwear', bestseller: false, sizes: [] });
+        setImages([null, null, null, null]);
         setErrors({});
-    }, []);
+    };
 
-    const onSubmitHandler = async (e) => {
+    const submit = async (e) => {
         e.preventDefault();
-        if (!validateForm()) return;
-
+        if (!validate()) return;
         setLoading(true);
         try {
-            const formData = new FormData();
-            formData.append("name", name.trim());
-            formData.append("price", parseFloat(price));
-            formData.append("stock", parseInt(stock));
-            formData.append("description", description.trim());
-            formData.append("category", category);
-            formData.append("subCategory", subCategory);
-            formData.append("bestseller", bestseller);
-            formData.append("sizes", JSON.stringify(sizes));
+            const fd = new FormData();
+            fd.append('name', form.name.trim());
+            fd.append('description', form.description.trim());
+            fd.append('price', parseFloat(form.price));
+            fd.append('stock', parseInt(form.stock));
+            fd.append('category', form.category);
+            fd.append('subCategory', form.subCategory);
+            fd.append('bestseller', form.bestseller);
+            fd.append('sizes', JSON.stringify(form.sizes));
+            images.forEach((img, i) => img && fd.append(`image${i + 1}`, img.file));
 
-            if (image1) formData.append("image1", image1.file);
-            if (image2) formData.append("image2", image2.file);
-            if (image3) formData.append("image3", image3.file);
-            if (image4) formData.append("image4", image4.file);
-
-            const response = await axios.post(`${backendUrl}/api/product/add`, formData, {
-                headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` }
+            const res = await axios.post(`${backendUrl}/api/product/add`, fd, {
+                headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
             });
-
-            if (response.data.success) {
-                toast.success("Product added successfully");
-                resetForm();
-            } else {
-                toast.error(response.data.message);
-            }
-        } catch (error) {
-            console.error("Add product error", error);
-            toast.error("Failed to add product");
+            if (res.data.success) { toast.success('Product added successfully'); reset(); }
+            else toast.error(res.data.message);
+        } catch {
+            toast.error('Failed to add product');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSizeToggle = (size) => {
-        setSizes(prev => prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]);
-    };
-
-    const imageSetters = [setImage1, setImage2, setImage3, setImage4];
-    const images = [image1, image2, image3, image4];
+    const toggleSize = (s) => setForm(f => ({
+        ...f, sizes: f.sizes.includes(s) ? f.sizes.filter(x => x !== s) : [...f.sizes, s],
+    }));
 
     return (
-        <div className="min-h-screen p-6 lg:p-10 font-sans text-brand-text-primary bg-brand-bg">
-            <div className="max-w-4xl mx-auto space-y-10">
-                
-                {/* Header */}
-                <div className="flex justify-between items-end border-b border-brand-border pb-8">
-                    <div>
-                        <h1 className="text-3xl font-black text-brand-text-primary mb-2 uppercase tracking-tight">New Archive Item</h1>
-                        <p className="text-brand-text-secondary text-[10px] font-bold uppercase tracking-widest">Register a new product into the catalog</p>
-                    </div>
-                    <button 
-                        type="button" 
-                        onClick={resetForm}
-                        className="text-brand-text-secondary hover:text-brand-text-primary text-[10px] font-black uppercase tracking-widest transition-colors mb-1"
-                    >
-                        Reset Form
+        <PageShell>
+            {/* Header */}
+            <div className="bg-white border border-brand-border p-5 flex items-center justify-between">
+                <div>
+                    <p className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest mb-0.5">Products</p>
+                    <h1 className="text-xl font-black text-brand-text-primary uppercase tracking-tight">Add New Product</h1>
+                </div>
+                <div className="flex items-center gap-3">
+                    <button type="button" onClick={reset} className="px-4 py-2 border border-brand-border text-[10px] font-black text-brand-text-secondary uppercase tracking-widest hover:border-black hover:text-black transition-colors">
+                        Reset
+                    </button>
+                    <button type="button" onClick={() => navigate('/list')} className="flex items-center gap-2 px-4 py-2 border border-brand-border text-[10px] font-black text-brand-text-secondary uppercase tracking-widest hover:border-black hover:text-black transition-colors">
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        Back to Products
                     </button>
                 </div>
+            </div>
 
-                <form onSubmit={onSubmitHandler} className="space-y-10">
-                    
-                    {/* Image Upload */}
-                    <div className="bg-white border border-brand-border rounded-none p-8">
-                        <h3 className="text-[10px] font-black text-brand-text-secondary mb-6 uppercase tracking-widest block">Product Imagery</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                            {images.map((img, idx) => (
-                                <div key={idx} className="relative group aspect-square bg-brand-surface border border-brand-border rounded-none hover:border-black transition-all overflow-hidden border-dashed">
-                                    {img ? (
-                                        <>
-                                            <img src={img.preview} className="w-full h-full object-cover brightness-[0.98]" alt={`Product ${idx + 1}`} />
-                                            <button 
-                                                type="button"
-                                                onClick={() => imageSetters[idx](null)}
-                                                className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-red-600 hover:text-white border border-brand-border text-brand-text-primary rounded-none backdrop-blur-sm transition-all"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer">
-                                            <UploadCloud className="w-8 h-8 text-brand-text-secondary mb-3 group-hover:text-black transition-colors" />
-                                            <span className="text-[10px] text-brand-text-secondary font-black uppercase tracking-widest">{idx === 0 ? "Main" : `Image 0${idx + 1}`}</span>
-                                            <input type="file" hidden onChange={(e) => handleImageChange(e, imageSetters[idx])} accept="image/*" />
-                                        </label>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        {errors.images && <p className="mt-3 text-red-600 text-[10px] font-black uppercase tracking-widest">{errors.images}</p>}
-                    </div>
+            <form onSubmit={submit} className="space-y-5">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-                    {/* Basic Details */}
-                    <div className="bg-white border border-brand-border rounded-none p-8 space-y-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest">Archive Name</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="E.G. COTTON CLASSIC TEE" 
-                                    className="w-full bg-white border border-brand-border rounded-none px-5 py-4 text-brand-text-primary uppercase text-[10px] font-black tracking-widest placeholder:text-brand-text-secondary/30 focus:outline-none focus:border-brand-accent transition-colors"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                />
-                                {errors.name && <p className="text-red-600 text-[10px] font-black uppercase tracking-widest">{errors.name}</p>}
+                    {/* Left col: images */}
+                    <div className="space-y-5">
+                        <div className="bg-white border border-brand-border p-5">
+                            <p className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest mb-4">Product Images</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                {images.map((img, idx) => (
+                                    <div key={idx} className={`relative aspect-square border overflow-hidden ${idx === 0 ? 'col-span-2' : ''} ${!img ? 'border-dashed border-brand-border hover:border-black transition-colors' : 'border-brand-border'} bg-[#F8F8F6]`}>
+                                        {img ? (
+                                            <>
+                                                <img src={img.preview} className="w-full h-full object-cover" alt={`img-${idx}`} />
+                                                <button type="button" onClick={() => setImage(idx, null)} className="absolute top-2 right-2 p-1.5 bg-white border border-brand-border text-brand-text-primary hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors">
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                                {idx === 0 && <span className="absolute bottom-2 left-2 bg-[#1A1A1A] text-white text-[8px] font-black uppercase px-2 py-0.5 tracking-widest">Main</span>}
+                                            </>
+                                        ) : (
+                                            <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer group">
+                                                <UploadCloud className="w-6 h-6 text-brand-text-secondary group-hover:text-black transition-colors mb-1.5" />
+                                                <span className="text-[9px] font-black text-brand-text-secondary uppercase tracking-widest">{idx === 0 ? 'Main Image' : `Image ${idx + 1}`}</span>
+                                                <input type="file" hidden accept="image/*" onChange={e => setImage(idx, e.target.files[0])} />
+                                            </label>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
-
-                             <div className="space-y-3">
-                                <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest">Primary Collection</label>
-                                <div className="relative">
-                                    <select 
-                                        className="appearance-none w-full bg-white border border-brand-border rounded-none px-5 py-4 text-brand-text-primary uppercase text-[10px] font-black tracking-widest focus:outline-none focus:border-brand-accent transition-colors cursor-pointer"
-                                        value={category}
-                                        onChange={(e) => setCategory(e.target.value)}
-                                    >
-                                        <option value="Men">Men</option>
-                                        <option value="Women">Women</option>
-                                        <option value="Kids">Kids</option>
-                                    </select>
-                                </div>
-                            </div>
+                            <ErrorMsg msg={errors.images} />
                         </div>
 
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest">Detail Description</label>
-                            <textarea 
-                                rows="4"
-                                placeholder="PROVIDE DETAILED ARCHIVE ANALYSIS..."
-                                className="w-full bg-white border border-brand-border rounded-none px-5 py-4 text-brand-text-primary uppercase text-[10px] font-black tracking-widest placeholder:text-brand-text-secondary/30 focus:outline-none focus:border-brand-accent transition-colors resize-none leading-relaxed"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                            />
-                            {errors.description && <p className="text-red-600 text-[10px] font-black uppercase tracking-widest">{errors.description}</p>}
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                             <div className="space-y-3">
-                                <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest">Unit Price (INR)</label>
-                                <input 
-                                    type="number" 
-                                    placeholder="0.00" 
-                                    className="w-full bg-white border border-brand-border rounded-none px-5 py-4 text-brand-text-primary text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-brand-accent transition-colors"
-                                    value={price}
-                                    onChange={(e) => setPrice(e.target.value)}
-                                />
-                                {errors.price && <p className="text-red-600 text-[10px] font-black uppercase tracking-widest">{errors.price}</p>}
-                            </div>
-
-                             <div className="space-y-3">
-                                <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest">Inventory Stock</label>
-                                <input 
-                                    type="number" 
-                                    placeholder="0" 
-                                    className="w-full bg-white border border-brand-border rounded-none px-5 py-4 text-brand-text-primary text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-brand-accent transition-colors"
-                                    value={stock}
-                                    onChange={(e) => setStock(e.target.value)}
-                                />
-                                {errors.stock && <p className="text-red-600 text-[10px] font-black uppercase tracking-widest">{errors.stock}</p>}
-                            </div>
-
-                             <div className="space-y-3">
-                                <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest">Secondary Tag</label>
-                                <select 
-                                    className="appearance-none w-full bg-white border border-brand-border rounded-none px-5 py-4 text-brand-text-primary uppercase text-[10px] font-black tracking-widest focus:outline-none focus:border-brand-accent transition-colors cursor-pointer"
-                                    value={subCategory}
-                                    onChange={(e) => setSubCategory(e.target.value)}
-                                >
-                                    <option value="Topwear">Topwear</option>
-                                    <option value="Bottomwear">Bottomwear</option>
-                                    <option value="Winterwear">Winterwear</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="space-y-5">
-                            <label className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest">Available Sizes</label>
-                            <div className="flex flex-wrap gap-3">
-                                {["S", "M", "L", "XL", "XXL"].map(s => (
-                                    <button 
+                        {/* Sizes */}
+                        <div className="bg-white border border-brand-border p-5">
+                            <p className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest mb-4">Available Sizes</p>
+                            <div className="flex flex-wrap gap-2">
+                                {SIZES.map(s => (
+                                    <button
                                         key={s}
                                         type="button"
-                                        onClick={() => handleSizeToggle(s)}
-                                        className={`w-12 h-12 rounded-none text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center border ${
-                                            sizes.includes(s) 
-                                            ? "bg-brand-accent border-brand-accent text-white" 
-                                            : "bg-white border-brand-border text-brand-text-secondary hover:border-black hover:text-black"
-                                        }`}
+                                        onClick={() => toggleSize(s)}
+                                        className={`w-10 h-10 text-[10px] font-black uppercase tracking-widest border transition-all ${form.sizes.includes(s) ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white border-brand-border text-brand-text-secondary hover:border-black hover:text-black'}`}
                                     >
                                         {s}
                                     </button>
                                 ))}
                             </div>
-                            {errors.sizes && <p className="text-red-600 text-[10px] font-black uppercase tracking-widest">{errors.sizes}</p>}
+                            <ErrorMsg msg={errors.sizes} />
                         </div>
 
-                        <div className="pt-8 border-t border-brand-border">
-                             <label className="flex items-center gap-4 cursor-pointer group">
-                                <div className={`w-6 h-6 rounded-none border flex items-center justify-center transition-all ${bestseller ? "bg-brand-accent border-brand-accent" : "bg-white border-brand-border group-hover:border-black"}`}>
-                                    {bestseller && <Check className="w-4 h-4 text-white" />}
+                        {/* Bestseller toggle */}
+                        <div className="bg-white border border-brand-border p-5">
+                            <label className="flex items-center gap-3 cursor-pointer group">
+                                <div className={`w-5 h-5 border flex items-center justify-center transition-all shrink-0 ${form.bestseller ? 'bg-[#1A1A1A] border-[#1A1A1A]' : 'bg-white border-brand-border group-hover:border-black'}`}>
+                                    {form.bestseller && <Check className="w-3 h-3 text-white" />}
                                 </div>
-                                <input type="checkbox" checked={bestseller} onChange={() => setBestseller(!bestseller)} className="hidden" />
-                                <span className="text-[10px] font-black text-brand-text-secondary uppercase tracking-widest group-hover:text-black transition-colors">Mark as Bestseller / Featured</span>
+                                <input type="checkbox" className="hidden" checked={form.bestseller} onChange={() => setForm(f => ({ ...f, bestseller: !f.bestseller }))} />
+                                <div className="flex items-center gap-2">
+                                    <Star className="w-4 h-4 text-amber-500" />
+                                    <span className="text-sm font-bold text-brand-text-primary">Mark as Bestseller</span>
+                                </div>
                             </label>
                         </div>
                     </div>
 
-                    <div className="flex justify-end pt-6">
-                        <button 
-                            type="submit" 
-                            disabled={loading}
-                            className="px-12 py-4 bg-brand-accent hover:bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-none transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-3"
-                        >
-                            {loading ? (
-                                <>
-                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    Synchronizing...
-                                </>
-                            ) : (
-                                "Commit to Archive"
-                            )}
-                        </button>
+                    {/* Right col: form fields */}
+                    <div className="lg:col-span-2 bg-white border border-brand-border p-5 space-y-5">
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="md:col-span-2 space-y-1.5">
+                                <FieldLabel>Product Name</FieldLabel>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Classic Cotton T-Shirt"
+                                    className={inputCls}
+                                    value={form.name}
+                                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                                />
+                                <ErrorMsg msg={errors.name} />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <FieldLabel>Category</FieldLabel>
+                                <select
+                                    className={inputCls}
+                                    value={form.category}
+                                    onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                                >
+                                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <FieldLabel>Sub-Category</FieldLabel>
+                                <select
+                                    className={inputCls}
+                                    value={form.subCategory}
+                                    onChange={e => setForm(f => ({ ...f, subCategory: e.target.value }))}
+                                >
+                                    {SUBCATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <FieldLabel>Price (₹)</FieldLabel>
+                                <input
+                                    type="number"
+                                    placeholder="0"
+                                    min="0"
+                                    className={inputCls}
+                                    value={form.price}
+                                    onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                                />
+                                <ErrorMsg msg={errors.price} />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <FieldLabel>Stock Quantity</FieldLabel>
+                                <input
+                                    type="number"
+                                    placeholder="0"
+                                    min="0"
+                                    className={inputCls}
+                                    value={form.stock}
+                                    onChange={e => setForm(f => ({ ...f, stock: e.target.value }))}
+                                />
+                                <ErrorMsg msg={errors.stock} />
+                            </div>
+
+                            <div className="md:col-span-2 space-y-1.5">
+                                <FieldLabel>Description</FieldLabel>
+                                <textarea
+                                    rows={5}
+                                    placeholder="Describe the product — material, fit, care instructions..."
+                                    className={inputCls + ' resize-none leading-relaxed'}
+                                    value={form.description}
+                                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                                />
+                                <ErrorMsg msg={errors.description} />
+                            </div>
+                        </div>
+
+                        {/* Submit */}
+                        <div className="flex justify-end pt-3 border-t border-brand-border">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="flex items-center gap-2 px-7 py-3 bg-[#1A1A1A] text-white text-[10px] font-black uppercase tracking-widest hover:bg-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                {loading ? (
+                                    <>
+                                        <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        Adding...
+                                    </>
+                                ) : 'Add Product'}
+                            </button>
+                        </div>
                     </div>
-                </form>
-            </div>
-        </div>
+                </div>
+            </form>
+        </PageShell>
     );
 };
 
-AddProduct.propTypes = {
-    token: PropTypes.string.isRequired
-};
+Add.propTypes = { token: PropTypes.string.isRequired };
 
-export default AddProduct;
+export default Add;
